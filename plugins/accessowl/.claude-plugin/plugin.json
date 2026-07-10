@@ -1,0 +1,11 @@
+{
+  "name": "accessowl",
+  "description": "AccessOwl skills for Claude, built on the AccessOwl REST API.",
+  "version": "0.1.0",
+  "author": {
+    "name": "AccessOwl",
+    "url": "https://github.com/AccessOwl"
+  },
+  "homepage": "https://docs.accessowl.com/api-reference/introduction",
+  "repository": "https://github.com/oaaccessowl/claude-skills"
+}

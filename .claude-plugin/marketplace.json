@@ -1,0 +1,16 @@
+{
+  "name": "accessowl-claude-skills",
+  "description": "Official AccessOwl skills for Claude. Manage access requests, onboarding, offboarding, and audits via the AccessOwl API.",
+  "owner": {
+    "name": "AccessOwl",
+    "url": "https://github.com/AccessOwl"
+  },
+  "plugins": [
+    {
+      "name": "accessowl",
+      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API.",
+      "version": "0.1.0",
+      "source": "./plugins/accessowl"
+    }
+  ]
+}
