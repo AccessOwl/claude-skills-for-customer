@@ -21,7 +21,9 @@ Never call the grant endpoint.
 
 ## API basics
 
-- Base URL: `https://api.accessowl.com/api/v1`
+- Base URL: `https://api.accessowl.com/api/v1`. If the configured AccessOwl
+  connection points to a different host (for example a sandbox environment),
+  use that host with the same `/api/v1` paths.
 - Authentication: the AccessOwl API token configured for this environment
   (Bearer token). Do not ask the user for a token.
 - If a request returns `401` or redirects to a billing page, the AccessOwl API

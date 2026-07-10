@@ -1,5 +1,6 @@
 {
-  "name": "accessowl",
+  "name": "claudetag-for-olivier",
+  "displayName": "ClaudeTag for Olivier",
   "description": "AccessOwl skills for Claude, built on the AccessOwl REST API.",
   "version": "0.1.0",
   "author": {

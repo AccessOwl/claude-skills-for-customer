@@ -7,8 +7,8 @@
   },
   "plugins": [
     {
-      "name": "accessowl",
-      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API.",
+      "name": "claudetag-for-olivier",
+      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API. Testing name - will be renamed to 'accessowl' for public release.",
       "version": "0.1.0",
       "source": "./plugins/accessowl"
     }
