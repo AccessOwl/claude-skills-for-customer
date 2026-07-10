@@ -37,8 +37,11 @@ and do not narrate lookup steps.
 
 ### 1. Identify the person
 
-Resolve the user via `GET /users`, matching on email address. If a name was
-given and more than one person matches, ask which one is meant. Never guess.
+Never ask permission to look something up; this skill is read-only, so just
+do it. Resolve the user via `GET /users`, matching on email address. If a
+name was given and more than one person matches, ask which one is meant, as
+one short question and nothing else ("Which Jan? Share a last name or
+email."). Do not combine it with an offer to proceed. Never guess.
 
 ### 2. Fetch their access
 

@@ -66,6 +66,12 @@ Bullets for what was created, then expectations based on the application's
 - `application_admin`: "This application is not integrated with AccessOwl",
   so an Application Admin is notified (there can be more than one).
 
+## Hard rules for questions
+
+- Never ask permission before a read-only lookup; just do it.
+- When something is ambiguous, ask only the one clarifying question, with no
+  offer to proceed attached ("Which Jan? Share a last name or email.").
+
 ## Hard rules
 
 - Skills only request. Never call the grant endpoint. Never claim an access
