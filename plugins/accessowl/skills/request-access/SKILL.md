@@ -81,11 +81,14 @@ request it again. Say so clearly and professionally, for example:
 
 ### 5. Confirm before creating
 
-Ask for the go-ahead in ONE short message: the person or people, the
-application, and the permission by title. Nothing else. For example:
+Ask for the go-ahead in ONE short message, as a bullet list: one bullet per
+person with the permission by title. Nothing else. For example:
 
-> Ready to submit 17hats access requests for Michael Scott and Jim Halpert,
-> both with the **User** permission. OK to submit?
+> Ready to submit 17hats access requests:
+> - Michael Scott: User
+> - Jim Halpert: User
+>
+> OK to submit?
 
 If there is only one requestable permission, state it as a fact like above;
 do not present it as a choice, comment on its name, or add caveats about it.
@@ -132,10 +135,12 @@ application object):
   once a request is approved, an Application Admin is notified to set up the
   access in the application (there can be more than one admin).
 
-> Done. I created 2 access requests for Maria: HubSpot Enterprise seat and
-> Marketing permission set. They now go through your normal approval flow.
-> HubSpot is integrated with AccessOwl, so once approved, the access will be
-> provisioned automatically.
+> Done. I submitted 2 access requests for Maria:
+> - HubSpot: Enterprise seat
+> - HubSpot: Marketing permission set
+>
+> They now go through your normal approval flow. HubSpot is integrated with
+> AccessOwl, so once approved, the access will be provisioned automatically.
 
 If a request depends on a mandatory resource that was requested at the same
 time, mention that it will show as "Pending dependency" until the mandatory
@@ -144,6 +149,9 @@ resource is provisioned.
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Use short bullet points whenever you list people, permissions, or requests.
+  Keep every message easy to scan.
+- Never use em dashes. Use commas or separate sentences instead.
 - Refer to everything by its title, never by UUID or internal identifiers. If
   a title looks odd or technical, use it as-is without commentary; never call
   a customer's naming odd, weird, or unusual.

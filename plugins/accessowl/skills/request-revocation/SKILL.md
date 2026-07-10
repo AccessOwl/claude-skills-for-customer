@@ -59,11 +59,14 @@ such as "Requested by <name> via Claude".
 
 ### 4. Confirm before creating
 
-Ask for the go-ahead in ONE short message: the person, the application, and
-each access to be revoked, by title. Nothing else. For example:
+Ask for the go-ahead in ONE short message, as a bullet list: one bullet per
+access to be revoked, by title. Nothing else. For example:
 
-> Ready to submit revocation requests for Jan's HubSpot access: Enterprise
-> seat and Sales permission set. OK to submit?
+> Ready to submit revocation requests for Jan's HubSpot access:
+> - Enterprise seat
+> - Sales permission set
+>
+> OK to submit?
 
 Do not create revocations before receiving a clear yes.
 
@@ -85,13 +88,19 @@ close with the matching expectation:
   they confirm it, so it will not show as completed immediately. Say this
   plainly so the user isn't surprised:
 
-> I created 2 revocation requests for Jan's HubSpot access. HubSpot is not
-> integrated with AccessOwl, so an Application Admin has been notified to
-> remove the access and will confirm once done.
+> Done. I submitted 2 revocation requests for Jan:
+> - HubSpot: Enterprise seat
+> - HubSpot: Sales permission set
+>
+> HubSpot is not integrated with AccessOwl, so an Application Admin has been
+> notified to remove the access and will confirm once done.
 
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Use short bullet points whenever you list people, permissions, or accesses.
+  Keep every message easy to scan.
+- Never use em dashes. Use commas or separate sentences instead.
 - Refer to everything by its title, never by UUID or internal identifiers. If
   a title looks odd or technical, use it as-is without commentary; never call
   a customer's naming odd, weird, or unusual.
