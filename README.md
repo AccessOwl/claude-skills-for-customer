@@ -6,15 +6,16 @@ Register this repository once as a plugin marketplace and your team can manage a
 
 > **Status: private / in development.** Will move to the AccessOwl organization before public release.
 
-## Planned skills
+## Skills
 
-| Skill | What it does |
-|---|---|
-| `onboard-new-hire` | Bulk access requests for a new hire, including "gap fill": for every access a colleague has that the new hire doesn't, create a request. Resolves each app's roles and mandatory resources first. |
-| `offboard-user` | Lists everything a person has access to, then creates a revocation per access with a reason. |
-| `access-audit` | Ad-hoc access questions: who has what, filtered by department, manager, or role; reconciliation against external lists. |
-| `userlist-import-preflight` | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |
-| `app-catalog-import` | Creates applications and their full resource/permission structure programmatically; bulk vendor-data updates. |
+| Skill | Status | What it does |
+|---|---|---|
+| `request-access` | ✅ | Creates access requests for a user: resolves the application's resources and permissions, checks what the person already has or has pending, handles mandatory resources, and confirms before creating. |
+| `request-revocation` | ✅ | Revokes a user's access to an application: always establishes who and which app, shows current access, requires a reason, and confirms before creating revocations. |
+| `access-gap-fill` | planned | "For every access this colleague has that this user doesn't, create a request" — diff two users and request only what's missing. |
+| `access-audit` | planned | Ad-hoc access questions: who has what, filtered by department, manager, or role; reconciliation against external lists. |
+| `userlist-import-preflight` | planned | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |
+| `app-catalog-import` | planned | Creates applications and their full resource/permission structure programmatically; bulk vendor-data updates. |
 
 ## Design principles
 
