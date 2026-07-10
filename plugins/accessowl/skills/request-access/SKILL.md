@@ -9,9 +9,12 @@ description: >
 
 # Request Access
 
-Create access requests in AccessOwl through its REST API. Requests you create
-follow the organization's normal approval policies, so nothing is granted
-silently: approvers are notified as usual and the full audit trail is kept.
+Create access requests in AccessOwl through its REST API.
+
+This skill only **requests** access. It never approves, grants, or provisions
+anything itself. Every request goes through the organization's normal approval
+process: approvers are notified as usual and the full audit trail is kept.
+Never call the grant endpoint.
 
 ## API basics
 
@@ -107,11 +110,21 @@ person already holds the mandatory resource, no extra step is needed.
 
 ### 8. Report the result
 
-Confirm what was created, by title, and set expectations:
+Confirm what was created, by title, and make clear that approval is a separate
+step that has not happened yet. Then tell the user what happens after
+approval, based on the application's `provisioning_type` (from the
+application object):
+
+- `automatic`: the application is integrated with AccessOwl, so once a request
+  is approved, AccessOwl provisions the access automatically.
+- `application_admin`: the application is not integrated with AccessOwl, so
+  once a request is approved, an Application Admin is notified to set up the
+  access in the application (there can be more than one admin).
 
 > Done. I created 2 access requests for Maria: HubSpot Enterprise seat and
-> Marketing permission set. They now go through your normal approval flow,
-> and approvers have been notified.
+> Marketing permission set. They now go through your normal approval flow.
+> HubSpot is integrated with AccessOwl, so once approved, the access will be
+> provisioned automatically.
 
 If a request depends on a mandatory resource that was requested at the same
 time, mention that it will show as "Pending dependency" until the mandatory

@@ -10,8 +10,8 @@ Register this repository once as a plugin marketplace and your team can manage a
 
 | Skill | Status | What it does |
 |---|---|---|
-| `request-access` | ✅ | Creates access requests for a user: resolves the application's resources and permissions, checks what the person already has or has pending, handles mandatory resources, and confirms before creating. |
-| `request-revocation` | ✅ | Revokes a user's access to an application: always establishes who and which app, shows current access, requires a reason, and confirms before creating revocations. |
+| `request-access` | ✅ | Creates access requests for a user: resolves the application's resources and permissions, checks what the person already has or has pending, handles mandatory resources, and confirms before creating. Requests only — approval stays with your normal process. |
+| `request-revocation` | ✅ | Creates revocation requests for a user's access to an application: always establishes who and which app, shows current access, requires a reason, and confirms before creating. Never marks a revocation as completed. |
 | `access-gap-fill` | planned | "For every access this colleague has that this user doesn't, create a request" — diff two users and request only what's missing. |
 | `access-audit` | planned | Ad-hoc access questions: who has what, filtered by department, manager, or role; reconciliation against external lists. |
 | `userlist-import-preflight` | planned | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |

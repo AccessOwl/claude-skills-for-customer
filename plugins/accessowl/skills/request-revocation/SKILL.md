@@ -1,17 +1,20 @@
 ---
 name: request-revocation
 description: >
-  Revoke a user's access to an application via AccessOwl. Use whenever someone
-  asks to revoke, remove, or take away access, e.g. "remove Jan's Figma
-  access", "revoke the HubSpot seat for tom@company.com", "Jan left, take away
-  his Salesforce access".
+  Request the revocation of a user's access to an application via AccessOwl.
+  Use whenever someone asks to revoke, remove, or take away access, e.g.
+  "remove Jan's Figma access", "revoke the HubSpot seat for tom@company.com",
+  "Jan left, take away his Salesforce access".
 ---
 
 # Request Revocation
 
-Create access revocations in AccessOwl through its REST API. A revocation is a
-real action: for integrated applications it triggers deprovisioning, so always
-confirm before creating one.
+Create revocation requests in AccessOwl through its REST API.
+
+This skill only **requests** revocations. It never marks an access as revoked
+or completes a revocation itself. Starting a revocation is still a real
+action, though: for integrated applications it triggers deprovisioning, so
+always confirm before creating one.
 
 ## API basics
 
@@ -60,16 +63,20 @@ For each selected access state: `POST /access_revocations` with
 
 ### 6. Report the result and set expectations
 
-- For applications with an active integration, AccessOwl deprovisions the
-  access automatically.
-- For applications without an integration, AccessOwl notifies the Application
-  Admin, who removes the access in the application. The revocation stays in
-  progress until they confirm it, so it will not show as completed
-  immediately. Say this plainly so the user isn't surprised:
+Check the application's `provisioning_type` (from the application object) and
+close with the matching expectation:
 
-> I created 2 revocations for Jan's HubSpot access. HubSpot is not an
-> integrated application in your setup, so your Application Admin has been
-> notified to remove the access and will confirm once done.
+- `automatic`: "This application is integrated with AccessOwl", so AccessOwl
+  processes the deprovisioning automatically.
+- `application_admin`: "This application is not integrated with AccessOwl",
+  so an Application Admin is notified to remove the access in the application
+  (there can be more than one admin). The revocation stays in progress until
+  they confirm it, so it will not show as completed immediately. Say this
+  plainly so the user isn't surprised:
+
+> I created 2 revocation requests for Jan's HubSpot access. HubSpot is not
+> integrated with AccessOwl, so an Application Admin has been notified to
+> remove the access and will confirm once done.
 
 ## Tone and style
 
