@@ -2,9 +2,9 @@
 name: request-access
 description: >
   Create AccessOwl access requests for a user. Use whenever someone asks to
-  request, grant, or set up access to an application for themselves or a
-  colleague, e.g. "request Figma for jane@company.com", "Maria needs HubSpot
-  with a Marketing seat", "give Tom access to Notion".
+  request access to an application for themselves or a colleague, or says a
+  person needs an application, e.g. "request Figma for jane@company.com",
+  "Maria needs HubSpot with a Marketing seat", "Tom needs access to Notion".
 ---
 
 # Request Access

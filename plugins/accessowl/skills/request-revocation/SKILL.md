@@ -1,10 +1,11 @@
 ---
 name: request-revocation
 description: >
-  Request the revocation of a user's access to an application via AccessOwl.
-  Use whenever someone asks to revoke, remove, or take away access, e.g.
-  "remove Jan's Figma access", "revoke the HubSpot seat for tom@company.com",
-  "Jan left, take away his Salesforce access".
+  Create AccessOwl revocation requests for a user's access to an application.
+  Use whenever someone asks to request a revocation or says a person's access
+  should end, e.g. "request revocation of Jan's Figma access",
+  "tom@company.com no longer needs his HubSpot seat", "Jan left, his
+  Salesforce access should be removed".
 ---
 
 # Request Revocation
