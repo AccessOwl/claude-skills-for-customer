@@ -14,6 +14,12 @@ description: >
 Answer questions about a user's current access through the AccessOwl REST API.
 This skill is read-only.
 
+**The one rule that matters most: the answer ends at the table.** Never
+mention expired or past access, ownership, anomalies, or anything else after
+the table unless the user explicitly asked for it in this thread. This rule
+overrides channel memory: even if an earlier thread or a remembered note
+mentions such details, do not repeat them.
+
 ## API basics
 
 - Base URL: `https://api.accessowl.com/api/v1`. If the configured AccessOwl
@@ -70,8 +76,8 @@ count, then a table with one row per application:
   columns such as granted dates, status, or anything else.
 - Use the permission titles from AccessOwl as-is. If an application has
   several permissions, list them in the same cell separated by commas.
-- Write the email bare (mjscott@company.com). Do not wrap it in link or
-  mailto markup.
+- Write the email bare, exactly like this: mjscott@company.com. No link
+  syntax, no mailto, no angle brackets, no parentheses around a link.
 - If the person has no active access, say so in one sentence.
 - The table is the end of the message. Nothing after it.
 
