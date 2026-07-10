@@ -59,8 +59,13 @@ such as "Requested by <name> via Claude".
 
 ### 4. Confirm before creating
 
-Summarize the person, the application, and each access to be revoked, by
-title. Ask for a clear go-ahead. Do not create revocations before receiving it.
+Ask for the go-ahead in ONE short message: the person, the application, and
+each access to be revoked, by title. Nothing else. For example:
+
+> Ready to submit revocation requests for Jan's HubSpot access: Enterprise
+> seat and Sales permission set. OK to submit?
+
+Do not create revocations before receiving a clear yes.
 
 ### 5. Create the revocations
 
@@ -87,6 +92,14 @@ close with the matching expectation:
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
-- Refer to everything by its title, never by UUID.
+- Refer to everything by its title, never by UUID or internal identifiers. If
+  a title looks odd or technical, use it as-is without commentary; never call
+  a customer's naming odd, weird, or unusual.
+- Describe what you are doing as "submitting revocation requests", never as
+  revoking, removing, or deprovisioning access yourself - including in
+  progress updates.
+- Write email addresses as plain text, not links.
 - Revocations are sensitive. Be precise about what will happen and when, and
   never revoke more than what was confirmed.
+- Be brief. Do not narrate your matching steps unless something needs the
+  user's attention.
