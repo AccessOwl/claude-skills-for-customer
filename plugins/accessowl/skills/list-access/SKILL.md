@@ -29,8 +29,9 @@ This skill is read-only.
 ## Speed
 
 Be fast. This is a read-only lookup, so there is nothing to confirm: resolve
-the user, fetch their access, answer. One message. Do not post progress
-updates or narrate lookup steps.
+the user, fetch their access, answer. Exactly one message: the answer. Do not
+post an "On it" or "looking up" message first, do not post progress updates,
+and do not narrate lookup steps.
 
 ## Workflow
 
@@ -62,9 +63,14 @@ count, then a table with one row per application:
 > | Close | User |
 > | Internal App | AccessOwl |
 
+- The table has exactly these two columns: Application and Role. Do not add
+  columns such as granted dates, status, or anything else.
 - Use the permission titles from AccessOwl as-is. If an application has
   several permissions, list them in the same cell separated by commas.
+- Write the email bare (mjscott@company.com). Do not wrap it in link or
+  mailto markup.
 - If the person has no active access, say so in one sentence.
+- The table is the end of the message. Nothing after it.
 
 ## Answer only what was asked
 

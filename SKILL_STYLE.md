@@ -21,7 +21,8 @@ Every SKILL.md has, in this order:
    stop, and 429 Retry-After handling.
 4. **Speed**: run independent lookups in parallel, fetch only what's needed,
    no narration of lookup steps. Target: at most two messages, the
-   confirmation question and the result.
+   confirmation question and the result. Read-only skills answer in exactly
+   one message: no "On it" preamble, the first message is the answer.
 5. **Workflow**: numbered steps. Resolve people by email (ask on ambiguity,
    never guess), resolve applications via `title_like` (ask on multiple
    matches), check existing/pending state before writing, confirm before any
