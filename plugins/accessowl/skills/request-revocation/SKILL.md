@@ -5,7 +5,10 @@ description: >
   Use whenever someone asks to request a revocation or says a person's access
   should end, e.g. "request revocation of Jan's Figma access",
   "tom@company.com no longer needs his HubSpot seat", "Jan left, his
-  Salesforce access should be removed".
+  Salesforce access should be removed". Users may also phrase this as
+  "revoke Jan's Figma", "remove Tom from HubSpot", "take away Maria's Slack
+  access", or "offboard Jan from Salesforce" - all of these mean creating a
+  revocation request; this skill never marks access as revoked itself.
 ---
 
 # Request Revocation

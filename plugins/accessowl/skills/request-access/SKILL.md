@@ -5,6 +5,9 @@ description: >
   request access to an application for themselves or a colleague, or says a
   person needs an application, e.g. "request Figma for jane@company.com",
   "Maria needs HubSpot with a Marketing seat", "Tom needs access to Notion".
+  Users may also phrase this as "give Tom Notion", "grant Maria HubSpot",
+  "add Jan to Figma", or "set up Slack for the new hire" - all of these mean
+  creating an access request; this skill never grants access itself.
 ---
 
 # Request Access
