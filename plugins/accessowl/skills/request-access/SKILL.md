@@ -31,6 +31,14 @@ Never call the grant endpoint.
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
 
+## Speed
+
+Be fast. Run independent lookups at the same time (the user, the application,
+and once the application is known, its resources and the person's current
+access). Fetch only what you need and do not narrate lookup steps. The user
+should see at most two messages: the confirmation question (or a clarifying
+question if something is ambiguous) and the result.
+
 ## Workflow
 
 Follow these steps in order. Never skip the confirmation step.

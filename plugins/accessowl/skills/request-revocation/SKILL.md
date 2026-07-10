@@ -32,6 +32,13 @@ always confirm before creating one.
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
 
+## Speed
+
+Be fast. Run independent lookups at the same time (the user and the
+application), fetch only what you need, and do not narrate lookup steps.
+The user should see at most two messages: the confirmation question and the
+result.
+
 ## Workflow
 
 ### 1. Establish who and which application
@@ -44,9 +51,11 @@ application via `GET /applications?title_like=<name>` (ask if several match).
 ### 2. Show what the person currently has
 
 Fetch `GET /access_states?grantee_user_id=<id>&application_id=<id>`. Entries
-with `effective_end: null` are active. Present them by title:
+with `effective_end: null` are active. Present them as a bullet list, by title:
 
-> Jan currently has in HubSpot: Enterprise seat, Sales permission set.
+> Jan currently has in HubSpot:
+> - Enterprise seat
+> - Sales permission set
 
 If the person has no active access to that application, say so and stop.
 
