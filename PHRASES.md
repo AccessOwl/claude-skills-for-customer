@@ -183,6 +183,20 @@ Honest limits to keep out of marketing claims:
 - "Move Figma to the auto-approve policy."
 - "Every finance tool should follow the Finance policy."
 
+## onboarding-status
+
+**Keeping an eye on the pipeline**
+
+- "Any onboardings in progress?"
+- "Which offboardings are scheduled?"
+- "Who is currently being onboarded?"
+
+**Checking one person**
+
+- "Is there an onboarding planned for Maria?"
+- "Is the new hire set up yet?"
+- "Did Jan's offboarding go through?"
+
 ## Combos worth showing in the announcement
 
 - Offboarding, end to end: "What does Jan have access to?" then "He left,
