@@ -54,8 +54,10 @@ email."). Do not combine it with an offer to proceed. Never guess.
 `GET /access_states?grantee_user_id=<id>` with permissions and applications
 expanded. Only entries with `effective_end: null` are active; show only
 those. Leave out entries whose application has `status: discovered`; that is
-discovered usage, not access managed through AccessOwl. Mention discovered
-apps only if the user explicitly asks about discovered or shadow IT usage. If the
+discovered usage, not access managed through AccessOwl. If the person has
+discovered apps, end the answer with exactly one short question: "Do you
+want to see the discovered apps for this user?" and show them only if the
+user says yes. If the
 question is about one specific application, filter to it and answer directly
 ("Yes, Jan has Figma with the Editor permission" or "No, Jan has no active
 Figma access").
@@ -82,7 +84,9 @@ count, then a table with one row per application:
 - Write the email bare, exactly like this: mjscott@company.com. No link
   syntax, no mailto, no angle brackets, no parentheses around a link.
 - If the person has no active access, say so in one sentence.
-- The table is the end of the message. Nothing after it.
+- The table is the end of the message, with one exception: if the person has
+  discovered apps, add the single question "Do you want to see the discovered
+  apps for this user?" and nothing else.
 
 ## Answer only what was asked
 
