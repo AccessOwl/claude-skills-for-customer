@@ -14,7 +14,7 @@ Register this repository once as a plugin marketplace and your team can manage a
 | `request-revocation` | ✅ | Creates revocation requests for a user's access to an application: always establishes who and which app, shows current access, requires a reason, and confirms before creating. Never marks a revocation as completed. |
 | `list-access` | ✅ | Lists what a user currently has access to, as an Application/Role table. Read-only, answers exactly what was asked with no extra commentary. |
 | `mirror-access` | ✅ | "For every access this colleague has that this user doesn't, create a request": shows the colleague's current access, asks all-or-some, diffs against what the target already has or has pending, confirms, then submits only what's missing. |
-| `access-audit` | ✅ | Ad-hoc access questions across users and apps: "everyone in Marketing without HubSpot", "contractors with admin permissions", "who has Figma, grouped by role"; reconciles external user lists against AccessOwl and can turn the gap into access requests after confirmation. |
+| `access-report` | ✅ | Ad-hoc access questions across users and apps: "everyone in Marketing without HubSpot", "contractors with admin permissions", "who has Figma, grouped by role"; reconciles external user lists against AccessOwl and can turn the gap into access requests after confirmation. |
 | `userlist-import-preflight` | planned | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |
 | `app-catalog-import` | planned | Creates applications and their full resource/permission structure programmatically; bulk vendor-data updates. |
 

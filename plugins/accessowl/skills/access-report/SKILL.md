@@ -1,5 +1,5 @@
 ---
-name: access-audit
+name: access-report
 description: >
   Answer access questions across many users or applications in AccessOwl, and
   reconcile AccessOwl against external user lists. Use for questions like
@@ -7,18 +7,21 @@ description: >
   HubSpot", "contractors with admin permissions", "which offboarded users
   still have access to something?", or when the user pastes a list of people
   from another system and asks to compare it against AccessOwl. Users may
-  also phrase this as "audit Figma access", "cross-check this list", "who is
-  missing from Notion?". For a single person's access list, this is not the
+  also phrase this as "run a report on Figma access", "cross-check this
+  list", "who is missing from Notion?", "which offboarded users still have
+  access?", "who has admin permissions in Google Workspace?", "how many
+  people use Zoom?", "who has both Salesforce and HubSpot?", "who got access
+  to Notion in the last 30 days?". For a single person's access list, this is not the
   right skill; that is a simple per-user lookup. This skill is read-only
   unless the user explicitly asks to create access requests from the result.
 ---
 
-# Access Audit
+# Access Report
 
 Answer ad-hoc access questions across users and applications through the
 AccessOwl REST API, and reconcile AccessOwl data against external lists.
 
-Auditing is read-only. The only write this skill may perform is creating
+Reporting is read-only. The only write this skill may perform is creating
 access requests from a reconciliation result, and only after an explicit
 confirmation. It never approves, grants, or revokes anything.
 
