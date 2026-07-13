@@ -15,7 +15,7 @@ Register this repository once as a plugin marketplace and your team can manage a
 | `list-access` | ✅ | Lists what a user currently has access to, as an Application/Role table. Read-only, answers exactly what was asked with no extra commentary. |
 | `mirror-access` | ✅ | "For every access this colleague has that this user doesn't, create a request": shows the colleague's current access, asks all-or-some, diffs against what the target already has or has pending, confirms, then submits only what's missing. |
 | `access-report` | ✅ | Ad-hoc access questions across users and apps: "everyone in Marketing without HubSpot", "contractors with admin permissions", "who has Figma, grouped by role"; reconciles external user lists against AccessOwl and can turn the gap into access requests after confirmation. |
-| `userlist-import-preflight` | planned | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |
+| `userlist-import-preflight` | ✅ | Validates and reformats a raw CSV against an app's real resources and permissions, delivers an import-ready file plus a per-row problem report, and can add missing permissions to the app after explicit confirmation. The import itself runs in AccessOwl (Edit, then Import). |
 | `app-catalog-import` | planned | Creates applications and their full resource/permission structure programmatically; bulk vendor-data updates. |
 
 See [PHRASES.md](PHRASES.md) for the full library of customer phrases per skill.

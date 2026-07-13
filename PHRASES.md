@@ -121,6 +121,24 @@ Honest limits to keep out of marketing claims:
   AccessOwl?"
 - "Compare this CSV from our HR system against who has BambooHR access."
 
+## userlist-import-preflight
+
+**Getting a user list in**
+
+- "Here's our ChatGPT user export, get it ready for the AccessOwl import."
+- "Validate this CSV against our Notion app before I import it."
+- "Prepare this user list for import into 1Password."
+
+**Fixing import errors**
+
+- "The importer says my permission names don't match, fix this CSV."
+- "Which rows in this file won't import, and why?"
+
+**Structure first**
+
+- "What structure does our HubSpot app expect for a user list import?"
+- "Add the missing permissions to the app so this list can import."
+
 ## Combos worth showing in the announcement
 
 - Offboarding, end to end: "What does Jan have access to?" then "He left,
