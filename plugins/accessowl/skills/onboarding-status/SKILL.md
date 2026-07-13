@@ -62,16 +62,26 @@ user's profile in AccessOwl. Never guess a date.
 
 ### Org-wide questions ("any onboardings in progress?")
 
-Query the relevant statuses in parallel (paginate fully). Lead with the
-count, then one bullet per person with their status in plain words:
+Query the relevant statuses in parallel (paginate fully). Also fetch
+`GET /access_requests` once and match the people on your side, so each
+bullet can show progress: count requests with status `access_granted` as
+done, and `scheduled`, `pending_approval`, `pending_permissions_assignment`,
+`processing_access`, and `pending_dependency` as still open. Lead with the
+count, then one bullet per person:
 
 > 3 onboardings and 1 offboarding are open:
-> - Maria Fernandez: onboarding planned
-> - Tom Okafor: onboarding in progress
+> - Maria Fernandez: onboarding planned, 4 apps scheduled
+> - Tom Okafor: onboarding in progress, 2 of 3 apps set up, 1 still open
 > - Lisa Chen: onboarding in progress
 > - Jan Levinson: offboarding planned
 >
 > The scheduled dates are on each user's profile in AccessOwl.
+
+The API only shows the access requests behind an onboarding, not the
+onboarding's own checklist, so some assigned apps may not appear. When a
+person has no visible requests, leave the bullet at their status; the full
+picture is on their profile in AccessOwl. Never present the request counts
+as the complete app list.
 
 Only include the statuses that were asked about. "Any onboardings?" means
 planned plus in progress, not offboardings.
