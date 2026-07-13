@@ -139,6 +139,27 @@ Honest limits to keep out of marketing claims:
 - "What structure does our HubSpot app expect for a user list import?"
 - "Add the missing permissions to the app so this list can import."
 
+## app-catalog-import
+
+**Day one: seed the catalog**
+
+- "Here's our vendor spreadsheet, add all of these apps to AccessOwl."
+- "Create Zoom, Miro, and Datadog in AccessOwl, Maria owns them."
+- "Onboard our app list into AccessOwl."
+
+**Defining roles and permissions**
+
+- (screenshot of an admin console) "Set up these roles on our Zoom app."
+- "Add a License resource to Notion with Basic and Licensed."
+- "Our Figma roles changed, add the new Editor role."
+
+**Vendor bookkeeping**
+
+- "Set the risk level for these five apps to high."
+- "We finished the vendor review for Slack, record today's date."
+- "Zoom is SOC 2 Type II and ISO 27001 certified, store that."
+- "Mark all our Google SSO apps with MFA activated."
+
 ## Combos worth showing in the announcement
 
 - Offboarding, end to end: "What does Jan have access to?" then "He left,
