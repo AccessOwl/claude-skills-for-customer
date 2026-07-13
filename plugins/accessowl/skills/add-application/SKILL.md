@@ -77,8 +77,12 @@ table, or a screenshot of an application's admin console.
 - The API cannot mark a resource as single-choice or multi-choice, and it
   cannot mark a resource as mandatory. If that matters, tell the user to set
   it on the application in AccessOwl after the import.
-- An application can also be created with no roles at all; it is then a bare
-  catalog entry.
+- Every application in AccessOwl needs at least one resource with a
+  permission; the API rejects a create without one. If no roles were
+  provided, ask once, covering the whole batch: "AccessOwl needs at least
+  one role per application. What are the roles for Mixpanel? For example
+  Member and Admin, or share the roles page from its admin console." Never
+  invent roles the user did not give you.
 
 ### 3. Resolve the owner
 
@@ -98,7 +102,8 @@ application's structure as an indented list:
 > - Role: Member, Admin, Owner
 > - License: Basic, Licensed
 >
-> **Miro** (no roles provided, created without a structure)
+> **Miro**
+> - Role: Member, Admin
 >
 > Notion already exists, so I will only add the Editor role to it.
 >
