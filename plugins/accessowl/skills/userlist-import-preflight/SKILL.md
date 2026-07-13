@@ -81,8 +81,12 @@ Build a fresh CSV in exactly the importer's format:
 - One column per resource, using the exact resource titles. Child resources
   get their own column, without the parent name as a prefix.
 - Cell values are permission titles, rewritten to the exact AccessOwl titles.
-  Capitalization differences are fine to auto-correct; anything else that
-  does not match a real permission is a problem row, never a guess.
+  AccessOwl's titles are canonical: when a CSV value clearly corresponds to
+  one permission (case difference, an extra or missing word such as
+  "Premium" for "Premium Seat", singular/plural), correct it automatically
+  and list the correction in the report. Do not ask. Only ask when a value
+  has no plausible match or two possible matches; then offer the available
+  titles, or to add the permission to the application.
 - Multiple permissions for the same resource go in one cell separated by
   semicolons with no spaces (Admin;Editor).
 - When a user has several combinations across separate resources, duplicate
@@ -90,28 +94,51 @@ Build a fresh CSV in exactly the importer's format:
 - Leave a cell empty when the user has no permission for that resource.
 - Drop every column that does not map to a resource.
 
-Also check every email against `GET /users` (all pages) and flag emails that
-do not exist in AccessOwl. If mandatory resources were named in step 2, flag
-every row that leaves a mandatory resource empty.
+Emails are never corrected or flagged as errors: the file comes from the
+application, so its emails are the truth. Check them against `GET /users`
+(all pages) only to classify each row: emails that match an AccessOwl user
+import onto that user; emails that match nobody import as new users. Report
+both groups.
+
+If mandatory resources were named in step 2, flag every row that leaves a
+mandatory resource empty.
+
+**The import replaces the application's userlist.** After importing, the CSV
+is the complete truth for that application; existing entitlements not in the
+file are removed. Compare the file against the application's current active
+access states (`GET /access_states?application_id=`) and warn by name which
+current users are absent from the file. If removing them is not intended,
+offer to append their current access as extra rows.
 
 ### 5. Report and deliver
 
-One message: the count of import-ready rows, the clean CSV as a downloadable
-file containing only those rows, and a bullet list of the rows that were
-left out, each with exactly what is wrong and how to fix it:
+One message: a report, then the CSV as a downloadable file with ALL rows.
+The report covers, as short bullet groups:
 
-> **18 of 21 rows are import-ready.** Here is the cleaned CSV.
+- Which rows match existing AccessOwl users, and which will be imported as
+  new users.
+- Corrections applied automatically (value renames, merged duplicate rows,
+  dropped columns).
+- Values that still need one decision (no plausible match).
+- The replacement warning: who is in AccessOwl for this application today
+  but not in the file, and will lose that access on import.
+
+> **All 5 rows are in the file.** 4 match existing AccessOwl users; 1
+> (levinson@dundermufflins.com) will be imported as a new user.
 >
-> These 3 rows are not included:
-> - maria@company.com: permission "Marketting" does not exist in AccessOwl.
->   Closest match is "Marketing", fix the name or confirm and I will correct
->   it.
-> - jan@company.com: not a user in AccessOwl. Add the user first, then
->   re-import this row.
-> - tom@company.com: missing the mandatory Workspace Role.
+> Corrected automatically:
+> - "Premium" is called "Premium Seat" in AccessOwl, renamed in 2 rows.
+> - Jim Halpert's two rows merged into one.
 >
-> To import: open ChatGPT in AccessOwl, click Edit, then Import, and upload
-> the file. Review the preview and confirm.
+> Needs a decision:
+> - "Member" is not a Role in AccessOwl (available: User, Admin, Owner).
+>   Tell me which to use, or I can add "Member" to the application.
+>
+> Replacement warning: this import replaces the current userlist. Nobody
+> currently in AccessOwl for this application is missing from the file.
+>
+> To import: open the application in AccessOwl, click Edit, then Import, and
+> upload the file. Review the preview and confirm.
 
 Deliver the CSV as a file, not pasted text, unless it is only a few rows.
 
@@ -138,7 +165,8 @@ deliver an updated CSV.
   a customer's naming odd, weird, or unusual.
 - Write email addresses bare, exactly like this: maria@company.com. No link
   syntax, no mailto.
-- Every problem row states what is wrong AND the fix, in one bullet.
-- Never guess a permission mapping. Case differences are auto-corrected;
-  anything else is flagged with the closest match as a suggestion the user
-  must confirm.
+- Every open item states what is wrong AND the fix, in one bullet.
+- AccessOwl titles are canonical. Unambiguous value variants are corrected
+  automatically and reported; never silently, and never guessed when the
+  match is unclear.
+- Never correct an email address. The application's export is the truth.
