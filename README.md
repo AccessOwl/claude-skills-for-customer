@@ -18,6 +18,8 @@ Register this repository once as a plugin marketplace and your team can manage a
 | `userlist-import-preflight` | planned | Validates and reformats a raw CSV against an app's real resources and permissions before using AccessOwl's userlist importer, and reports exactly which rows can't be mapped. |
 | `app-catalog-import` | planned | Creates applications and their full resource/permission structure programmatically; bulk vendor-data updates. |
 
+See [PHRASES.md](PHRASES.md) for the full library of customer phrases per skill.
+
 ## Design principles
 
 - **Never guess mandatory resources.** Every skill resolves an application's resources and permissions via the API before creating requests.
