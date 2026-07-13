@@ -1,14 +1,15 @@
 ---
 name: create-custom-application
 description: >
-  Create custom applications in AccessOwl and define their roles and
-  permissions. Use whenever someone wants to add an internal tool or an
-  application to AccessOwl, e.g. "add our internal admin tool to AccessOwl
-  with User and Admin roles", "create these 10 apps from our vendor list",
-  "here are the roles from our Notion admin console, set them up", "add an
-  Editor role to our Figma app". Users may also phrase this as "onboard our
-  apps", "seed our catalog", "import our app list", or paste a screenshot of
-  an app's roles page. This skill creates custom catalog entries after
+  Create custom applications in AccessOwl for internal and self-hosted
+  tools, and define their roles and permissions. Use whenever someone wants
+  to add an internal application to AccessOwl or set up roles on a custom
+  app, e.g. "add our internal admin dashboard to AccessOwl with User and
+  Admin roles", "create an app for our data warehouse, IT owns it", "here
+  are the roles of our billing tool, set them up", "add a Read-Only role to
+  our admin dashboard". Users may also phrase this as "onboard our internal
+  tools", "make our self-hosted GitLab requestable", or paste a role list
+  or screenshot. This skill creates custom catalog entries after
   confirmation; the applications it creates can never be connected to an
   integration, and it never imports users or grants anyone access.
 ---
@@ -17,7 +18,7 @@ description: >
 
 Create custom applications in AccessOwl and define their resources and
 permissions, through the REST API. Works for one application or a whole
-list. Best suited for internal tools and applications AccessOwl will not
+list. This is for internal, self-hosted, and other tools AccessOwl will not
 manage through an integration.
 
 **Every application created here is a custom application.** It is not
@@ -66,8 +67,8 @@ For every application named, look it up first with
   instead of creating.
 - Several existing applications match one name: ask which one is meant.
 
-State the split plainly in the confirmation ("3 new applications, Notion
-already exists so I will only add the new roles to it").
+State the split plainly in the confirmation ("2 new applications, the
+Billing Dashboard already exists so I will only add the new roles to it").
 
 ### 2. Parse the roles and permissions
 
@@ -88,9 +89,9 @@ table, or a screenshot of an application's admin console.
 - Every application in AccessOwl needs at least one resource with a
   permission; the API rejects a create without one. If no roles were
   provided, ask once, covering the whole batch: "AccessOwl needs at least
-  one role per application. What are the roles for Mixpanel? For example
-  Member and Admin, or share the roles page from its admin console." Never
-  invent roles the user did not give you.
+  one role per application. What are the roles for the Admin Dashboard? For
+  example User and Admin, or share its role list." Never invent roles the
+  user did not give you.
 
 ### 3. Resolve the owner
 
@@ -109,13 +110,14 @@ list:
 > their Application Admins for provisioning instead of connecting an
 > integration. Ready to create 2, owned by Maria Fernandez:
 >
-> **Internal Admin Tool**
+> **Admin Dashboard**
 > - Role: User, Admin
 >
-> **Miro**
-> - Role: Member, Admin
+> **Data Warehouse**
+> - Role: Analyst, Engineer
 >
-> Notion already exists, so I will only add the Editor role to it.
+> The Billing Dashboard already exists, so I will only add the Read-Only
+> role to it.
 >
 > OK to go ahead?
 
@@ -140,9 +142,9 @@ created or changed. Close with the one manual step that remains, only if
 relevant:
 
 > Done. 2 applications created and 1 updated:
-> - Internal Admin Tool: created with Role, 2 permissions
-> - Miro: created with Role, 2 permissions
-> - Notion: Editor role added
+> - Admin Dashboard: created with Role, 2 permissions
+> - Data Warehouse: created with Role, 2 permissions
+> - Billing Dashboard: Read-Only role added
 >
 > They are now in your catalog and requestable. To bring in who already uses
 > them, share each app's user export and I will prepare it for the userlist

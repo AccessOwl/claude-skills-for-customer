@@ -141,17 +141,18 @@ Honest limits to keep out of marketing claims:
 
 ## create-custom-application
 
-**Day one: seed the catalog**
+**Adding internal tools**
 
-- "Here's our vendor spreadsheet, add all of these apps to AccessOwl."
-- "Create Zoom, Miro, and Datadog in AccessOwl, Maria owns them."
-- "Onboard our app list into AccessOwl."
+- "Add our internal admin dashboard to AccessOwl with User and Admin roles."
+- "Create an app for our data warehouse, IT owns it."
+- "Make our self-hosted GitLab requestable in AccessOwl."
+- "Add these three internal tools to AccessOwl, here's the list."
 
 **Defining roles and permissions**
 
-- (screenshot of an admin console) "Set up these roles on our Zoom app."
-- "Add a License resource to Notion with Basic and Licensed."
-- "Our Figma roles changed, add the new Editor role."
+- (pasted role list or screenshot) "Here are the roles of our billing tool, set them up."
+- "Add a Read-Only role to our admin dashboard."
+- "Our internal CRM got a new Support role, add it."
 
 ## vendor-update
 
