@@ -139,7 +139,7 @@ Honest limits to keep out of marketing claims:
 - "What structure does our HubSpot app expect for a user list import?"
 - "Add the missing permissions to the app so this list can import."
 
-## app-catalog-import
+## add-application
 
 **Day one: seed the catalog**
 
@@ -153,12 +153,20 @@ Honest limits to keep out of marketing claims:
 - "Add a License resource to Notion with Basic and Licensed."
 - "Our Figma roles changed, add the new Editor role."
 
-**Vendor bookkeeping**
+## vendor-update
+
+**Risk and compliance bookkeeping**
 
 - "Set the risk level for these five apps to high."
 - "We finished the vendor review for Slack, record today's date."
 - "Zoom is SOC 2 Type II and ISO 27001 certified, store that."
 - "Mark all our Google SSO apps with MFA activated."
+
+**Housekeeping**
+
+- "Tag all our marketing tools with Marketing."
+- "Datadog stores data in the EU, record that."
+- "Maria took over as owner of Figma, update it."
 
 ## Combos worth showing in the announcement
 
