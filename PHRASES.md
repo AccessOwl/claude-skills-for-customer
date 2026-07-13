@@ -139,7 +139,7 @@ Honest limits to keep out of marketing claims:
 - "What structure does our HubSpot app expect for a user list import?"
 - "Add the missing permissions to the app so this list can import."
 
-## add-application
+## create-custom-application
 
 **Day one: seed the catalog**
 
@@ -167,6 +167,20 @@ Honest limits to keep out of marketing claims:
 - "Tag all our marketing tools with Marketing."
 - "Datadog stores data in the EU, record that."
 - "Maria took over as owner of Figma, update it."
+
+## update-policy
+
+**Understanding the setup**
+
+- "What approval policies do we have?"
+- "Which policy covers Salesforce?"
+- "Which apps auto-approve requests?"
+
+**Moving apps between policies**
+
+- "Add HubSpot and Notion to our Critical Applications policy."
+- "Move Figma to the auto-approve policy."
+- "Every finance tool should follow the Finance policy."
 
 ## Combos worth showing in the announcement
 

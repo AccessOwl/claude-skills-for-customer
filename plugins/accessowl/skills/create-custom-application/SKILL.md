@@ -1,30 +1,37 @@
 ---
-name: add-application
+name: create-custom-application
 description: >
-  Add applications to AccessOwl and define their roles and permissions. Use
-  whenever someone wants to create one or more applications in AccessOwl or
-  set up an application's access structure, e.g. "add Zoom to AccessOwl with
-  Member, Admin, and Owner roles", "create these 10 apps from our vendor
-  list", "here are the roles from our Notion admin console, set them up",
-  "add an Editor role to our Figma app". Users may also phrase this as
-  "onboard our apps", "seed our catalog", "import our app list", or paste a
-  screenshot of an app's roles page. This skill creates and updates catalog
-  entries after confirmation; it never connects an integration, imports
-  users, or grants anyone access.
+  Create custom applications in AccessOwl and define their roles and
+  permissions. Use whenever someone wants to add an internal tool or an
+  application to AccessOwl, e.g. "add our internal admin tool to AccessOwl
+  with User and Admin roles", "create these 10 apps from our vendor list",
+  "here are the roles from our Notion admin console, set them up", "add an
+  Editor role to our Figma app". Users may also phrase this as "onboard our
+  apps", "seed our catalog", "import our app list", or paste a screenshot of
+  an app's roles page. This skill creates custom catalog entries after
+  confirmation; the applications it creates can never be connected to an
+  integration, and it never imports users or grants anyone access.
 ---
 
-# Add Application
+# Create Custom Application
 
-Create applications in AccessOwl and define their resources and permissions,
-through the REST API. Works for one application or a whole list.
+Create custom applications in AccessOwl and define their resources and
+permissions, through the REST API. Works for one application or a whole
+list. Best suited for internal tools and applications AccessOwl will not
+manage through an integration.
 
-This skill only manages **catalog entries**. It never grants access, never
-imports users, and never connects an integration. An application created here
-is always a plain catalog entry: the API cannot create an integration-linked
-application or pick one from AccessOwl's app directory, so do not claim the
-new application is integrated, connected, or synced. To get users into an
-application, point to access requests or the userlist import in AccessOwl
-(open the application, click Edit, then Import).
+**Every application created here is a custom application.** It is not
+matched to AccessOwl's built-in app catalog and it can never be connected
+to an integration or an integration account; provisioning for it always
+goes through its Application Admins. Make this clear before creating,
+without asking about it: if the user wants the application connected to an
+integration, tell them to add it in AccessOwl itself, where they can pick
+the vendor from the built-in catalog and connect the integration. That is
+not possible through the API today.
+
+This skill never grants access and never imports users. To get users into
+an application, point to access requests or the userlist import in
+AccessOwl (open the application, click Edit, then Import).
 
 ## API basics
 
@@ -72,7 +79,8 @@ table, or a screenshot of an application's admin console.
 - Group into resources the way the application groups them (for example
   Role, Seat, Team). Each resource holds its options as permissions.
 - Mark admin-level permissions (Admin, Owner, Super Admin and similar) as
-  `elevated: true`.
+  `elevated: true`. When the user calls a role high risk or admin-level,
+  mark it elevated too.
 - Descriptions, when the source shows them: short, plain, no periods.
 - The API cannot mark a resource as single-choice or multi-choice, and it
   cannot mark a resource as mandatory. If that matters, tell the user to set
@@ -93,14 +101,16 @@ guess.
 
 ### 4. Confirm before writing
 
-One short message covering everything, then one question. Show each new
-application's structure as an indented list:
+One short message covering everything, then one question. State the custom
+nature once, then show each new application's structure as an indented
+list:
 
-> Ready to create 2 applications in AccessOwl, owned by Maria Fernandez:
+> These will be created as custom applications, so AccessOwl will notify
+> their Application Admins for provisioning instead of connecting an
+> integration. Ready to create 2, owned by Maria Fernandez:
 >
-> **Zoom**
-> - Role: Member, Admin, Owner
-> - License: Basic, Licensed
+> **Internal Admin Tool**
+> - Role: User, Admin
 >
 > **Miro**
 > - Role: Member, Admin
@@ -130,8 +140,8 @@ created or changed. Close with the one manual step that remains, only if
 relevant:
 
 > Done. 2 applications created and 1 updated:
-> - Zoom: created with Role and License, 5 permissions
-> - Miro: created
+> - Internal Admin Tool: created with Role, 2 permissions
+> - Miro: created with Role, 2 permissions
 > - Notion: Editor role added
 >
 > They are now in your catalog and requestable. To bring in who already uses
@@ -153,7 +163,8 @@ users were added.
   a title looks odd or technical, use it as-is without commentary; never call
   a customer's naming odd, weird, or unusual.
 - Write email addresses as plain text, not links.
-- State what you will NOT do and why (already exists, cannot set mandatory
-  via the API) before stating what you will do.
+- State what you will NOT do and why (already exists, cannot connect an
+  integration, cannot set mandatory via the API) before stating what you
+  will do.
 - Be brief. One confirmation message for the whole batch beats one question
   per application.

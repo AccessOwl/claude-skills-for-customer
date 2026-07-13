@@ -16,8 +16,9 @@ Register this repository once as a plugin marketplace and your team can manage a
 | `mirror-access` | ✅ | "For every access this colleague has that this user doesn't, create a request": shows the colleague's current access, asks all-or-some, diffs against what the target already has or has pending, confirms, then submits only what's missing. |
 | `access-report` | ✅ | Ad-hoc access questions across users and apps: "everyone in Marketing without HubSpot", "contractors with admin permissions", "who has Figma, grouped by role"; reconciles external user lists against AccessOwl and can turn the gap into access requests after confirmation. |
 | `userlist-import-preflight` | ✅ | Validates and reformats a raw CSV against an app's real resources and permissions, delivers an import-ready file plus a per-row problem report, and can add missing permissions to the app after explicit confirmation. The import itself runs in AccessOwl (Edit, then Import). |
-| `add-application` | ✅ | Adds applications to AccessOwl and defines their roles and permissions from lists, spreadsheets, or admin-console screenshots. Catalog entries only, never connects an integration or imports users. |
+| `create-custom-application` | ✅ | Creates custom applications in AccessOwl and defines their roles and permissions from lists, spreadsheets, or admin-console screenshots. Custom entries only: they can never be connected to an integration, and no users are imported. |
 | `vendor-update` | ✅ | Updates vendor details on existing applications, in bulk: risk level, data location, auth method, MFA, security certificates, vendor review dates, processed data types, and tags. |
+| `update-policy` | ✅ | Lists approval policies (default, elevated, covered apps) and changes which applications a policy covers. Creating policies and changing approvers stays in AccessOwl under Settings → Policies. |
 
 See [PHRASES.md](PHRASES.md) for the full library of customer phrases per skill.
 
