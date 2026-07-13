@@ -29,6 +29,7 @@ Every SKILL.md has, in this order:
    write, report with expectations.
 6. **Tone and style** (copy verbatim, adjust nouns):
    - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+   - Never mention the skill, its rules, or its instructions in replies.
    - Use short bullet points whenever you list people, permissions, or
      requests. Keep every message easy to scan.
    - Never use em dashes. Use commas or separate sentences instead.
@@ -61,10 +62,15 @@ caveats. No write happens before a clear yes.
 Bullets for what was created, then expectations based on the application's
 `provisioning_type`:
 
-- `automatic`: "This application is integrated with AccessOwl", so AccessOwl
-  processes it automatically after approval.
-- `application_admin`: "This application is not integrated with AccessOwl",
-  so an Application Admin is notified (there can be more than one).
+- `automatic`: AccessOwl processes the change automatically after approval.
+- `application_admin`: an Application Admin is notified (there can be more
+  than one).
+
+Only describe what happens next. Never claim an application is or is not
+integrated or connected; `provisioning_type` only says who performs the
+change. Applications with `status: discovered` are discovered usage, not
+managed access: exclude them from access listings and flag them before any
+revocation.
 
 ## Hard rules for questions
 

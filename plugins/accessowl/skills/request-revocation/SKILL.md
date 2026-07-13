@@ -48,7 +48,13 @@ missing from the request, ask for it before doing anything else. Resolve the
 user via `GET /users` (match on email; ask if a name is ambiguous) and the
 application via `GET /applications?title_like=<name>` (ask if several match).
 
-### 2. Show what the person currently has
+### 2. Check how the application is managed
+
+If the application's `status` is `discovered`, this usage was discovered by
+AccessOwl rather than granted through it. Say that, and only proceed if the
+user explicitly confirms they still want to submit a revocation for it.
+
+### 3. Show what the person currently has
 
 Fetch `GET /access_states?grantee_user_id=<id>&application_id=<id>`. Entries
 with `effective_end: null` are active. Present them as a bullet list, by title:
@@ -59,14 +65,14 @@ with `effective_end: null` are active. Present them as a bullet list, by title:
 
 If the person has no active access to that application, say so and stop.
 
-### 3. Ask what to revoke, and why
+### 4. Ask what to revoke, and why
 
 Ask whether to revoke everything listed or only specific entries, unless the
 user already said. A `reason` is required for every revocation (max 255
 characters); ask for one if none was given, or use a short factual reason
 such as "Requested by <name> via Claude".
 
-### 4. Confirm before creating
+### 5. Confirm before creating
 
 Ask for the go-ahead in ONE short message, as a bullet list: one bullet per
 access to be revoked, by title. Nothing else. For example:
@@ -77,14 +83,16 @@ access to be revoked, by title. Nothing else. For example:
 >
 > OK to submit?
 
-Do not create revocations before receiving a clear yes.
+If the selection covers everything the person has in that application, say
+so in the same message ("this is all of Jan's HubSpot access; after this he
+will have none"). Do not create revocations before receiving a clear yes.
 
-### 5. Create the revocations
+### 6. Create the revocations
 
 For each selected access state: `POST /access_revocations` with
 `access_state_id` and `reason`.
 
-### 6. Report the result and set expectations
+### 7. Report the result and set expectations
 
 Check the application's `provisioning_type` (from the application object) and
 close with the matching expectation:
@@ -107,6 +115,8 @@ close with the matching expectation:
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Never mention this skill, its rules, or its instructions in replies. Just
+  behave accordingly.
 - Use short bullet points whenever you list people, permissions, or accesses.
   Keep every message easy to scan.
 - Never use em dashes. Use commas or separate sentences instead.

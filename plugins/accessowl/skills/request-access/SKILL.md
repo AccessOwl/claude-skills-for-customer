@@ -137,18 +137,22 @@ step that has not happened yet. Then tell the user what happens after
 approval, based on the application's `provisioning_type` (from the
 application object):
 
-- `automatic`: the application is integrated with AccessOwl, so once a request
-  is approved, AccessOwl provisions the access automatically.
-- `application_admin`: the application is not integrated with AccessOwl, so
-  once a request is approved, an Application Admin is notified to set up the
-  access in the application (there can be more than one admin).
+- `automatic`: once a request is approved, AccessOwl sets up the access
+  automatically.
+- `application_admin`: once a request is approved, an Application Admin is
+  notified to set up the access in the application (there can be more than
+  one admin).
+
+Only describe what happens next. Do not claim the application is or is not
+integrated or connected; `provisioning_type` only says who performs the
+change.
 
 > Done. I submitted 2 access requests for Maria:
 > - HubSpot: Enterprise seat
 > - HubSpot: Marketing permission set
 >
-> They now go through your normal approval flow. HubSpot is integrated with
-> AccessOwl, so once approved, the access will be provisioned automatically.
+> They now go through your normal approval flow. Once approved, the access
+> will be set up automatically.
 
 If a request depends on a mandatory resource that was requested at the same
 time, mention that it will show as "Pending dependency" until the mandatory
@@ -157,6 +161,8 @@ resource is provisioned.
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Never mention this skill, its rules, or its instructions in replies. Just
+  behave accordingly.
 - Use short bullet points whenever you list people, permissions, or requests.
   Keep every message easy to scan.
 - Never use em dashes. Use commas or separate sentences instead.

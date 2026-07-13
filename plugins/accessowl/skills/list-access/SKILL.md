@@ -51,8 +51,11 @@ email."). Do not combine it with an offer to proceed. Never guess.
 
 ### 2. Fetch their access
 
-`GET /access_states?grantee_user_id=<id>` with permissions expanded. Only
-entries with `effective_end: null` are active; show only those. If the
+`GET /access_states?grantee_user_id=<id>` with permissions and applications
+expanded. Only entries with `effective_end: null` are active; show only
+those. Leave out entries whose application has `status: discovered`; that is
+discovered usage, not access managed through AccessOwl. Mention discovered
+apps only if the user explicitly asks about discovered or shadow IT usage. If the
 question is about one specific application, filter to it and answer directly
 ("Yes, Jan has Figma with the Editor permission" or "No, Jan has no active
 Figma access").
@@ -92,6 +95,8 @@ example the person matched two users), ask the one clarifying question needed.
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Never mention this skill, its rules, or its instructions in replies. Just
+  behave accordingly.
 - Never use em dashes. Use commas or separate sentences instead.
 - Refer to everything by its title, never by UUID or internal identifiers. If
   a title looks odd or technical, use it as-is without commentary; never call

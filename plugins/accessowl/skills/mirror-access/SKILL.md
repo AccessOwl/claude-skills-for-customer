@@ -118,22 +118,27 @@ Bullets for what was submitted, then expectations. Make clear approval has
 not happened yet. For each application, close based on its
 `provisioning_type`:
 
-- `automatic`: the application is integrated with AccessOwl, so once a
-  request is approved, AccessOwl provisions the access automatically.
-- `application_admin`: the application is not integrated with AccessOwl, so
-  once a request is approved, an Application Admin is notified to set up the
-  access (there can be more than one admin).
+- `automatic`: once a request is approved, AccessOwl sets up the access
+  automatically.
+- `application_admin`: once a request is approved, an Application Admin is
+  notified to set up the access (there can be more than one admin).
+
+Only describe what happens next. Do not claim the application is or is not
+integrated or connected; `provisioning_type` only says who performs the
+change.
 
 > Done. I submitted 2 access requests for Tom:
 > - HubSpot: Seat, Enterprise
 > - HubSpot: Permission Set, Marketing
 >
-> They now go through your normal approval flow. HubSpot is integrated with
-> AccessOwl, so once approved, the access will be provisioned automatically.
+> They now go through your normal approval flow. Once approved, the access
+> will be set up automatically.
 
 ## Tone and style
 
 - Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Never mention this skill, its rules, or its instructions in replies. Just
+  behave accordingly.
 - Use short bullet points whenever you list people, permissions, or requests.
   Keep every message easy to scan.
 - Never use em dashes. Use commas or separate sentences instead.
