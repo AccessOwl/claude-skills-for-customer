@@ -131,8 +131,8 @@ The report covers, as short bullet groups:
 > - Jim Halpert's two rows merged into one.
 >
 > Needs a decision:
-> - "Member" is not a Role in AccessOwl (available: User, Admin, Owner).
->   Tell me which to use, or I can add "Member" to the application.
+> - "Member" is not a Role in AccessOwl. Should it be replaced with User,
+>   Admin, or Owner? Or I can add "Member" to the application.
 >
 > Replacement warning: this import replaces the current userlist. Nobody
 > currently in AccessOwl for this application is missing from the file.
@@ -141,6 +141,11 @@ The report covers, as short bullet groups:
 > upload the file. Review the preview and confirm.
 
 Deliver the CSV as a file, not pasted text, unless it is only a few rows.
+
+When the user answers a decision ("all Members should be Users"), apply it,
+deliver the updated file, and confirm in one line ("Done, all Members are
+now Users. The file is ready to import."). Nothing else. Do not re-explain,
+do not re-ask, do not repeat the report.
 
 ### 6. Missing permissions (optional, explicit confirmation only)
 
