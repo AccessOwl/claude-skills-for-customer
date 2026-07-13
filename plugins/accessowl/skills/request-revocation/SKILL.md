@@ -17,8 +17,8 @@ Create revocation requests in AccessOwl through its REST API.
 
 This skill only **requests** revocations. It never marks an access as revoked
 or completes a revocation itself. Starting a revocation is still a real
-action, though: for integrated applications it triggers deprovisioning, so
-always confirm before creating one.
+action, though: when AccessOwl handles the application's provisioning, it
+triggers the actual removal, so always confirm before creating one.
 
 ## API basics
 
@@ -95,22 +95,22 @@ For each selected access state: `POST /access_revocations` with
 ### 7. Report the result and set expectations
 
 Check the application's `provisioning_type` (from the application object) and
-close with the matching expectation:
+close with the matching expectation. Only describe what happens next; do not
+claim the application is or is not integrated or connected, since
+`provisioning_type` only says who performs the change.
 
-- `automatic`: "This application is integrated with AccessOwl", so AccessOwl
-  processes the deprovisioning automatically.
-- `application_admin`: "This application is not integrated with AccessOwl",
-  so an Application Admin is notified to remove the access in the application
-  (there can be more than one admin). The revocation stays in progress until
-  they confirm it, so it will not show as completed immediately. Say this
-  plainly so the user isn't surprised:
+- `automatic`: AccessOwl processes the removal automatically.
+- `application_admin`: an Application Admin is notified to remove the access
+  in the application (there can be more than one admin). The removal stays in
+  progress until they confirm it, so it will not show as completed
+  immediately. Say this plainly so the user isn't surprised:
 
 > Done. I submitted 2 revocation requests for Jan:
 > - HubSpot: Enterprise seat
 > - HubSpot: Sales permission set
 >
-> HubSpot is not integrated with AccessOwl, so an Application Admin has been
-> notified to remove the access and will confirm once done.
+> An Application Admin has been notified to remove the access and will
+> confirm once done.
 
 ## Tone and style
 
