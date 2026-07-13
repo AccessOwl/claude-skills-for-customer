@@ -1,5 +1,5 @@
 ---
-name: access-gap-fill
+name: mirror-access
 description: >
   Create AccessOwl access requests so one user catches up to a colleague's
   access. Use whenever someone asks to request the same access another person
@@ -11,7 +11,7 @@ description: >
   access requests for what is missing; this skill never grants access itself.
 ---
 
-# Access Gap Fill
+# Mirror Access
 
 Compare two users' access in AccessOwl and create access requests for what
 the target user is missing.
