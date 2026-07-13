@@ -56,8 +56,10 @@ expanded. Only entries with `effective_end: null` are active; show only
 those. Leave out entries whose application has `status: discovered`; that is
 discovered usage, not access managed through AccessOwl. If the person has
 discovered apps, end the answer with exactly one short question: "Do you
-want to see the discovered apps for this user?" and show them only if the
-user says yes. If the
+want to see the discovered apps for this user?" If the user says yes, answer
+with one line ("AccessOwl discovered these apps in use by <name>:") and the
+same two-column table; discovered usage has no roles, so the Role column
+stays empty. Do not add anything after that table. If the
 question is about one specific application, filter to it and answer directly
 ("Yes, Jan has Figma with the Editor permission" or "No, Jan has no active
 Figma access").
