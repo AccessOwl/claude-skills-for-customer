@@ -33,8 +33,6 @@ That's it. Mention @Claude in any channel and ask.
 | `vendor-update` | "We finished the vendor review for Slack, record today's date." |
 | `update-policy` | "Which policy covers Salesforce?" |
 
-More example phrases in [PHRASES.md](PHRASES.md).
-
 ## Good to know
 
 - Skills create **requests**. Approving them stays with your approvers, in your policies.
