@@ -1,14 +1,14 @@
 {
   "name": "accessowl-claude-skills",
-  "description": "Official AccessOwl skills for Claude. Manage access requests, onboarding, offboarding, and audits via the AccessOwl API.",
+  "description": "Official AccessOwl skills for Claude. Manage access requests, reports, and cleanup via the AccessOwl API.",
   "owner": {
     "name": "AccessOwl",
     "url": "https://github.com/AccessOwl"
   },
   "plugins": [
     {
-      "name": "claudetag-for-olivier",
-      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API. Testing name - will be renamed to 'accessowl' for public release.",
+      "name": "claudetag-for-accessowl",
+      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API.",
       "version": "0.1.0",
       "source": "./plugins/accessowl"
     }
