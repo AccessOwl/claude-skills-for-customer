@@ -3,10 +3,11 @@ name: list-access
 description: >
   List what a user currently has access to in AccessOwl. Use whenever someone
   asks what applications or permissions a person has, e.g. "what does Maria
-  have access to?", "list the applications for mjscott@company.com", "does Jan
-  have Figma?". Users may also phrase this as "show me Tom's apps", "what can
-  Maria use?", or "check Jan's access". This skill is read-only; it never
-  creates, changes, or removes anything.
+  have access to?", "what does Jan still have access to?", "list the
+  applications for mjscott@company.com", "does Jan have Figma?". Users may
+  also phrase this as "show me Tom's apps", "what can Maria use?", or "check
+  Jan's access". This skill is read-only; it never creates, changes, or
+  removes anything.
 ---
 
 # List Access
@@ -68,11 +69,10 @@ Figma access").
 
 ### 3. Answer with a table
 
-One message. State the person's name, their email as plain text, and the
-count, then a table with one row per application:
+One message. State the person's name and the count, then a table with one
+row per application:
 
-> Michael J. Scott (mjscott@company.com) currently has access to
-> **4 applications**:
+> Michael J. Scott currently has access to **4 applications**:
 >
 > | Application | Role |
 > |---|---|
@@ -85,8 +85,10 @@ count, then a table with one row per application:
   columns such as granted dates, status, or anything else.
 - Use the permission titles from AccessOwl as-is. If an application has
   several permissions, list them in the same cell separated by commas.
-- Write the email bare, exactly like this: mjscott@company.com. No link
-  syntax, no mailto, no angle brackets, no parentheses around a link.
+- Do not include the person's email address in the answer; chat clients turn
+  any email into a link. Use their full name. Only mention an email when it
+  is needed to tell two people with the same name apart, and then write it
+  bare with no link syntax.
 - If the person has no active access, say so in one sentence.
 - The table is the end of the message, with one exception: if the person has
   discovered apps, add the single question "Do you want to see the discovered
@@ -96,7 +98,10 @@ count, then a table with one row per application:
 
 Do not volunteer extra observations: no expired access, no ownership notes,
 no anomalies, no "one more thing worth flagging", and no closing offers to
-dig further. If the user wants expired access or more detail, they will ask.
+dig further. "What does X still have access to" means current access only:
+do not mention what ended, expired, or was revoked, and do not mention
+pending requests. The table answers the question completely. If the user
+wants expired access or more detail, they will ask.
 The only exception: if the question itself cannot be answered cleanly (for
 example the person matched two users), ask the one clarifying question needed.
 
