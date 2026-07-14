@@ -20,14 +20,13 @@ Claude answers and acts through your AccessOwl account. Every change is confirme
 
 That's it. Mention @Claude in any channel and ask.
 
-### Recommended: channel instructions
+### Recommended: custom instructions
 
-For the channel where your team manages access, add this to Claude's custom instructions to keep answers fast and consistent:
+Add this to Claude's custom instructions (in the admin settings for your workspace, or on the channel where your team manages access) to keep answers fast and consistent:
 
 ```
-This channel is for managing access with AccessOwl. Always use the AccessOwl skills for anything about access, applications, users, or policies.
+For anything about access, applications, users, or policies, always use the skills from the ClaudeTag for AccessOwl plugin. Do not answer AccessOwl questions without them.
 
-Rules for this channel:
 - Answer read-only questions (who has access, reports, listings) immediately in one message. Never ask permission to look something up.
 - No progress updates, checklists, or "on it" messages. The first reply is the answer or the confirmation question.
 - Use short bullet points and tables. Plain language only: no IDs, no field names, no technical jargon, no em dashes.
