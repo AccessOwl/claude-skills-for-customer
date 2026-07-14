@@ -35,6 +35,13 @@ structure, and only after an explicit confirmation.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never classify users or
+  compare current access from a partial result.
+- Every `PUT` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write; refetch the application structure and verify the result.
 
 ## Speed
 
@@ -94,37 +101,39 @@ Build a fresh CSV in exactly the importer's format:
 - Leave a cell empty when the user has no permission for that resource.
 - Drop every column that does not map to a resource.
 
-Emails are never corrected or flagged as errors: the file comes from the
-application, so its emails are the truth. Check them against `GET /users`
-(all pages) only to classify each row: emails that match an AccessOwl user
-import onto that user; emails that match nobody import as new users. Report
-both groups.
+Emails are never corrected: the file comes from the application, so its emails
+are the source data. Check them against `GET /users?status=all&limit=100` (all
+pages) and report two groups: emails that match an AccessOwl user and emails
+that do not. The public import documentation does not say whether an unmatched
+email creates a new AccessOwl user, so never claim that it will. Tell the user
+to verify unmatched emails in the import preview before confirming the import.
 
 If mandatory resources were named in step 2, flag every row that leaves a
 mandatory resource empty.
 
-**The import replaces the application's userlist.** After importing, the CSV
-is the complete truth for that application; existing entitlements not in the
-file are removed. Compare the file against the application's current active
-access states (`GET /access_states?application_id=`) and warn by name which
-current users are absent from the file. If removing them is not intended,
-offer to append their current access as extra rows.
+Compare the file against the application's current active access states using
+`GET /access_states?application_id=<id>&expand=grantee_user,application,resource,target_permissions`.
+Report by name which current users are absent from the file. The public import
+documentation does not say that omitted users lose access, so never claim that
+they will. Present the difference as a review item and tell the user to confirm
+the outcome shown in AccessOwl's import preview before completing the import.
 
 ### 5. Report and deliver
 
 One message: a report, then the CSV as a downloadable file with ALL rows.
 The report covers, as short bullet groups:
 
-- Which rows match existing AccessOwl users, and which will be imported as
-  new users.
+- Which rows match existing AccessOwl users, and which emails were not found
+  and must be checked in the import preview.
 - Corrections applied automatically (value renames, merged duplicate rows,
   dropped columns).
 - Values that still need one decision (no plausible match).
-- The replacement warning: who is in AccessOwl for this application today
-  but not in the file, and will lose that access on import.
+- The comparison warning: who is in AccessOwl for this application today but
+  not in the file, without predicting the import's effect on their access.
 
-> **All 5 rows are in the file.** 4 match existing AccessOwl users; 1
-> (levinson@dundermufflins.com) will be imported as a new user.
+> **All 5 rows are in the file.** 4 match existing AccessOwl users; 1 email
+> (levinson@dundermufflins.com) was not found. Check how AccessOwl handles it
+> in the import preview before confirming.
 >
 > Corrected automatically:
 > - "Premium" is called "Premium Seat" in AccessOwl, renamed in 2 rows.
@@ -134,8 +143,10 @@ The report covers, as short bullet groups:
 > - "Member" is not a Role in AccessOwl. Should it be replaced with User,
 >   Admin, or Owner? Or I can add "Member" to the application.
 >
-> Replacement warning: this import replaces the current userlist. Nobody
-> currently in AccessOwl for this application is missing from the file.
+> Current-access comparison: nobody currently in AccessOwl for this
+> application is missing from the file. Review the import preview before
+> confirming because the public documentation does not specify how omitted
+> users are handled.
 >
 > To import: open the application in AccessOwl, click Edit, then Import, and
 > upload the file. Review the preview and confirm.
@@ -154,8 +165,10 @@ application yet, offer once: "Should I add the missing permissions to the
 application so these rows can import?" Only on a clear yes, update the
 structure via `PUT /applications/{id}/structure`. Always send the complete
 current structure you fetched in step 2 plus the additions, never a partial
-list, so nothing existing is dropped. Then re-validate the affected rows and
-deliver an updated CSV.
+list, so nothing existing is dropped. Include the current `lock_version` and a
+new `Idempotency-Key`. Then re-validate the affected rows and deliver an
+updated CSV. On a conflict, refetch the structure and ask for confirmation
+again if the proposed change is different.
 
 ## Tone and style
 
@@ -175,3 +188,6 @@ deliver an updated CSV.
   automatically and reported; never silently, and never guessed when the
   match is unclear.
 - Never correct an email address. The application's export is the truth.
+- Do not infer undocumented import consequences. The documented contract
+  covers CSV shape and permission-name matching. Unmatched and omitted users
+  must be verified in the AccessOwl import preview.

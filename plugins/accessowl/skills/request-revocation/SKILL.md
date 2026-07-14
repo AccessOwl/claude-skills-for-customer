@@ -32,6 +32,15 @@ triggers the actual removal, so always confirm before creating one.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never submit revocations
+  from a partial result.
+- Every `POST` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write. The API has no revocation lookup endpoint, so tell the user the
+  operation was received but its outcome cannot be confirmed through the API,
+  and direct them to the AccessOwl UI.
 
 ## Speed
 
@@ -46,7 +55,8 @@ result.
 
 You always need both: the **user** and the **application**. If either is
 missing from the request, ask for it before doing anything else. Resolve the
-user via `GET /users` (match on email; ask if a name is ambiguous) and the
+user via `GET /users?status=all` (match on email; ask if a name is ambiguous)
+and the
 application via `GET /applications?title_like=<name>` (ask if several match).
 
 ### 2. Check how the application is managed
@@ -57,8 +67,9 @@ user explicitly confirms they still want to submit a revocation for it.
 
 ### 3. Show what the person currently has
 
-Fetch `GET /access_states?grantee_user_id=<id>&application_id=<id>`. Entries
-with `effective_end: null` are active. Present them as a bullet list, by title:
+Fetch `GET /access_states?grantee_user_id=<id>&application_id=<id>&expand=application,resource,target_permissions`.
+Entries with `effective_end: null` are active. Present them as a bullet list,
+by title:
 
 > Jan currently has in HubSpot:
 > - Enterprise seat
@@ -91,7 +102,7 @@ will have none"). Do not create revocations before receiving a clear yes.
 ### 6. Create the revocations
 
 For each selected access state: `POST /access_revocations` with
-`access_state_id` and `reason`.
+`access_state_id`, `reason`, and a distinct `Idempotency-Key` header.
 
 ### 7. Report the result and set expectations
 

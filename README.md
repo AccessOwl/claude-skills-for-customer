@@ -53,3 +53,15 @@ For anything about access, applications, users, or policies, always use the skil
 - Skills create **requests**. Approving them stays with your approvers, in your policies.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.
+
+## Maintainer validation
+
+Run the contract checks before publishing a skill change:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+The checks cover safe write retries, complete pagination, non-active user
+lookups, required access-state expansions, documented import behavior, and
+customer-facing style rules.

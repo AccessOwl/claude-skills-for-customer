@@ -31,6 +31,13 @@ process. Never call the grant endpoint.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never compare access or
+  submit requests from a partial result.
+- Every `POST` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write; verify whether the requests exist instead.
 
 ## Speed
 
@@ -50,15 +57,20 @@ You need two users:
 
 If either is missing from the request, ask for it ("Who should receive the
 same access, and which colleague am I copying from?"). Resolve both via
-`GET /users`, matching on email address. If a name matches more than one
+`GET /users?status=all`, matching on email address. This avoids silently
+missing inactive, onboarding, offboarding, or offboarded people. If a name
+matches more than one
 person, ask which one is meant, as one short question. Never guess.
 
 ### 2. Show what the source currently has
 
 Fetch both users' access in parallel:
-`GET /access_states?grantee_user_id=<id>` for each, plus the target's pending
-requests from `GET /access_requests`. Entries with `effective_end: null` are
-active.
+`GET /access_states?grantee_user_id=<id>&expand=application,resource,target_permissions`
+for each, plus every page of the target's pending requests from
+`GET /access_requests?limit=100`. Filter requests by `grantee_user_id`, then
+keep only `pending_approval`, `pending_permissions_assignment`,
+`processing_access`, `scheduled`, and `pending_dependency`. Entries with
+`effective_end: null` are active.
 
 Present the source's current access as a table, including the resource and
 permission titles:
@@ -98,7 +110,8 @@ stop. Do not create requests before receiving a clear yes.
 ### 5. Create the requests
 
 Use the resource and permission IDs from the source's access states.
-`POST /access_requests/bulk` with the target's `user_id`, a shared
+`POST /access_requests/bulk` with the target's `user_id`, a distinct
+`Idempotency-Key` for this bulk call, a shared
 `request_reason` (required, max 255 characters, e.g. "Same access as
 lisa@company.com, requested by <name> via Claude"), and up to 10 items per
 call; loop for more. Each bulk call covers one grantee only.
@@ -109,8 +122,9 @@ Some organizations mark certain resources as mandatory. The API does not
 label them upfront; creating a request without them returns a validation
 error listing the required permissions. Do not show the raw error. Explain
 it and ask which of the available options to include, then create the
-request again. If the source has the mandatory resource, it is usually
-already in the list being copied.
+request again with a new `Idempotency-Key` because the body changed. Never
+reuse the key from the validation failure with a different body. If the source
+has the mandatory resource, it is usually already in the list being copied.
 
 ### 7. Report the result
 

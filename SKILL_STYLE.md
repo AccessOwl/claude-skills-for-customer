@@ -18,7 +18,8 @@ Every SKILL.md has, in this order:
 3. **API basics**: base URL `https://api.accessowl.com/api/v1` plus the
    non-production host note, Bearer auth via the configured connection (never
    ask the user for a token), the 401/billing-redirect "API not enabled"
-   stop, and 429 Retry-After handling.
+   stop, 429 Retry-After handling, complete cursor pagination, and safe write
+   retries with an `Idempotency-Key`.
 4. **Speed**: run independent lookups in parallel, fetch only what's needed,
    no narration of lookup steps. Target: at most two messages, the
    confirmation question and the result. Read-only skills answer in exactly
@@ -82,6 +83,16 @@ revocation.
 
 - Skills only request. Never call the grant endpoint. Never claim an access
   was granted, revoked, or completed.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never make a complete-data
+  claim or a write decision from a partial result.
+- Every `POST`, `PUT`, and `PATCH` sends a new `Idempotency-Key` for each
+  intended mutation. Reuse that key only to retry the exact same method, path,
+  and body after a network error or timeout. If that retry returns `409`, do
+  not use a new key to repeat the write; verify the resulting state instead.
+- `GET /users` returns active users by default. Use `status=all` when resolving
+  a named person or building a report that can include inactive, onboarding,
+  offboarding, or offboarded users.
 - Mandatory resources are not exposed by the resources endpoint; they surface
   as a validation error on create. Translate that error into a clear question
   with the available options, never show the raw error.

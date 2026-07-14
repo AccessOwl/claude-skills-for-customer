@@ -36,6 +36,13 @@ confirmation. It never approves, grants, or revokes anything.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never answer or write from
+  a partial result. If a later page fails, say the report is incomplete.
+- Every `POST` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write; verify whether the request exists instead.
 
 ## Speed
 
@@ -45,7 +52,7 @@ ambiguous, ask only the one clarifying question.
 
 ## The data you have to work with
 
-- `GET /users` (paginate with `cursor` until exhausted): each user carries
+- `GET /users?status=all` (paginate with `cursor` until exhausted): each user carries
   `departments`, `teams`, `job_title`, `employment_type`, `manager_user_id`,
   `status`, and `email`. This is how you answer "everyone in Marketing",
   "contractors", "reports of <manager>", "offboarded users".
@@ -119,7 +126,8 @@ the application offers more than one (fetch `GET /applications/{id}/resources`
 and present the requestable options by title). Then confirm in ONE short
 message, one bullet per person, and create only after a clear yes:
 `POST /access_requests/bulk` per person (each bulk call covers one grantee,
-max 10 items; loop over people), with a shared factual `request_reason` (max
+max 10 items; loop over people), with a distinct `Idempotency-Key` per bulk
+call and a shared factual `request_reason` (max
 255 characters, e.g. "Reconciliation against Google Workspace, requested by
 <name> via Claude"). Requests go through the normal approval flow; say so in
 the result, and close based on each application's `provisioning_type`:

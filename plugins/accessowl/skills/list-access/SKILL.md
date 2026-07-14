@@ -31,6 +31,9 @@ mentions such details, do not repeat them.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never answer from a
+  partial result. If a later page fails, say the lookup is incomplete.
 
 ## Speed
 
@@ -44,15 +47,18 @@ and do not narrate lookup steps.
 ### 1. Identify the person
 
 Never ask permission to look something up; this skill is read-only, so just
-do it. Resolve the user via `GET /users`, matching on email address. If a
+do it. Resolve the user via `GET /users?status=all`, matching on email address.
+This includes inactive, onboarding, offboarding, and offboarded users that the
+default active-only response would omit. If a
 name was given and more than one person matches, ask which one is meant, as
 one short question and nothing else ("Which Jan? Share a last name or
 email."). Do not combine it with an offer to proceed. Never guess.
 
 ### 2. Fetch their access
 
-`GET /access_states?grantee_user_id=<id>` with permissions and applications
-expanded. Only entries with `effective_end: null` are active; show only
+`GET /access_states?grantee_user_id=<id>&expand=application,resource,target_permissions`
+with applications, resources, and permissions expanded. Only entries with
+`effective_end: null` are active; show only
 those. Leave out entries whose application has `status: discovered`; that is
 discovered usage, not access managed through AccessOwl. If the person has
 discovered apps, end the answer with exactly one short question: "Do you

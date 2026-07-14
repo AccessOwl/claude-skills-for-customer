@@ -30,6 +30,13 @@ Never call the grant endpoint.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never check for existing
+  or pending access from a partial result.
+- Every `POST` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write; verify whether the request exists instead.
 
 ## Speed
 
@@ -45,7 +52,8 @@ Follow these steps in order. Never skip the confirmation step.
 
 ### 1. Identify who the access is for
 
-You need the grantee's AccessOwl user ID. List users via `GET /users` and
+You need the grantee's AccessOwl user ID. List users via
+`GET /users?status=all&limit=100` and
 match on email address. If you were given a name and more than one person
 matches, ask which one is meant. Never guess between similar names or invent
 an email address.
@@ -78,8 +86,10 @@ question, but still fetch the structure so you use real permission IDs.
 ### 4. Check what the person already has
 
 Before creating anything, check `GET /access_states?grantee_user_id=<id>&application_id=<id>`
-and the pending requests from `GET /access_requests` (filter by grantee and
-application in your own comparison).
+and every page of pending requests from `GET /access_requests?limit=100`
+(filter by grantee and application in your own comparison, then keep only
+`pending_approval`, `pending_permissions_assignment`, `processing_access`,
+`scheduled`, and `pending_dependency`).
 
 If part of what was asked for already exists or is already pending, do not
 request it again. Say so clearly and professionally, for example:
@@ -105,10 +115,10 @@ Do not create requests before receiving a clear yes.
 ### 6. Create the requests
 
 - Single request: `POST /access_requests` with `user_id`, `resource_id`,
-  `permission_ids`, and `request_reason`.
+  `permission_ids`, `request_reason`, and a new `Idempotency-Key` header.
 - Several at once (same person): `POST /access_requests/bulk` with a shared
   `request_reason` and up to 10 items per call; loop for more. Each bulk call
-  covers one grantee only.
+  covers one grantee only and gets its own `Idempotency-Key`.
 - `user_id` is required: it is the person receiving the access.
 - `request_reason` is required, max 255 characters. Use the reason the user
   gave, or a short factual one such as "Requested by <name> via Claude".
@@ -129,6 +139,8 @@ When that happens, do not show the raw error. Explain it and ask:
 
 Then create the request again with the mandatory resource included. If the
 person already holds the mandatory resource, no extra step is needed.
+Because the body changed, generate a new `Idempotency-Key`; never reuse the key
+from the validation failure with a different body.
 
 ### 8. Report the result
 

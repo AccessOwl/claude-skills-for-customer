@@ -38,6 +38,13 @@ plainly instead of attempting it.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never update a policy from
+  a partial policy or application list.
+- Every `PUT` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If the retry returns `409`, do not use a new key to repeat
+  the write; verify the policy's application list instead.
 
 ## Speed
 
@@ -82,7 +89,8 @@ multiple matches). Then build the FULL new list: the endpoint
 `PUT /policies/{policy_id}/applications` replaces the whole set, it is not
 additive. Always start from the policy's current `application_ids` and add
 or remove from there, so nothing is dropped by accident. Always send the
-policy's current `elevated` value too; leaving it out resets the flag.
+policy's current `elevated` value too; leaving it out resets the flag. Send a
+new `Idempotency-Key` for this intended update.
 
 An application can only follow one policy. If an application being added is
 currently covered by another policy, say so in the confirmation ("HubSpot

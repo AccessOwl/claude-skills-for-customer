@@ -35,6 +35,13 @@ it; do not create it.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Every list endpoint is paginated. Request `limit=100`, follow
+  `meta.next_cursor` until it is null or absent, and never update applications
+  from a partial lookup.
+- Every `PATCH` sends a new `Idempotency-Key` for each intended mutation. Reuse
+  that key only to retry the exact same method, path, and body after a network
+  error or timeout. If a retry with the same key returns `409`, do not use a
+  new key to repeat the write; verify the application's current values.
 
 ## Speed
 
@@ -75,7 +82,8 @@ ambiguous, in one question.
   company_sensitive_data, employee_pii, employee_sensitive_data, ephi.
 - `tags`: free text titles, created automatically if new.
 - Also available: `notes`, `description`, `url`, the owner, and Application
-  Admins (resolve people by email via `GET /users`, ask on ambiguity).
+  Admins (resolve people by email via `GET /users?status=all`, ask on
+  ambiguity, and do not assign an inactive or offboarded person).
 
 Certificates, data types, and tags replace the application's existing list
 when sent. When adding to them, fetch the application's current values first
@@ -99,9 +107,12 @@ fields that change, then one question.
 
 ### 4. Write
 
-`PATCH /applications/{id}` per application, with only the fields that
-change. On a `409` conflict, refetch the application and retry once. There
-is no bulk endpoint; loop one call per application.
+`PATCH /applications/{id}` per application, with only the fields that change,
+the current `lock_version`, and a distinct `Idempotency-Key`. There is no bulk
+endpoint; loop one call per application. If the application changed after the
+confirmation, refetch it and show the changed values. Ask for confirmation
+again before sending a revised body. Do not blindly retry a `409` with a new
+idempotency key.
 
 ### 5. Report the result
 
