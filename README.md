@@ -19,8 +19,6 @@ Register this repository once as a plugin marketplace and your team can manage a
 | `create-custom-application` | ✅ | Creates custom applications for internal and self-hosted tools and defines their roles and permissions from pasted lists or screenshots. Custom entries only: they can never be connected to an integration, and no users are imported. |
 | `vendor-update` | ✅ | Updates vendor details on existing applications, in bulk: risk level, data location, auth method, MFA, security certificates, vendor review dates, processed data types, and tags. |
 | `update-policy` | ✅ | Lists approval policies (default, elevated, covered apps) and changes which applications a policy covers. Creating policies and changing approvers stays in AccessOwl under Settings → Policies. |
-| `onboarding-status` | ✅ | Answers whether onboardings or offboardings are planned, in progress, or done, org-wide or per person, with the scheduled requests behind them. Read-only; rescheduling stays on the user's profile in AccessOwl. |
-| `offboard-user` | ✅ | Requests revocation of everything a user currently has, in one sweep: full access list, one confirmation, one revocation request per access. Never deactivates the user or schedules a future-dated offboarding. |
 
 See [PHRASES.md](PHRASES.md) for the full library of customer phrases per skill.
 
