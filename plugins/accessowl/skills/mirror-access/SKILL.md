@@ -7,7 +7,7 @@ description: >
   has", "Maria should have the same access as Jan", "for every access Lisa
   has that Tom doesn't, create a request". Users may also phrase this as
   "clone Lisa's access for Tom", "give the new hire what Maria has", "copy
-  Jan's apps to Tom", or "onboard Tom like Lisa" - all of these mean creating
+  Jan's apps to Tom", or "set Tom up like Lisa" - all of these mean creating
   access requests for what is missing; this skill never grants access itself.
 ---
 

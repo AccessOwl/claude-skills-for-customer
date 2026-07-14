@@ -14,7 +14,7 @@ Honest limits to keep out of marketing claims:
 
 ## request-access
 
-**Onboarding**
+**New joiners**
 
 - "Maria starts Monday in Marketing. Request Slack, Notion, and HubSpot for
   maria@company.com."
@@ -40,11 +40,10 @@ Honest limits to keep out of marketing claims:
 
 ## request-revocation
 
-**Offboarding**
+**Access cleanup**
 
-- "Jan left, his Salesforce access should be removed."
+- "What does Jan still have access to?" then "Revoke his HubSpot seat."
 - "Request revocation of everything Jan has in HubSpot."
-- "Maria's last day is Friday, remove her Figma access."
 
 **Least privilege cleanup**
 
@@ -76,11 +75,11 @@ Honest limits to keep out of marketing claims:
 
 ## mirror-access
 
-**Onboarding by example**
+**Copy a colleague**
 
 - "Give the new hire the same access as Lisa."
 - "Tom should have everything Maria has."
-- "Onboard Jan like a typical support agent, copy what Sam has."
+- "Set Jan up like a typical support agent, copy what Sam has."
 
 **Catching up a teammate**
 
@@ -173,10 +172,10 @@ Honest limits to keep out of marketing claims:
 Names match Olivier's sandbox environment, so each combo is demo-ready
 as written.
 
-- Offboarding, end to end: "What does Jan Levinson have access to?" then
-  "He left, revoke all of it."
-- Onboarding in the HR channel: onboarding announcement lands, reply
-  "@Claude give Sidney Crosby the same access as Jim Halpert."
+- Still has access?: "What does Jan Levinson still have access to?" then
+  "Revoke all of it."
+- New joiner in the HR channel: the announcement lands, reply "@Claude
+  give Sidney Crosby the same access as Jim Halpert."
 - Review prep: "Who has 1Password, grouped by role?" then "Revoke the
   seats that shouldn't be there."
 - CSV cleanup: "Here's the Claude Console user export, get it ready for
