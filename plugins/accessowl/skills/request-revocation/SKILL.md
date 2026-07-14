@@ -32,6 +32,12 @@ triggers the actual removal, so always confirm before creating one.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
+- Send an `Idempotency-Key` header (a fresh UUID) with every write. When
+  retrying the exact same write after a timeout or network error, reuse the
+  same key and body; a `409` on that retry means the write already went
+  through, so treat it as success and do not send it again.
 
 ## Speed
 
@@ -46,7 +52,7 @@ result.
 
 You always need both: the **user** and the **application**. If either is
 missing from the request, ask for it before doing anything else. Resolve the
-user via `GET /users` (match on email; ask if a name is ambiguous) and the
+user via `GET /users?status=all` (match on email; ask if a name is ambiguous) and the
 application via `GET /applications?title_like=<name>` (ask if several match).
 
 ### 2. Check how the application is managed

@@ -31,6 +31,8 @@ mentions such details, do not repeat them.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
 
 ## Speed
 

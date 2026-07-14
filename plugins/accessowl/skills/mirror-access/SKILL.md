@@ -31,6 +31,12 @@ process. Never call the grant endpoint.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
+- Send an `Idempotency-Key` header (a fresh UUID) with every write. When
+  retrying the exact same write after a timeout or network error, reuse the
+  same key and body; a `409` on that retry means the write already went
+  through, so treat it as success and do not send it again.
 
 ## Speed
 
@@ -50,7 +56,7 @@ You need two users:
 
 If either is missing from the request, ask for it ("Who should receive the
 same access, and which colleague am I copying from?"). Resolve both via
-`GET /users`, matching on email address. If a name matches more than one
+`GET /users?status=all`, matching on email address. If a name matches more than one
 person, ask which one is meant, as one short question. Never guess.
 
 ### 2. Show what the source currently has

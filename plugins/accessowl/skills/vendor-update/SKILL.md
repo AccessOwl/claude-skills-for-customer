@@ -35,6 +35,12 @@ it; do not create it.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
+- Send an `Idempotency-Key` header (a fresh UUID) with every write. When
+  retrying the exact same write after a timeout or network error, reuse the
+  same key and body; a `409` on that retry means the write already went
+  through, so treat it as success and do not send it again.
 
 ## Speed
 
@@ -75,7 +81,7 @@ ambiguous, in one question.
   company_sensitive_data, employee_pii, employee_sensitive_data, ephi.
 - `tags`: free text titles, created automatically if new.
 - Also available: `notes`, `description`, `url`, the owner, and Application
-  Admins (resolve people by email via `GET /users`, ask on ambiguity).
+  Admins (resolve people by email via `GET /users?status=all`, ask on ambiguity).
 
 Certificates, data types, and tags replace the application's existing list
 when sent. When adding to them, fetch the application's current values first

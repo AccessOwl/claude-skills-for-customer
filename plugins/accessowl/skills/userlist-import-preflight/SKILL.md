@@ -35,6 +35,12 @@ structure, and only after an explicit confirmation.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
+- Send an `Idempotency-Key` header (a fresh UUID) with every write. When
+  retrying the exact same write after a timeout or network error, reuse the
+  same key and body; a `409` on that retry means the write already went
+  through, so treat it as success and do not send it again.
 
 ## Speed
 
@@ -95,7 +101,7 @@ Build a fresh CSV in exactly the importer's format:
 - Drop every column that does not map to a resource.
 
 Emails are never corrected or flagged as errors: the file comes from the
-application, so its emails are the truth. Check them against `GET /users`
+application, so its emails are the truth. Check them against `GET /users?status=all`
 (all pages) only to classify each row: emails that match an AccessOwl user
 import onto that user; emails that match nobody import as new users. Report
 both groups.

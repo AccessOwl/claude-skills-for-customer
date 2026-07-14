@@ -18,7 +18,11 @@ Every SKILL.md has, in this order:
 3. **API basics**: base URL `https://api.accessowl.com/api/v1` plus the
    non-production host note, Bearer auth via the configured connection (never
    ask the user for a token), the 401/billing-redirect "API not enabled"
-   stop, and 429 Retry-After handling.
+   stop, and 429 Retry-After handling. Plus two contract rules: paginate
+   every list to the end (`meta.next_cursor`), and on write-capable skills,
+   send an `Idempotency-Key` (fresh UUID) per write, reusing key and body on
+   retries, where a `409` means the write already succeeded. Resolve people
+   via `GET /users?status=all` so inactive users are not silently missed.
 4. **Speed**: run independent lookups in parallel, fetch only what's needed,
    no narration of lookup steps. Target: at most two messages, the
    confirmation question and the result. Read-only skills answer in exactly

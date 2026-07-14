@@ -38,6 +38,12 @@ plainly instead of attempting it.
   is not enabled for this organization. Tell the user to contact AccessOwl
   support to enable it, and stop.
 - On `429`, wait the number of seconds in the `Retry-After` header, then retry.
+- Paginate every list to the end by following `meta.next_cursor`; never
+  act on a partial list.
+- Send an `Idempotency-Key` header (a fresh UUID) with every write. When
+  retrying the exact same write after a timeout or network error, reuse the
+  same key and body; a `409` on that retry means the write already went
+  through, so treat it as success and do not send it again.
 
 ## Speed
 
