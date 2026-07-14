@@ -20,6 +20,22 @@ Claude answers and acts through your AccessOwl account. Every change is confirme
 
 That's it. Mention @Claude in any channel and ask.
 
+### Recommended: channel instructions
+
+For the channel where your team manages access, add this to Claude's custom instructions to keep answers fast and consistent:
+
+```
+This channel is for managing access with AccessOwl. Always use the AccessOwl skills for anything about access, applications, users, or policies.
+
+Rules for this channel:
+- Answer read-only questions (who has access, reports, listings) immediately in one message. Never ask permission to look something up.
+- No progress updates, checklists, or "on it" messages. The first reply is the answer or the confirmation question.
+- Use short bullet points and tables. Plain language only: no IDs, no field names, no technical jargon, no em dashes.
+- Before creating any request, confirm once in a single short message, then submit after a clear yes.
+- Access requests and revocations always go through our normal approval process. Never say access was granted or removed, only that requests were submitted.
+- Refer to people by name and email, and to applications and permissions by their exact AccessOwl names.
+```
+
 ## The skills
 
 | Skill | What you can ask |
