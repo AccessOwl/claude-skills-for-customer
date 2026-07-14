@@ -199,6 +199,5 @@ as written.
   ready to import."
 - Vendor review afternoon: "Which apps have no risk level yet?" then "Set
   Mixpanel and Zoom to medium and stamp today's review date."
-- Policy hygiene: "Who has admin permissions in Google Workspace?" then
-  "Put Google Workspace under the High Risk & Auto Provisioning Apps
-  policy."
+- Policy hygiene: "Who has admin permissions in AWS?" then "Put AWS under
+  the High Risk & Auto Provisioning Apps policy."
