@@ -1,35 +1,42 @@
 # AccessOwl Skills for Claude
 
-Official AccessOwl skills for [Claude Tag](https://claude.com/docs/claude-tag/overview) (Claude in Slack) and Claude Code, built on the [AccessOwl REST API](https://docs.accessowl.com/api-reference/introduction).
+Manage access in plain English, right from Slack.
 
-Register this repository once as a plugin marketplace and your team can manage access in plain English: request apps for a new hire, check what someone can use, kick off revocations, and audit access without opening another tool.
+These skills connect [Claude](https://claude.com/docs/claude-tag/overview) to the [AccessOwl API](https://docs.accessowl.com/api-reference/introduction). Once set up, anyone on your team can ask things like:
 
-> **Status: private / in development.** Will move to the AccessOwl organization before public release.
+- "Request Figma for jane@company.com"
+- "What does Maria have access to?"
+- "Give the new hire the same access as Lisa"
+- "Who has 1Password, grouped by role?"
+- "Here's our user export, get it ready for the AccessOwl import"
 
-## Skills
+Claude answers and acts through your AccessOwl account. Every change is confirmed with you first, and every request still goes through your normal approval process. Claude never grants access itself.
 
-| Skill | Status | What it does |
-|---|---|---|
-| `request-access` | ✅ | Creates access requests for a user: resolves the application's resources and permissions, checks what the person already has or has pending, handles mandatory resources, and confirms before creating. Requests only, approval stays with your normal process. |
-| `request-revocation` | ✅ | Creates revocation requests for a user's access to an application: always establishes who and which app, shows current access, requires a reason, and confirms before creating. Never marks a revocation as completed. |
-| `list-access` | ✅ | Lists what a user currently has access to, as an Application/Role table. Read-only, answers exactly what was asked with no extra commentary. |
-| `mirror-access` | ✅ | "For every access this colleague has that this user doesn't, create a request": shows the colleague's current access, asks all-or-some, diffs against what the target already has or has pending, confirms, then submits only what's missing. |
-| `access-report` | ✅ | Ad-hoc access questions across users and apps: "everyone in Marketing without HubSpot", "contractors with admin permissions", "who has Figma, grouped by role"; reconciles external user lists against AccessOwl and can turn the gap into access requests after confirmation. |
-| `userlist-import-preflight` | ✅ | Validates and reformats a raw CSV against an app's real resources and permissions, delivers an import-ready file plus a per-row problem report, and can add missing permissions to the app after explicit confirmation. The import itself runs in AccessOwl (Edit, then Import). |
-| `vendor-update` | ✅ | Updates vendor details on existing applications, in bulk: risk level, data location, auth method, MFA, security certificates, vendor review dates, processed data types, and tags. |
-| `update-policy` | ✅ | Lists approval policies (default, elevated, covered apps) and changes which applications a policy covers. Creating policies and changing approvers stays in AccessOwl under Settings → Policies. |
+## Setup
 
-See [PHRASES.md](PHRASES.md) for the full library of customer phrases per skill.
+1. In AccessOwl, create an API token under **Settings → API Tokens**.
+2. In Claude's admin settings for Slack, add the token as a Bearer credential and allow `api.accessowl.com`.
+3. Register this repository as a plugin marketplace and install the AccessOwl plugin.
 
-## Design principles
+That's it. Mention @Claude in any channel and ask.
 
-- **Never guess mandatory resources.** Every skill resolves an application's resources and permissions via the API before creating requests.
-- **Confirm before writing.** Skills list planned changes and wait for a go-ahead before creating requests or revocations.
-- **Fail gracefully.** The AccessOwl API is enabled per organization; skills explain what to do when the API is not available.
+## The skills
 
-## Setup (once published)
+| Skill | What you can ask |
+|---|---|
+| `request-access` | "Request a HubSpot Marketing seat for Tom." |
+| `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
+| `list-access` | "What does Maria have access to?" |
+| `mirror-access` | "Give Tom the same access as Lisa." |
+| `access-report` | "Everyone in Marketing without HubSpot." |
+| `userlist-import-preflight` | "Validate this CSV against our Notion app before I import it." |
+| `vendor-update` | "We finished the vendor review for Slack, record today's date." |
+| `update-policy` | "Which policy covers Salesforce?" |
 
-1. In AccessOwl, an Org Admin creates an API token under **Settings → API Tokens**.
-2. In Claude Tag's admin settings, add the token as a Bearer credential with `api.accessowl.com` allowlisted, and register this repository as a plugin marketplace.
+More example phrases in [PHRASES.md](PHRASES.md).
 
-See the AccessOwl docs for the full guide.
+## Good to know
+
+- Skills create **requests**. Approving them stays with your approvers, in your policies.
+- Nothing is written to AccessOwl before you confirm it in the conversation.
+- Read-only questions (listings, reports) are answered directly, no confirmation needed.
