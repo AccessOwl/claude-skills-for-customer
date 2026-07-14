@@ -76,6 +76,14 @@ change. Applications with `status: discovered` are discovered usage, not
 managed access: exclude them from access listings and flag them before any
 revocation.
 
+## Post the answer verbatim
+
+The customer-facing message defined by the skill is final copy: post it
+unchanged. Never paraphrase it, convert tables to bullets, add preambles, or
+append summaries. When the work runs inside a sub-task, the sub-task's
+entire output must be only the final customer message, no internal summary
+or extra facts, because any text produced may end up shown to the user.
+
 ## Hard rules for questions
 
 - Never ask permission before a read-only lookup; just do it.

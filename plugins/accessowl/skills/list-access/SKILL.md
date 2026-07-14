@@ -94,6 +94,16 @@ row per application:
   discovered apps, add the single question "Do you want to see the discovered
   apps for this user?" and nothing else.
 
+## Post the answer verbatim
+
+The message posted to the user must be exactly the answer built above,
+unchanged: the same one-line lead, the same two-column table. Never rewrite
+it into bullets or prose, never add a preamble such as "Closest match was",
+and never append anything after it. If any part of this work runs as a
+sub-task, its entire output must be ONLY that final customer message. No
+summary section, no extra facts, no field names, no notes about other or
+ended grants: anything written anywhere may end up shown to the user.
+
 ## Answer only what was asked
 
 Do not volunteer extra observations: no expired access, no ownership notes,
