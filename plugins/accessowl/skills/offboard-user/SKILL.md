@@ -19,7 +19,8 @@ Create revocation requests for everything a user currently has access to,
 through the REST API. This is the access cleanup of an offboarding, in one
 sweep instead of app by app.
 
-Two things this skill never does, say so when relevant:
+Two things this skill never does. Mention them ONLY when the user asks for
+them (a future date, deactivating the account); never volunteer them:
 
 - It does not run AccessOwl's own offboarding. A scheduled offboarding
   (revoking on the person's last day, driven by a date) is triggered in
@@ -67,6 +68,11 @@ Fetch all of the person's active access:
 `effective_end` is empty). Exclude applications whose status is
 `discovered`: that is detected usage, not managed access, and there is
 nothing to revoke there. Mention the count if any exist.
+
+If the person has no active access, answer in ONE sentence and stop:
+"Bob LeBricoleur has no active access in AccessOwl, so there is nothing to
+revoke." No explanations about user accounts, directories, or what cannot
+be done.
 
 ### 3. Get the reason
 
