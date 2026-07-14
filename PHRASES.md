@@ -197,11 +197,32 @@ Honest limits to keep out of marketing claims:
 - "Is the new hire set up yet?"
 - "Did Jan's offboarding go through?"
 
+## offboard-user
+
+**Someone is leaving**
+
+- "Jan left, remove all his access."
+- "Offboard maria@company.com, she resigned."
+- "Tom's last day was Friday, revoke everything."
+
+**Cleanup after the fact**
+
+- "He's gone but still shows access, clean it up."
+- "The contractor engagement ended, take it all away."
+
 ## Combos worth showing in the announcement
 
-- Offboarding, end to end: "What does Jan have access to?" then "He left,
-  revoke all of it."
+- Offboarding, end to end: "Did Jan's offboarding go through?" then "He
+  still has 3 apps, revoke all of it."
 - Onboarding in the HR channel: onboarding announcement lands, reply
   "@Claude give her the same access as Lisa."
+- Onboarding watch: "Any onboardings in progress?" then "What's remaining
+  for Tom?"
 - Review prep: "Who has Figma, grouped by role?" then "Revoke the two
   Editor seats that shouldn't be there."
+- Day-one setup: "Add our three internal tools to AccessOwl" then "Here's
+  the user export for each, get them ready to import."
+- Vendor review afternoon: "Which apps have no risk level yet?" then "Set
+  these five to medium and stamp today's review date."
+- Policy hygiene: "Who has admin permissions in Google Workspace?" then
+  "Put Google Workspace under the Critical Applications policy."
