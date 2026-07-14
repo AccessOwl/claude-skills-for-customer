@@ -185,15 +185,20 @@ Honest limits to keep out of marketing claims:
 
 ## Combos worth showing in the announcement
 
-- Offboarding, end to end: "What does Jan have access to?" then "He left,
-  revoke all of it."
+Names match Olivier's sandbox environment, so each combo is demo-ready
+as written.
+
+- Offboarding, end to end: "What does Jan Levinson have access to?" then
+  "He left, revoke all of it."
 - Onboarding in the HR channel: onboarding announcement lands, reply
-  "@Claude give her the same access as Lisa."
-- Review prep: "Who has Figma, grouped by role?" then "Revoke the two
-  Editor seats that shouldn't be there."
-- Day-one setup: "Add our three internal tools to AccessOwl" then "Here's
-  the user export for each, get them ready to import."
+  "@Claude give Sidney Crosby the same access as Jim Halpert."
+- Review prep: "Who has 1Password, grouped by role?" then "Revoke the
+  seats that shouldn't be there."
+- Day-one setup: "Add our internal admin dashboard to AccessOwl with User
+  and Admin roles" then "Here's the Claude Console user export, get it
+  ready to import."
 - Vendor review afternoon: "Which apps have no risk level yet?" then "Set
-  these five to medium and stamp today's review date."
+  Mixpanel and Zoom to medium and stamp today's review date."
 - Policy hygiene: "Who has admin permissions in Google Workspace?" then
-  "Put Google Workspace under the Critical Applications policy."
+  "Put Google Workspace under the High Risk & Auto Provisioning Apps
+  policy."
