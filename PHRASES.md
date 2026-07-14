@@ -139,21 +139,6 @@ Honest limits to keep out of marketing claims:
 - "What structure does our HubSpot app expect for a user list import?"
 - "Add the missing permissions to the app so this list can import."
 
-## create-custom-application
-
-**Adding internal tools**
-
-- "Add our internal admin dashboard to AccessOwl with User and Admin roles."
-- "Create an app for our data warehouse, IT owns it."
-- "Make our self-hosted GitLab requestable in AccessOwl."
-- "Add these three internal tools to AccessOwl, here's the list."
-
-**Defining roles and permissions**
-
-- (pasted role list or screenshot) "Here are the roles of our billing tool, set them up."
-- "Add a Read-Only role to our admin dashboard."
-- "Our internal CRM got a new Support role, add it."
-
 ## vendor-update
 
 **Risk and compliance bookkeeping**
@@ -194,9 +179,8 @@ as written.
   "@Claude give Sidney Crosby the same access as Jim Halpert."
 - Review prep: "Who has 1Password, grouped by role?" then "Revoke the
   seats that shouldn't be there."
-- Day-one setup: "Add our internal admin dashboard to AccessOwl with User
-  and Admin roles" then "Here's the Claude Console user export, get it
-  ready to import."
+- CSV cleanup: "Here's the Claude Console user export, get it ready for
+  the AccessOwl import."
 - Vendor review afternoon: "Which apps have no risk level yet?" then "Set
   Mixpanel and Zoom to medium and stamp today's review date."
 - Policy hygiene: "Who has admin permissions in AWS?" then "Put AWS under
