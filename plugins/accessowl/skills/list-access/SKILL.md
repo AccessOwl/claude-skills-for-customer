@@ -50,12 +50,17 @@ Never ask permission to look something up; this skill is read-only, so just
 do it. Resolve the user via `GET /users`, matching on email address. If a
 name was given and more than one person matches, ask which one is meant, as
 one short question and nothing else ("Which Jan? Share a last name or
-email."). Do not combine it with an offer to proceed. Never guess.
+email."). Do not combine it with an offer to proceed. Never guess. If no
+user matches, say so in one sentence and, if a similar name exists, ask if
+that is who they meant ("I couldn't find anyone named Mike Carter in
+AccessOwl. Did you mean Michael J. Scott?").
 
 ### 2. Fetch their access
 
-`GET /access_states?grantee_user_id=<id>` with permissions and applications
-expanded. Only entries with `effective_end: null` are active; show only
+`GET /access_states?grantee_user_id=<id>&expand=application,target_permissions`.
+One call returns application titles and permission titles together; do not
+fetch per-application resources to resolve them. Only entries with
+`effective_end: null` are active; show only
 those. Leave out entries whose application has `status: discovered`; that is
 discovered usage, not access managed through AccessOwl. If the person has
 discovered apps, end the answer with exactly one short question: "Do you
