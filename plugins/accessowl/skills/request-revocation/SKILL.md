@@ -72,6 +72,13 @@ with `effective_end: null` are active. Present them as a bullet list, by title:
 
 If the person has no active access to that application, say so and stop.
 
+A single access entry can carry several permissions (check
+`target_permission_ids`). A revocation always covers the WHOLE entry; the
+API cannot revoke one permission out of it. If the user asked to remove only
+one permission from a multi-permission entry, say plainly that the
+revocation will remove all of them (name each one) and ask whether to
+proceed. Never imply a single permission can be removed on its own.
+
 ### 4. Ask what to revoke, and why
 
 Ask whether to revoke everything listed or only specific entries, unless the
