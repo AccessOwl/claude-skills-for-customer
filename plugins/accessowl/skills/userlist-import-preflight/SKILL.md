@@ -85,7 +85,8 @@ Build a fresh CSV in exactly the importer's format:
 
 - **Email** is always the first column.
 - One column per resource, using the exact resource titles. Child resources
-  get their own column, without the parent name as a prefix.
+  get their own column, without the parent name as a prefix. If a resource
+  has no title (a `null` title in the API), name its column **Permissions**.
 - Cell values are permission titles, rewritten to the exact AccessOwl titles.
   AccessOwl's titles are canonical: when a CSV value clearly corresponds to
   one permission (case difference, an extra or missing word such as
