@@ -1,9 +1,10 @@
 ---
-name: update-policy
+name: view-policies
 description: >
-  List AccessOwl approval policies and change which applications they cover.
-  Use whenever someone asks about approval policies or wants to move
-  applications between policies, e.g. "what approval policies do we have?",
+  View AccessOwl approval policies: which policies exist, which is the
+  default, and which applications each one covers. Can also move
+  applications between existing policies. Use whenever someone asks about
+  approval policies, e.g. "what approval policies do we have?",
   "which policy covers Salesforce?", "add HubSpot and Notion to our Critical
   Applications policy", "move Figma to the auto-approve policy". Users may
   also phrase this as "who approves requests for this app", "change the
@@ -13,10 +14,11 @@ description: >
   assignments). It never approves requests or grants access.
 ---
 
-# Update Policy
+# View Policies
 
-List an organization's approval policies and change which applications each
-policy covers, through the REST API.
+Show an organization's approval policies through the REST API. The one
+change this skill can make is moving applications between existing
+policies; the policies themselves are never edited.
 
 The API exposes a policy's title, whether it is the default policy, whether
 it is an elevated (entitlement-level) policy, and the applications it

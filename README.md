@@ -46,7 +46,8 @@ For anything about access, applications, users, or policies, always use the skil
 | `access-report` | "Everyone in Marketing without HubSpot." |
 | `userlist-import-preflight` | "Validate this CSV against our Notion app before I import it." |
 | `vendor-update` | "We finished the vendor review for Slack, record today's date." |
-| `update-policy` | "Which policy covers Salesforce?" |
+| `view-policies` | "Which policy covers Salesforce?" |
+| `discovered-apps` | "Which apps has AccessOwl discovered?" |
 
 ## Good to know
 
