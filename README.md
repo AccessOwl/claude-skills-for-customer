@@ -10,7 +10,10 @@ This repository contains **ClaudeTag for AccessOwl**, the official AccessOwl plu
 >
 > @Claude who has 1Password, grouped by role?
 
-Every change is confirmed with you first, and every request goes through your normal approval process. Claude never grants access itself.
+Every change is confirmed with you first. AccessOwl returns each access
+request's workflow status; only `pending_approval` means it is awaiting
+approval. Revocations may begin removal immediately, depending on the
+application. Claude never grants access itself.
 
 ## The skills
 
@@ -34,7 +37,7 @@ Before installing, [connect Claude Tag to AccessOwl](https://docs.accessowl.com/
 
 Then, as a Claude organization admin:
 
-1. **Add this repository as a plugin source.** In [claude.ai admin settings](https://claude.ai/admin-settings/claude-tag), register `github.com/oaaccessowl/claude-skills-for-customer` as an organization plugin source and leave **Sync automatically** on. You'll always have the latest skills.
+1. **Add this repository as a plugin source.** In [claude.ai admin settings](https://claude.ai/admin-settings/claude-tag), register `github.com/AccessOwl/claude-skills-for-customer` as an organization plugin source and leave **Sync automatically** on. You'll always have the latest skills.
 2. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **ClaudeTag for AccessOwl**.
 3. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
 
@@ -47,15 +50,18 @@ AccessOwl questions without them.
 - No progress updates, checklists, or "on it" messages. The first reply is the answer or the confirmation question.
 - Use short bullet points and tables. Plain language only: no IDs, no field names, no technical jargon, no em dashes.
 - Before creating any request, confirm once in a single short message, then submit after a clear yes.
-- Access requests and revocations always go through our normal approval process. Never say access was granted or removed, only that requests were submitted.
-- Refer to people by name and email, and to applications and permissions by their exact AccessOwl names.
+- Report the returned workflow status for each access request. Describe it as awaiting approval only when the status is `pending_approval`. A revocation can start removal immediately, depending on the application, so always confirm it and never claim removal is complete until verified.
+- Refer to people by name. Use an email only when needed to distinguish people with the same name. Use exact AccessOwl names for applications and permissions.
 ```
 
 That's it. Mention `@Claude` in your access channel and ask.
 
 ## Good to know
 
-- Skills create **requests**. Approving them stays with your approvers, in your policies.
+- Access skills create **requests**. The vendor skill makes only the direct
+  metadata updates you confirm. Structure and policy changes are previewed,
+  then completed in AccessOwl. Structure reads expose no usable version token,
+  and policy assignment is an unprotected full-set replacement.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.
 - New threads pick up skill updates automatically; ongoing threads keep the version they started with.
