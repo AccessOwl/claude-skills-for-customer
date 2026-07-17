@@ -34,9 +34,10 @@ Before installing, [connect Claude Tag to AccessOwl](https://docs.accessowl.com/
 
 Then, as a Claude organization admin:
 
-1. **Add this repository as a plugin source.** In [claude.ai admin settings](https://claude.ai/admin-settings/claude-tag), register `github.com/AccessOwl/claude-skills-for-customer` as an organization plugin source and leave **Sync automatically** on. You'll always have the latest skills.
-2. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **ClaudeTag for AccessOwl**.
-3. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
+1. **Fork this repository.** Fork `github.com/AccessOwl/claude-skills-for-customer` into a **private** repository in your organization's GitHub account. Claude only accepts private or internal repositories as organization plugin sources, so your fork is what Claude syncs from.
+2. **Connect your fork.** In claude.ai, go to **Organization settings > Plugins**, add your fork via **Sync from GitHub** (installing the Claude GitHub App on it if prompted), and leave **Sync automatically** on.
+3. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **ClaudeTag for AccessOwl**.
+4. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
 
 ```text
 For anything about access, applications, users, or policies, always use
@@ -59,7 +60,8 @@ That's it. Mention `@Claude` in your access channel and ask.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.
 - New threads pick up skill updates automatically; ongoing threads keep the version they started with.
-- The plugin also works in [Claude Code](https://code.claude.com): add this repository as a plugin marketplace there too.
+- **Staying up to date:** Claude syncs from your fork, so pull upstream changes with GitHub's **Sync fork** button when a new version ships, or enable Actions on your fork once and the bundled `sync-upstream` workflow pulls them in daily.
+- The plugin also works in [Claude Code](https://code.claude.com), no fork needed there: `/plugin marketplace add AccessOwl/claude-skills-for-customer`.
 
 ## Learn more
 
