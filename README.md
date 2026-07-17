@@ -34,7 +34,7 @@ Before installing, [connect Claude Tag to AccessOwl](https://docs.accessowl.com/
 
 Then, as a Claude organization admin:
 
-1. **Add this repository as a plugin source.** In [claude.ai admin settings](https://claude.ai/admin-settings/claude-tag), register `github.com/oaaccessowl/claude-skills-for-customer` as an organization plugin source and leave **Sync automatically** on. You'll always have the latest skills.
+1. **Add this repository as a plugin source.** In [claude.ai admin settings](https://claude.ai/admin-settings/claude-tag), register `github.com/AccessOwl/claude-skills-for-customer` as an organization plugin source and leave **Sync automatically** on. You'll always have the latest skills.
 2. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **ClaudeTag for AccessOwl**.
 3. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
 

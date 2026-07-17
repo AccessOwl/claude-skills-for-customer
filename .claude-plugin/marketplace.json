@@ -9,7 +9,7 @@
     {
       "name": "claudetag-for-accessowl",
       "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": "./plugins/accessowl"
     }
   ]
