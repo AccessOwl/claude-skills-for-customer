@@ -112,26 +112,26 @@ ALLOWED_REPOSITORY_FILES = frozenset(
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "f5e533241ad7e07530126b3aec15cc85ff67d6dbb35a4d85d5e5d896aff503c3",
-    Path("SKILL_STYLE.md"): "4d44bb75604a88995207e085b20e5a9b8b14657b92280c87112ed0e772d89ff7",
-    SKILL_ROOT / "access-report" / "SKILL.md": "2a40e10d148b2b70270e111814a0166d446be4d358425651ecd9dcf24edeaa04",
-    SKILL_ROOT / "discovered-apps" / "SKILL.md": "f4510a8a2fee491ca09bc99a44b003bf271f31be38a4aa76095d2c5d031639d3",
-    SKILL_ROOT / "list-access" / "SKILL.md": "5642627dd91bdcd412c27bbcbd1c75737fc57f13ea75906158f4182c62240e7e",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "30fa001ac202b7f36bb6e40bd6039d482df470f24c68558f33abf9e282376e62",
-    SKILL_ROOT / "request-access" / "SKILL.md": "03228a970db833f73ade86dbb7c8a24dde3c1d0273f7263e402a5778f5a806fd",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "6f96a399b094f0df601b1d456ff4995358fc0aa9d0290d9edf45d123e203cb39",
-    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "81bf2db45f3e3d994cc922b4421a3f5b70856f30f9dd9e8cedf0a38658730b6c",
-    SKILL_ROOT / "vendor-update" / "SKILL.md": "f518a27258ab475a2779a2600947dce7b79b134bae1bb7c4d133a9a788d84758",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "2638d73e8009ee0980be938d4f897f033c4ab167272b0d4a5e4817b0165a0635",
+    Path("SKILL_STYLE.md"): "dbe080a6eab11637ff7806f4e1004698d16bef176b8d746f393422b88ee7b20f",
+    SKILL_ROOT / "access-report" / "SKILL.md": "524023063967dd7e6eca897b87258a1b2bcfaa379960ad860b3aeb857fe26b68",
+    SKILL_ROOT / "discovered-apps" / "SKILL.md": "1b9db0e824ce2800464d9575f82335610f889da60e013de0060a14e8dd9589d6",
+    SKILL_ROOT / "list-access" / "SKILL.md": "3e735c7c50da109124b669ad9341e83ee3050632835ceed5e8a45596a3bcfb19",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "b44abdbb5e015f6d3e023b60f0270cee764e682f22589eb79cb1e7818307200f",
+    SKILL_ROOT / "request-access" / "SKILL.md": "f8c7a7bf5eba0460492963c1e53a6a0a48eb63f348e97882fe19998ea01b6e06",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "667156a88b6e0ee3e2e39da3e5f5f91beef4864bbaf3cbe4e6105efac10ca1fb",
+    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "cdbf8115b94d5af1380a6bf50699b02e306ce5f66e77f6dc6a38f49e9f513dc1",
+    SKILL_ROOT / "vendor-update" / "SKILL.md": "b5b48d7c86b6d9eae2213e5d3a1f7590681addb4fc55faa2d0f6bf745b13f2cf",
+    SKILL_ROOT / "view-policies" / "SKILL.md": "fffe4bde682c85707f2421c09d47735bc4d962eac725cecace3ca8de64655d54",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/test_adversarial_oracles.py"): "b9ca1f6169136ff6c0500d12380287ae9523ff0c697246687929ae6cbc08af2d",
+    Path("tests/test_adversarial_oracles.py"): "a9237701bce7c5b0a98a3e0eb712d6426e5f3f4b027a079dcbb8c48c6ac8cf19",
     Path("tests/test_api_semantic_oracles.py"): "dec07e07b332252b6e7926c0ee782d3c6811c31ef01d401bba9bbd02fe1dd309",
     Path("tests/test_ci_manifest_oracles.py"): "762f4dd9471d58f77328ec84f682c69a8e0036a56dc9c522c2b563ea6db6fa2d",
-    Path("tests/test_output_semantic_oracles.py"): "c57a321882b0e9f568adf58810962f18c60d712e63e4bebcd97a08df7ee7b68d",
+    Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "df097235b59cb9ad9bb016916635e8b23e6ba652e108a8f21d692afb4417ad38",
+    Path("tests/test_write_semantic_oracles.py"): "acf23964eacfb069e7c0a70240c0315976495aeaaac9e5327f03da69515fed88",
 }
 
 # Curated from https://docs.accessowl.com/api-reference/openapi.json on 2026-07-17. The
@@ -2335,17 +2335,55 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 )
             )
         if re.search(
-            r"(?:missing|absent)\s+cursor.{0,60}(?:complete|end|finish)\w*"
-            r".{0,80}(?:even\s+when|despite|regardless).{0,40}"
-            r"total_count.{0,30}disagree",
+            r"(?:missing|absent|empty)\s+(?:next_)?cursor.{0,80}"
+            r"(?:complete|end|finish|exhaust)\w*",
             folded,
             re.S,
         ):
             issues.append(
                 _issue(
-                    "PAGINATION_ABSENT_CURSOR",
+                    "PAGINATION_LIVE_CURSOR_SHAPE",
                     relative,
-                    "an absent cursor cannot complete pagination when total_count disagrees",
+                    "only an explicit null next_cursor proves pagination exhaustion",
+                )
+            )
+        if re.search(
+            r"meta\.limit.{0,80}(?:mismatch|different|wrong).{0,80}"
+            r"(?:acceptable|allowed|ignored|safe|continue)",
+            folded,
+            re.S,
+        ):
+            issues.append(
+                _issue(
+                    "PAGINATION_LIVE_CURSOR_SHAPE",
+                    relative,
+                    "meta.limit must equal the requested limit",
+                )
+            )
+        if re.search(
+            r"(?:request|use|allow|permit).{0,40}limit\s*=\s*(?:10[1-9]|1[1-9]\d|[2-9]\d{2,})",
+            folded,
+            re.S,
+        ):
+            issues.append(
+                _issue(
+                    "PAGINATION_LIMIT",
+                    relative,
+                    "clients must not exceed limit=100 even if the server accepts it",
+                )
+            )
+        if re.search(
+            r"(?:^|[.!?]\s+)(?:require|use|rely\s+on).{0,80}"
+            r"(?:page_size|total_pages|total_count).{0,80}"
+            r"(?:complete|completion|exhaust)",
+            folded,
+            re.S,
+        ):
+            issues.append(
+                _issue(
+                    "PAGINATION_OPENAPI_DRIFT",
+                    relative,
+                    "stale OpenAPI page fields cannot prove cursor completion",
                 )
             )
         if re.search(
@@ -2421,24 +2459,38 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
             ),
             (
                 "PAGINATION_NULL_CURSOR",
-                bool(
-                    re.search(r"(?:explicit\s+)?null(?:\s+or\s+absent)?.{0,180}(?:valid|stable).{0,100}total_count.{0,100}(?:equal|disagree)", folded, re.S)
+                bool(re.search(r"explicit\s+null.{0,40}(?:proves|means).{0,40}exhaust", folded, re.S)),
+                "an explicit null next_cursor proves exhaustion",
+            ),
+            (
+                "PAGINATION_LIVE_CURSOR_SHAPE",
+                all(
+                    term in normalized
+                    for term in (
+                        "`meta.limit`",
+                        "integer equal to the requested",
+                        "`meta.next_cursor` key on every page",
+                        "either a nonempty string or explicit null",
+                        "missing key",
+                        "wrong type",
+                    )
                 ),
-                "null completion must be tied to a valid stable total or fail on disagreement",
+                "require the live meta.limit and next_cursor response shape",
             ),
             (
-                "PAGINATION_ABSENT_CURSOR",
-                bool(re.search(r"absent\s+cursor|(?:null\s+or\s+absent)\s+cursor", folded))
-                and "total_count" in folded
-                and ("equals" in folded or "equal" in folded),
-                "an absent cursor completes only when accumulated count equals valid total_count",
-            ),
-            (
-                "PAGINATION_TOTAL_DRIFT",
-                "total_count" in folded
-                and ("changes" in folded or "changed" in folded)
-                and ("exceed" in folded or "exceeded" in folded),
-                "total_count drift and exceeded totals must stop as incomplete",
+                "PAGINATION_OPENAPI_DRIFT",
+                all(
+                    term in normalized
+                    for term in (
+                        "do not require or use",
+                        "page_size",
+                        "total_pages",
+                        "total_count",
+                        "live api cursor shape was verified on 2026-07-19",
+                        "openapi",
+                    )
+                ),
+                "record the verified cursor schema drift and do not rely on stale page fields",
             ),
             (
                 "PAGINATION_CAP",
@@ -2844,13 +2896,52 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "pin the API base path and keep configured Bearer credentials out of chat while distinguishing 403 and billing redirects",
             ),
             (
-                "PAGINATION_META_CONSISTENCY",
-                "page_size" in text
-                and "total_pages" in text
-                and "does not advance by one" in folded
-                and "page data" in folded
-                and "accumulated counts" in folded,
-                "validate page, page_size, total_pages, page data, and accumulated counts together",
+                "LIVE_DETAIL_ENVELOPE",
+                all(
+                    term in normalized
+                    for term in (
+                        "user-detail and application-detail responses",
+                        "top-level `data` object",
+                        "require that envelope",
+                    )
+                ),
+                "require the live detail response data envelope",
+            ),
+            (
+                "LIVE_USER_NAME_NULLABILITY",
+                all(
+                    term in normalized
+                    for term in (
+                        "`first_name` or `last_name` may be null",
+                        "trimmed nonblank `full_name`",
+                        "validated nonblank email address",
+                        "stop if neither exists",
+                        "never invent a name",
+                    )
+                ),
+                "handle live nullable user names without inventing a label",
+            ),
+            (
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+                all(
+                    term in normalized
+                    for term in (
+                        "resource `title` may be null",
+                        "treat it as unavailable",
+                        "never invent or display a fallback title",
+                        "display, selection, csv output, or disambiguation",
+                        "otherwise stop incomplete",
+                    )
+                ),
+                "handle live nullable resource titles only where a title is not needed",
+            ),
+            (
+                "LIVE_OPENAPI_EXCEPTIONS",
+                "sandbox-verified exceptions" in folded
+                and "2026-07-19" in folded
+                and "every other documented" in folded
+                and "specific stale openapi claims" in folded,
+                "scope the live OpenAPI exceptions narrowly and keep other validation strict",
             ),
             (
                 "API_NESTED_VALUE_CAP",
@@ -3991,7 +4082,8 @@ def _validate_openapi_field_semantics(
         resource_title_safe = all(
             term in normalized
             for term in (
-                "api requires every resource title to be a non-null string",
+                "live api can return a null resource title",
+                "despite the current openapi string requirement",
                 "reject a missing, null, empty",
                 "never invent a fallback column title",
             )
@@ -4005,7 +4097,7 @@ def _validate_openapi_field_semantics(
                 _issue(
                     "RESOURCE_TITLE_REQUIRED",
                     relative,
-                    "Resource.title is required and nonnullable; no fallback CSV title is allowed",
+                    "a nullable resource title cannot be used or replaced as a CSV header",
                 )
             )
         structure_safe = all(
@@ -5515,10 +5607,11 @@ def _validate_reporting_and_csv_invariants(
         )
 
         email_hidden_safe = any(
-            "do not include the person's email address" in paragraph
-            and "only mention an email" in paragraph
-            and "same name" in paragraph
-            and "bare with no link syntax" in paragraph
+            "trimmed nonblank `full_name`" in paragraph
+            and "if it is unavailable" in paragraph
+            and "validated nonblank email address" in paragraph
+            and "bare email" in paragraph
+            and "never use link syntax" in paragraph
             for paragraph in paragraphs
         )
         email_hidden_contradiction = any(
@@ -5532,7 +5625,7 @@ def _validate_reporting_and_csv_invariants(
         require(
             "LIST_EMAIL_HIDDEN",
             email_hidden_safe and not email_hidden_contradiction,
-            "list-access hides email except the minimum bare-text disambiguator for duplicate names",
+            "list-access prefers full_name and uses bare email only as a verified fallback or disambiguator",
         )
 
     if skill == "discovered-apps":

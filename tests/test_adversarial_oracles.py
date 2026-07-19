@@ -801,16 +801,21 @@ class AdversarialOracleTests(unittest.TestCase):
 Use `GET /users?status=all` and request `limit=100` on every cursor endpoint.
 Follow every nonempty `meta.next_cursor`. A repeated cursor, a duplicate record ID
 within a page or across pages of one logical pagination traversal of one endpoint
-and query, page failure, total_count that changes or is exceeded, or the cap of
+and query, page failure, or the cap of
 1,000 pages or 100,000 items makes the result incomplete. Track every cursor and
 returned record ID. Reset cursor and record-ID tracking for each fresh query or
 pre-write refetch. The same record ID may reappear across independent traversals;
 a duplicate within one page or a repeat across pages within the same traversal
 is inconsistent. The
-100,000-item budget remains global across the run. Explicit
-null completes unless a valid total_count disagrees. An absent cursor completes only
-when accumulated count equals valid total_count. Never answer or write from an
-incomplete result.
+100,000-item budget remains global across the run. Require `meta.limit` to be an
+integer equal to the requested `limit=100`, and require the `meta.next_cursor` key
+on every page. It must be either a nonempty string or explicit null. Explicit null
+proves exhaustion. A missing key, empty string, wrong type, repeated cursor,
+duplicate record ID, page longer than 100 records, or failed page makes the result
+incomplete. Do not require or use `page`, `page_size`, `total_pages`, or
+`total_count` as completion evidence. The live API cursor shape was verified on
+2026-07-19; the current OpenAPI still describes absent page-number fields. Never
+answer or write from an incomplete result.
 
 For 429, validate Retry-After. Stop when it is missing, malformed, non-integer,
 negative, or larger than 60 seconds, and allow at most two retries. Network and 5xx failures
@@ -854,7 +859,11 @@ A malformed response stops incomplete.
             ("limit", baseline.replace("limit=100", "limit=20"), "PAGINATION_LIMIT"),
             ("cursor loop", baseline.replace("repeated cursor", "cursor issue"), "PAGINATION_REPEATED_CURSOR"),
             ("repeated cursor completes", baseline + "\nTreat a repeated cursor as the end of pagination.\n", "PAGINATION_REPEATED_CURSOR"),
-            ("missing cursor despite total", baseline + "\nA missing cursor completes pagination even when total_count disagrees.\n", "PAGINATION_ABSENT_CURSOR"),
+            ("missing cursor completes", baseline + "\nA missing cursor completes pagination.\n", "PAGINATION_LIVE_CURSOR_SHAPE"),
+            ("empty cursor completes", baseline + "\nAn empty next_cursor ends pagination.\n", "PAGINATION_LIVE_CURSOR_SHAPE"),
+            ("meta limit mismatch", baseline + "\nA meta.limit mismatch is acceptable; continue.\n", "PAGINATION_LIVE_CURSOR_SHAPE"),
+            ("server accepts 101", baseline + "\nThe server accepts it, so use limit=101.\n", "PAGINATION_LIMIT"),
+            ("stale total completion", baseline + "\nRequire total_count to prove completion.\n", "PAGINATION_OPENAPI_DRIFT"),
             (
                 "duplicate row",
                 baseline.replace(

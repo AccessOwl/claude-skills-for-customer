@@ -479,8 +479,8 @@ class OutputSemanticOracleTests(unittest.TestCase):
             (
                 "show email",
                 "LIST_EMAIL_HIDDEN",
-                "Do not include the person's email address",
-                "Always include the person's email address",
+                "Prefer the person's trimmed nonblank `full_name`.",
+                "Always include the person's email address.",
                 None,
             ),
             (
