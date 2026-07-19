@@ -13,6 +13,7 @@ from .contract_validator import (
     CHECKOUT_ACTION_SHA,
     CORE_HARNESS_FILES,
     SETUP_PYTHON_ACTION_SHA,
+    SYNC_WORKFLOW_PATH,
     WORKFLOW_PATH,
     validate_ci,
     validate_manifest_values,
@@ -83,13 +84,46 @@ jobs:
         run: python tests/run_tests.py
 """ % (CHECKOUT_ACTION_SHA, SETUP_PYTHON_ACTION_SHA)
 
+VALID_SYNC_WORKFLOW = """name: Sync from AccessOwl upstream
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    if: github.repository != 'AccessOwl/claude-skills-for-customer'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out fork
+        uses: actions/checkout@%s
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Fast-forward main from upstream
+        run: |
+          git remote add upstream https://github.com/AccessOwl/claude-skills-for-customer.git
+          git fetch upstream main
+          git merge --ff-only upstream/main
+          git push origin main
+""" % CHECKOUT_ACTION_SHA
+
 
 class CiAndManifestOracleTests(unittest.TestCase):
     def assertCode(self, issues: List[object], expected: str) -> None:
         codes = {getattr(issue, "code") for issue in issues}
         self.assertIn(expected, codes, "expected %s, got %s" % (expected, sorted(codes)))
 
-    def make_ci_tree(self, root: Path, workflow: str = VALID_WORKFLOW) -> None:
+    def make_ci_tree(
+        self,
+        root: Path,
+        workflow: str = VALID_WORKFLOW,
+        sync_workflow: str = VALID_SYNC_WORKFLOW,
+    ) -> None:
         for relative in CORE_HARNESS_FILES:
             path = root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -97,6 +131,7 @@ class CiAndManifestOracleTests(unittest.TestCase):
         workflow_path = root / WORKFLOW_PATH
         workflow_path.parent.mkdir(parents=True, exist_ok=True)
         workflow_path.write_text(workflow, encoding="utf-8")
+        (root / SYNC_WORKFLOW_PATH).write_text(sync_workflow, encoding="utf-8")
 
     def test_checked_in_manifest_identity_is_valid(self) -> None:
         self.assertEqual([], validate_manifest_values(VALID_MARKETPLACE, VALID_PLUGIN))
@@ -491,6 +526,31 @@ concurrency:
                 encoding="utf-8",
             )
             self.assertCode(validate_ci(root), "CI_WORKFLOW_INVENTORY")
+
+    def test_sync_workflow_security_and_fast_forward_contract_are_indivisible(self) -> None:
+        mutations = (
+            VALID_SYNC_WORKFLOW.replace(
+                "if: github.repository != 'AccessOwl/claude-skills-for-customer'",
+                "if: always()",
+            ),
+            VALID_SYNC_WORKFLOW.replace("contents: write", "contents: read"),
+            VALID_SYNC_WORKFLOW.replace(
+                "actions/checkout@%s" % CHECKOUT_ACTION_SHA,
+                "actions/checkout@v4",
+            ),
+            VALID_SYNC_WORKFLOW.replace("git merge --ff-only", "git merge"),
+            VALID_SYNC_WORKFLOW.replace(
+                "https://github.com/AccessOwl/claude-skills-for-customer.git",
+                "https://github.com/example/untrusted.git",
+            ),
+        )
+        for sync_workflow in mutations:
+            with self.subTest(
+                sync_workflow=sync_workflow
+            ), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.make_ci_tree(root, sync_workflow=sync_workflow)
+                self.assertCode(validate_ci(root), "CI_SYNC_EXACT_SHAPE")
 
     def test_ci_rejects_unreviewed_execution_surfaces(self) -> None:
         mutations = (

@@ -26,6 +26,7 @@ SKILL_ROOT = Path("plugins/accessowl/skills")
 MARKETPLACE_PATH = Path(".claude-plugin/marketplace.json")
 PLUGIN_MANIFEST_PATH = Path("plugins/accessowl/.claude-plugin/plugin.json")
 WORKFLOW_PATH = Path(".github/workflows/adversarial-tests.yml")
+SYNC_WORKFLOW_PATH = Path(".github/workflows/sync-upstream.yml")
 
 EXPECTED_MARKETPLACE_NAME = "accessowl-claude-skills"
 EXPECTED_PLUGIN_NAME = "claudetag-for-accessowl"
@@ -69,6 +70,32 @@ EXPECTED_WORKFLOW_ACTIVE_LINES: Tuple[str, ...] = (
     "          TZ: UTC",
     "        run: python tests/run_tests.py",
 )
+EXPECTED_SYNC_WORKFLOW_ACTIVE_LINES: Tuple[str, ...] = (
+    "name: Sync from AccessOwl upstream",
+    "on:",
+    "  schedule:",
+    '    - cron: "23 6 * * *"',
+    "  workflow_dispatch:",
+    "jobs:",
+    "  sync:",
+    "    if: github.repository != 'AccessOwl/claude-skills-for-customer'",
+    "    runs-on: ubuntu-24.04",
+    "    timeout-minutes: 5",
+    "    permissions:",
+    "      contents: write",
+    "    steps:",
+    "      - name: Check out fork",
+    "        uses: actions/checkout@%s" % CHECKOUT_ACTION_SHA,
+    "        with:",
+    "          fetch-depth: 0",
+    "          persist-credentials: true",
+    "      - name: Fast-forward main from upstream",
+    "        run: |",
+    "          git remote add upstream https://github.com/AccessOwl/claude-skills-for-customer.git",
+    "          git fetch upstream main",
+    "          git merge --ff-only upstream/main",
+    "          git push origin main",
+)
 CORE_HARNESS_FILES: Tuple[Path, ...] = (
     Path("tests/__init__.py"),
     Path("tests/contract_validator.py"),
@@ -107,12 +134,13 @@ ALLOWED_REPOSITORY_FILES = frozenset(
         MARKETPLACE_PATH,
         PLUGIN_MANIFEST_PATH,
         WORKFLOW_PATH,
+        SYNC_WORKFLOW_PATH,
     }
     | set(CORE_HARNESS_FILES)
     | {SKILL_ROOT / skill / "SKILL.md" for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "c27549ecc57cf068a464caad40eb7333c8b9981f1aaf4d862642733d13ca8497",
+    Path("README.md"): "3771bf362ae75ce5b6cd1e70a3cb38951400af2e3b06a0f71665224a6492ab98",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "04b0cb7596cbfc47d5bfdd94212cfc47eba37034edd6bb007d5eec0a78a684e2",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "5b44042f86381748e2e47867f52d712b4804828367bc1956cacfda2eaf919eaf",
@@ -130,7 +158,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/test_adversarial_oracles.py"): "a9237701bce7c5b0a98a3e0eb712d6426e5f3f4b027a079dcbb8c48c6ac8cf19",
     Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
-    Path("tests/test_ci_manifest_oracles.py"): "14bbdf0a34f62581c3151f1255fd31a7990c20ebfa6caa49a35ae0fe663f57b6",
+    Path("tests/test_ci_manifest_oracles.py"): "12a4f88b57cb45d53a5efe612d99ac6331d675b53aea5df710155759df58b8f1",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
     Path("tests/test_write_semantic_oracles.py"): "283687a797d3610b9b1ba18f72d6a3fd56bfd372a77838e4f85e993850d9e96e",
@@ -6002,14 +6030,35 @@ def validate_ci(root: Path) -> List[Issue]:
     except OSError as exc:
         workflow_entries = []
         issues.append(_issue("CI_WORKFLOW_INVENTORY", WORKFLOW_PATH.parent, str(exc)))
-    if workflow_entries != [WORKFLOW_PATH.name]:
+    expected_workflow_entries = sorted(
+        (WORKFLOW_PATH.name, SYNC_WORKFLOW_PATH.name)
+    )
+    if workflow_entries != expected_workflow_entries:
         issues.append(
             _issue(
                 "CI_WORKFLOW_INVENTORY",
                 WORKFLOW_PATH.parent,
-                "the only workflow must be %s" % WORKFLOW_PATH.name,
+                "workflows must be exactly %s"
+                % ", ".join(expected_workflow_entries),
             )
         )
+    sync_text, sync_workflow_issues = read_text(
+        root / SYNC_WORKFLOW_PATH, SYNC_WORKFLOW_PATH
+    )
+    issues.extend(sync_workflow_issues)
+    if sync_text is not None:
+        sync_active = _active_yaml_text(sync_text)
+        sync_active_lines = tuple(
+            line.rstrip() for line in sync_active.splitlines() if line.strip()
+        )
+        if sync_active_lines != EXPECTED_SYNC_WORKFLOW_ACTIVE_LINES:
+            issues.append(
+                _issue(
+                    "CI_SYNC_EXACT_SHAPE",
+                    SYNC_WORKFLOW_PATH,
+                    "fork sync must retain its reviewed trigger, guard, permissions, pinned action, and ff-only commands",
+                )
+            )
     for relative in CORE_HARNESS_FILES:
         path = root / relative
         if path.is_symlink() or not path.is_file():

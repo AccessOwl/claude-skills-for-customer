@@ -1,0 +1,31 @@
+# Keeps a customer fork in sync with the upstream AccessOwl skills repository.
+# Runs only on forks (skipped on the upstream repo itself). Enable Actions on
+# your fork once and new skill versions flow in daily; claude.ai then syncs
+# them into your workspace automatically.
+name: Sync from AccessOwl upstream
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    if: github.repository != 'AccessOwl/claude-skills-for-customer'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out fork
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Fast-forward main from upstream
+        run: |
+          git remote add upstream https://github.com/AccessOwl/claude-skills-for-customer.git
+          git fetch upstream main
+          # ponytail: ff-only, fails loudly if the fork has local commits instead of silently merging
+          git merge --ff-only upstream/main
+          git push origin main
