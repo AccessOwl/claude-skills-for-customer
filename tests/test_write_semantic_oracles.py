@@ -9,6 +9,7 @@ from typing import Iterable, Set
 from .contract_validator import (
     SKILL_ROOT,
     Issue,
+    _validate_grant_access_semantics,
     validate_resilience_text,
     validate_write_safety_text,
 )
@@ -50,6 +51,69 @@ class WriteSemanticOracleTests(unittest.TestCase):
         self.assertNotEqual(paragraphs[index], replaced, "mutation anchor was not found")
         paragraphs[index] = replaced
         return "\n\n".join(paragraphs)
+
+    def test_grant_access_eligibility_and_verification_are_indivisible(self) -> None:
+        text = self.skill_text("grant-access")
+        self.assertEqual(
+            [], _validate_grant_access_semantics("grant-access", text, "SKILL.md")
+        )
+        cases = (
+            (
+                "Only `processing_access` is eligible for\ngranting.",
+                "A `pending_approval` request is grant-eligible.",
+                "GRANT_MANUAL_ELIGIBILITY",
+            ),
+            (
+                "`provisioning_type` is\n`application_admin`",
+                "`provisioning_type` is `automatic`",
+                "GRANT_MANUAL_ELIGIBILITY",
+            ),
+            (
+                "does not block this grant",
+                "blocks this grant",
+                "GRANT_DUPLICATE_ACCESS",
+            ),
+            (
+                "clearly confirms that provisioning is complete",
+                "mentions that access was requested",
+                "GRANT_CONFIRMATION",
+            ),
+            (
+                "exactly one current access state",
+                "any current access state",
+                "GRANT_RESPONSE_CORRELATION",
+            ),
+            (
+                "did not consider the request grant-eligible; never infer\napproval",
+                "did not consider the request grant-eligible; assume approval",
+                "GRANT_422_FAIL_CLOSED",
+            ),
+        )
+        for old, new, code in cases:
+            with self.subTest(code=code):
+                mutant = text.replace(old, new, 1)
+                self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
+                self.assertCode(
+                    _validate_grant_access_semantics(
+                        "grant-access", mutant, "SKILL.md"
+                    ),
+                    code,
+                )
+
+        contradictions = (
+            "Mark a pending_approval request granted.",
+            "A different resource blocks this grant.",
+            "HTTP 200 alone proves the grant.",
+            "Skip confirmation before writing.",
+        )
+        for unsafe in contradictions:
+            with self.subTest(unsafe=unsafe):
+                self.assertCode(
+                    _validate_grant_access_semantics(
+                        "grant-access", text + "\n\n" + unsafe, "SKILL.md"
+                    ),
+                    "GRANT_CONTRADICTION",
+                )
 
     def test_idempotency_retry_tuple_is_indivisible(self) -> None:
         text = self.skill_text("request-access")
@@ -486,7 +550,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "DISPLAY_NONBLANK_LABEL",
             ),
             (
-                "exact OpenAPI-documented success status",
+                "exact AccessOwl API-documented success status",
                 "any success-like status",
                 "HTTP_STATUS_CONTRACT",
             ),

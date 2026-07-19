@@ -13,13 +13,16 @@ This repository contains **ClaudeTag for AccessOwl**, the official AccessOwl plu
 Every change is confirmed with you first. AccessOwl returns each access
 request's workflow status; only `pending_approval` means it is awaiting
 approval. Revocations may begin removal immediately, depending on the
-application. Claude never grants access itself.
+application. Claude can also mark a fully approved, manually provisioned
+request as granted after you confirm the access was set up. It never approves
+a request.
 
 ## The skills
 
 | Skill | What you can say |
 |---|---|
 | `request-access` | "Request a HubSpot Marketing seat for Tom." |
+| `grant-access` | "Mixpanel is set up for Dwight, mark the approved request granted." |
 | `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
@@ -50,6 +53,7 @@ AccessOwl questions without them.
 - No progress updates, checklists, or "on it" messages. The first reply is the answer or the confirmation question.
 - Use short bullet points and tables. Plain language only: no IDs, no field names, no technical jargon, no em dashes.
 - Before creating any request, confirm once in a single short message, then submit after a clear yes.
+- Before marking approved manual access as granted, confirm the exact person, application, resource, and permission, then verify the resulting current access.
 - Report the returned workflow status for each access request. Describe it as awaiting approval only when the status is `pending_approval`. A revocation can start removal immediately, depending on the application, so always confirm it and never claim removal is complete until verified.
 - Refer to people by name. Use an email only when needed to distinguish people with the same name. Use exact AccessOwl names for applications and permissions.
 ```
@@ -58,10 +62,12 @@ That's it. Mention `@Claude` in your access channel and ask.
 
 ## Good to know
 
-- Access skills create **requests**. The vendor skill makes only the direct
-  metadata updates you confirm. Structure and policy changes are previewed,
-  then completed in AccessOwl. Structure reads expose no usable version token,
-  and policy assignment is an unprotected full-set replacement.
+- Request skills create **requests**. The grant skill records that a fully
+  approved manual request was set up, then verifies the resulting access. The
+  vendor skill makes only the direct metadata updates you confirm. Structure
+  and policy changes are previewed, then completed in AccessOwl. Structure
+  reads expose no usable version token, and policy assignment is an
+  unprotected full-set replacement.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.
 - New threads pick up skill updates automatically; ongoing threads keep the version they started with.

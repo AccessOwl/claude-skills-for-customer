@@ -11,7 +11,8 @@ Every SKILL.md has, in this order:
 1. Frontmatter: `name` (kebab-case) and `description`. The description states
    what the skill does, gives example prompts, and adds
    a "Users may also phrase this as ..." sentence listing casual phrasings,
-   followed by its exact read-only, request-only, or direct-update boundary.
+   followed by its exact read-only, request-only, direct-grant, or
+   direct-update boundary.
 2. A one-line statement of what the skill does, then the actions outside its
    scope (for example approve, grant, complete, provision, or create).
 3. **API basics**: base URL `https://api.accessowl.com/api/v1` plus the
@@ -39,9 +40,9 @@ Every SKILL.md has, in this order:
    - Refer to everything by its title, never by UUID or internal identifiers.
      If a title looks odd or technical, use it as-is without commentary;
      never call a customer's naming odd, weird, or unusual.
-   - Describe actions as "submitting requests", never as provisioning,
-     granting, revoking, or giving access yourself, including in progress
-     updates.
+   - Describe request actions as "submitting requests". The grant skill says
+     "mark the approved request granted" only after confirmation and verified
+     state. Never describe either action as approving a request.
    - Write email addresses as plain text, not links.
    - State what you will NOT do and why before stating what you will do.
    - Be brief. One short confirmation question beats three long ones. Do not
@@ -98,13 +99,14 @@ or extra facts, because any text produced may end up shown to the user.
 
 ## Hard rules
 
-- Access workflows only submit requests. Never call the grant endpoint. Never
-  claim access was granted, revoked, or completed from submission or response
-  status alone; make such a claim only after the skill's required state
-  verification succeeds. Skills that directly update application metadata
-  stay within that stated scope and still require confirmation. Structure and
-  policy changes are preview-only because their required reads expose no
-  documented usable concurrency token.
+- Request workflows only submit requests and must not call the grant endpoint.
+  The grant workflow may call it only for one fully approved manual request
+  after explicit confirmation. Never claim access was granted, revoked, or
+  completed from submission or response status alone. Make such a claim only
+  after the skill's required state verification succeeds. Skills that directly
+  update application metadata stay within that stated scope and still require
+  confirmation. Structure and policy changes are preview-only because their
+  required reads expose no documented usable concurrency token.
 - A `401` means the configured credential is missing or invalid. A redirect
   to a billing page means the API is not enabled. A `403` means the credential
   lacks permission. Stop on each one, explain the correct remedy, and never
@@ -134,9 +136,9 @@ or extra facts, because any text produced may end up shown to the user.
   status, including `301`, `302`, `303`, `307`, or `308`, even on the same
   origin. A write redirect leaves the outcome uncertain: stop remaining writes
   and never repeat it with a different method, body, or `Idempotency-Key`.
-- Require the exact OpenAPI-documented success status for each operation. For
-  reads, every other status, including `204`, `206`, another unexpected `2xx`,
-  or an otherwise unhandled `4xx` such as `404`, stops as incomplete. For
+- Require the exact AccessOwl API-documented success status for each operation.
+  For reads, every other status, including `204`, `206`, another unexpected
+  `2xx`, or an otherwise unhandled `4xx` such as `404`, stops as incomplete. For
   mutations, any undocumented status, including another `2xx`, leaves an
   unknown outcome: stop remaining writes, never claim success, and verify with
   a documented read when possible.
@@ -193,7 +195,7 @@ or extra facts, because any text produced may end up shown to the user.
   inclusive: exactly at the cap is accepted, and the next byte (cap + 1) is
   rejected. Require a top-level JSON object with correctly typed `data`
   where the endpoint schema defines it and `meta` on
-  cursor-paginated list responses, every OpenAPI-required field, and every
+  cursor-paginated list responses, every AccessOwl API-required field, and every
   optional field the workflow uses, all with the documented type and enum
   value, with only these sandbox-verified exceptions to the current OpenAPI,
   observed on 2026-07-19. User-detail and application-detail responses return

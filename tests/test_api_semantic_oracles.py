@@ -47,6 +47,21 @@ class ApiSemanticOracleTests(unittest.TestCase):
             "SKILL_OPERATION_SCOPE",
         )
 
+    def test_only_grant_access_may_call_the_grant_endpoint(self) -> None:
+        grant = self.skill_text("grant-access")
+        grant_codes = self.codes(
+            validate_api_contract_text("grant-access", grant, "SKILL.md")
+        )
+        self.assertNotIn("GRANT_ENDPOINT_FORBIDDEN", grant_codes)
+        self.assertNotIn("GRANT_ENDPOINT_REFERENCE", grant_codes)
+
+        request = self.skill_text("request-access")
+        unsafe = request + "\n\nCall `POST /access_requests/{id}/grant`.\n"
+        self.assertCode(
+            validate_api_contract_text("request-access", unsafe, "SKILL.md"),
+            "GRANT_ENDPOINT_FORBIDDEN",
+        )
+
     def test_every_user_lookup_requires_status_all(self) -> None:
         text = self.skill_text("discovered-apps")
         mutant = text + "\n\nAlso use `GET /users?status=active&limit=100`.\n"

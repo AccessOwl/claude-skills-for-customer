@@ -65,7 +65,7 @@ needed). State that plainly instead of attempting it.
   cross-origin: stop and report that API enablement may need attention without
   visiting its destination. Never downgrade HTTPS to HTTP; stop on a redirect
   loop.
-- Require the exact OpenAPI-documented success status for each operation. For
+- Require the exact AccessOwl API-documented success status for each operation. For
   reads, every other status, including `204`, `206`, another unexpected `2xx`,
   or an otherwise unhandled `4xx` such as `404`, stops as incomplete. For
   mutations, any undocumented status, including another `2xx`, leaves an
@@ -121,7 +121,7 @@ needed). State that plainly instead of attempting it.
   inclusive: exactly at the cap is accepted, and the next byte (cap + 1) is
   rejected. Require a top-level JSON object with correctly typed `data`
   where the endpoint schema defines it and `meta` on
-  cursor-paginated list responses, every OpenAPI-required field, and every
+  cursor-paginated list responses, every AccessOwl API-required field, and every
   optional field this workflow uses, all with the documented type and enum
   value, with only these sandbox-verified exceptions to the current OpenAPI,
   observed on 2026-07-19. User-detail and application-detail responses

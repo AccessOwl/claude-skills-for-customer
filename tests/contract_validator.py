@@ -91,6 +91,7 @@ _SEMVER = re.compile(
 EXPECTED_SKILLS: Tuple[str, ...] = (
     "access-report",
     "discovered-apps",
+    "grant-access",
     "list-access",
     "mirror-access",
     "request-access",
@@ -111,27 +112,28 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / "SKILL.md" for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "f5e533241ad7e07530126b3aec15cc85ff67d6dbb35a4d85d5e5d896aff503c3",
-    Path("SKILL_STYLE.md"): "dbe080a6eab11637ff7806f4e1004698d16bef176b8d746f393422b88ee7b20f",
-    SKILL_ROOT / "access-report" / "SKILL.md": "524023063967dd7e6eca897b87258a1b2bcfaa379960ad860b3aeb857fe26b68",
-    SKILL_ROOT / "discovered-apps" / "SKILL.md": "1b9db0e824ce2800464d9575f82335610f889da60e013de0060a14e8dd9589d6",
-    SKILL_ROOT / "list-access" / "SKILL.md": "3e735c7c50da109124b669ad9341e83ee3050632835ceed5e8a45596a3bcfb19",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "b44abdbb5e015f6d3e023b60f0270cee764e682f22589eb79cb1e7818307200f",
-    SKILL_ROOT / "request-access" / "SKILL.md": "f8c7a7bf5eba0460492963c1e53a6a0a48eb63f348e97882fe19998ea01b6e06",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "667156a88b6e0ee3e2e39da3e5f5f91beef4864bbaf3cbe4e6105efac10ca1fb",
-    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "cdbf8115b94d5af1380a6bf50699b02e306ce5f66e77f6dc6a38f49e9f513dc1",
-    SKILL_ROOT / "vendor-update" / "SKILL.md": "b5b48d7c86b6d9eae2213e5d3a1f7590681addb4fc55faa2d0f6bf745b13f2cf",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "fffe4bde682c85707f2421c09d47735bc4d962eac725cecace3ca8de64655d54",
+    Path("README.md"): "c27549ecc57cf068a464caad40eb7333c8b9981f1aaf4d862642733d13ca8497",
+    Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
+    SKILL_ROOT / "access-report" / "SKILL.md": "04b0cb7596cbfc47d5bfdd94212cfc47eba37034edd6bb007d5eec0a78a684e2",
+    SKILL_ROOT / "discovered-apps" / "SKILL.md": "5b44042f86381748e2e47867f52d712b4804828367bc1956cacfda2eaf919eaf",
+    SKILL_ROOT / "grant-access" / "SKILL.md": "4526d14bfb164f3c259fcbb53049e48fc593c7cda5a5bdc32ee7c8b894c34118",
+    SKILL_ROOT / "list-access" / "SKILL.md": "27ad420d032595be4b56ab3b3e4878f8675988ed1ed60130aafa4fce5caff230",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "29278059cd301c935872cfd1a84ada9b71a26365285c54cd204ed56de15a4f34",
+    SKILL_ROOT / "request-access" / "SKILL.md": "b0d2279cb572721b4fb5ebdfd1531875dc287908b3aa8cd624f127f04617820e",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "03aa615fcc621693ac5053fecc361db7c2b218b7a2fb6884d5c0f4572a1955f9",
+    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "cf46be52a0ca4c6ab73cbba1638a60423e8f7388f8e603f3c338485b71486f5a",
+    SKILL_ROOT / "vendor-update" / "SKILL.md": "43e09501d5407379b09c6ef0ed3d8a4209cb4b8783b3c270b3f2d193184b0dde",
+    SKILL_ROOT / "view-policies" / "SKILL.md": "5069085ddd93aa5bff3ddc6dc50565c7690d701d0ae19c3bd33ceaccbc48e685",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/test_adversarial_oracles.py"): "a9237701bce7c5b0a98a3e0eb712d6426e5f3f4b027a079dcbb8c48c6ac8cf19",
-    Path("tests/test_api_semantic_oracles.py"): "dec07e07b332252b6e7926c0ee782d3c6811c31ef01d401bba9bbd02fe1dd309",
-    Path("tests/test_ci_manifest_oracles.py"): "762f4dd9471d58f77328ec84f682c69a8e0036a56dc9c522c2b563ea6db6fa2d",
+    Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
+    Path("tests/test_ci_manifest_oracles.py"): "14bbdf0a34f62581c3151f1255fd31a7990c20ebfa6caa49a35ae0fe663f57b6",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "acf23964eacfb069e7c0a70240c0315976495aeaaac9e5327f03da69515fed88",
+    Path("tests/test_write_semantic_oracles.py"): "283687a797d3610b9b1ba18f72d6a3fd56bfd372a77838e4f85e993850d9e96e",
 }
 
 # Curated from https://docs.accessowl.com/api-reference/openapi.json on 2026-07-17. The
@@ -217,6 +219,18 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
     "discovered-apps": frozenset(
         {("GET", "/users"), ("GET", "/applications"), ("GET", "/access_states")}
     ),
+    "grant-access": frozenset(
+        {
+            ("GET", "/users"),
+            ("GET", "/users/{}"),
+            ("GET", "/applications"),
+            ("GET", "/applications/{}"),
+            ("GET", "/applications/{}/resources"),
+            ("GET", "/access_requests"),
+            ("GET", "/access_states"),
+            ("POST", "/access_requests/{}/grant"),
+        }
+    ),
     "list-access": frozenset(
         {("GET", "/users"), ("GET", "/access_states"), ("GET", "/applications")}
     ),
@@ -276,6 +290,7 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
 ALLOWED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
     "access-report": REQUIRED_OPERATIONS["access-report"],
     "discovered-apps": REQUIRED_OPERATIONS["discovered-apps"],
+    "grant-access": REQUIRED_OPERATIONS["grant-access"],
     "list-access": REQUIRED_OPERATIONS["list-access"],
     "mirror-access": REQUIRED_OPERATIONS["mirror-access"],
     "request-access": REQUIRED_OPERATIONS["request-access"],
@@ -295,6 +310,7 @@ STATUS_ALL_SKILLS = frozenset(
     {
         "access-report",
         "discovered-apps",
+        "grant-access",
         "list-access",
         "mirror-access",
         "request-access",
@@ -308,6 +324,7 @@ EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {
         {"grantee_user", "application", "resource", "target_permissions"}
     ),
     "discovered-apps": frozenset({"grantee_user", "application"}),
+    "grant-access": frozenset({"application", "resource", "target_permissions"}),
     "list-access": frozenset({"application", "resource", "target_permissions"}),
     "mirror-access": frozenset({"application", "resource", "target_permissions"}),
     "request-access": frozenset({"application", "resource", "target_permissions"}),
@@ -322,6 +339,7 @@ EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {
 WRITE_SKILLS = frozenset(
     {
         "access-report",
+        "grant-access",
         "mirror-access",
         "request-access",
         "request-revocation",
@@ -330,12 +348,22 @@ WRITE_SKILLS = frozenset(
 )
 IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
     "access-report": ("GET", "/access_requests"),
+    "grant-access": ("GET", "/access_requests"),
     "mirror-access": ("GET", "/access_requests"),
     "request-access": ("GET", "/access_requests"),
     "vendor-update": ("GET", "/applications/{}"),
 }
 CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
     "access-report": frozenset(
+        {
+            ("GET", "/users/{}"),
+            ("GET", "/applications/{}"),
+            ("GET", "/applications/{}/resources"),
+            ("GET", "/access_states"),
+            ("GET", "/access_requests"),
+        }
+    ),
+    "grant-access": frozenset(
         {
             ("GET", "/users/{}"),
             ("GET", "/applications/{}"),
@@ -405,6 +433,7 @@ TITLE_LOOKUP_SKILLS = frozenset(
     {
         "access-report",
         "discovered-apps",
+        "grant-access",
         "list-access",
         "request-access",
         "request-revocation",
@@ -1884,9 +1913,11 @@ def _operation_has_negated_action_reference(
     return False
 
 
-def validate_api_reference_text(text: str, relative: Path | str) -> List[Issue]:
+def validate_api_reference_text(
+    text: str, relative: Path | str, allow_grant: bool = False
+) -> List[Issue]:
     issues: List[Issue] = []
-    if _FORBIDDEN_GRANT_RE.search(text):
+    if not allow_grant and _FORBIDDEN_GRANT_RE.search(text):
         match = _FORBIDDEN_GRANT_RE.search(text)
         assert match is not None
         issues.append(
@@ -1898,6 +1929,8 @@ def validate_api_reference_text(text: str, relative: Path | str) -> List[Issue]:
             )
         )
     for match in _FORBIDDEN_GRANT_PATH_RE.finditer(text):
+        if allow_grant:
+            break
         window = text[max(0, match.start() - 120) : min(len(text), match.end() + 120)]
         if re.search(r"\bPOST\b", window, re.I):
             issues.append(
@@ -2070,7 +2103,11 @@ def validate_api_contract_text(
     skill: str, text: str, relative: Path | str
 ) -> List[Issue]:
     issues: List[Issue] = []
-    issues.extend(validate_api_reference_text(text, relative))
+    issues.extend(
+        validate_api_reference_text(
+            text, relative, allow_grant=skill == "grant-access"
+        )
+    )
     references = extract_api_references(text)
     operations = _reference_set(references)
     issues.extend(validate_skill_operation_scope(skill, text, relative))
@@ -2095,7 +2132,7 @@ def validate_api_contract_text(
                     % operation,
                 )
             )
-    if ("POST", "/access_requests/{}/grant") in operations:
+    if skill != "grant-access" and ("POST", "/access_requests/{}/grant") in operations:
         issues.append(
             _issue(
                 "GRANT_ENDPOINT_FORBIDDEN",
@@ -2582,12 +2619,15 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
             )
         )
     if not (
-        "top-level json object" in folded
-        and "openapi-required field" in folded
-        and "correctly typed" in folded
-        and "nonempty unique record ids" in folded
-        and "malformed" in folded
-        and "incomplete" in folded
+        "top-level json object" in normalized
+        and (
+            "accessowl api-required field" in normalized
+            or "openapi-required field" in normalized
+        )
+        and "correctly typed" in normalized
+        and "nonempty unique record ids" in normalized
+        and "malformed" in normalized
+        and "incomplete" in normalized
     ):
         issues.append(
             _issue(
@@ -2790,10 +2830,15 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "cap redirects at three and never forward credentials across origins",
             )
         )
-    status_contract_safe = all(
+    status_contract_provenance = (
+        "exact accessowl api-documented success status for each operation"
+        in normalized
+        or "exact openapi-documented success status for each operation"
+        in normalized
+    )
+    status_contract_safe = status_contract_provenance and all(
         term in normalized
         for term in (
-            "exact openapi-documented success status for each operation",
             "reads, every other status",
             "`204`",
             "`206`",
@@ -5726,6 +5771,126 @@ def _validate_reporting_and_csv_invariants(
     return issues
 
 
+def _validate_grant_access_semantics(
+    skill: str, text: str, relative: Path | str
+) -> List[Issue]:
+    if skill != "grant-access":
+        return []
+    normalized = re.sub(r"\s+", " ", text.casefold())
+    paragraphs = [
+        re.sub(r"\s+", " ", paragraph.casefold())
+        for paragraph in text.split("\n\n")
+    ]
+    issues: List[Issue] = []
+    requirements: Sequence[Tuple[str, bool, str]] = (
+        (
+            "GRANT_SCOPE",
+            "this is a direct write. it is not approval and it is not a new request" in normalized
+            and "never approves requests" in normalized,
+            "grant-access records completed provisioning but never approves or creates a request",
+        ),
+        (
+            "GRANT_MANUAL_ELIGIBILITY",
+            all(
+                term in normalized
+                for term in (
+                    "`provisioning_type` is `application_admin`",
+                    "exact request status is `processing_access`",
+                    "only `processing_access` is eligible for granting",
+                    "`pending_approval`",
+                    "ineligible",
+                    "never call the grant endpoint for an ineligible request",
+                )
+            ),
+            "only a processing_access request for application_admin provisioning is grant-eligible",
+        ),
+        (
+            "GRANT_EXACT_SELECTION",
+            all(
+                term in normalized
+                for term in (
+                    "require exactly one case-insensitive match",
+                    "complete permission ids",
+                    "never choose by a hidden id",
+                )
+            ),
+            "resolve one exact person, application, request, resource, and permission set",
+        ),
+        (
+            "GRANT_DUPLICATE_ACCESS",
+            all(
+                term in normalized
+                for term in (
+                    "exact application, resource, and complete permission set",
+                    "different resource or permission",
+                    "does not block this grant",
+                    "exact requested access is already current",
+                    "stop",
+                    "duplicate state",
+                )
+            ),
+            "block an exact current duplicate without blocking different access in the same app",
+        ),
+        (
+            "GRANT_CONFIRMATION",
+            "person, application, resource, and complete permission set" in normalized
+            and "clearly confirms that provisioning is complete" in normalized
+            and "earlier request to create or approve access" in normalized,
+            "confirm the exact completed provisioning immediately before granting",
+        ),
+        (
+            "GRANT_RESPONSE_CORRELATION",
+            all(
+                term in normalized
+                for term in (
+                    "exact documented success status is `200`",
+                    "same request id, grantee, application, resource, and complete permission set",
+                    "status exactly `access_granted`",
+                    "exactly one current access state",
+                    "zero or multiple exact matches",
+                    "outcome as unknown",
+                )
+            ),
+            "correlate the 200 response and verify exactly one matching current state",
+        ),
+        (
+            "GRANT_422_FAIL_CLOSED",
+            any(
+                all(
+                    term in paragraph
+                    for term in (
+                        "on `422`",
+                        "did not consider the request grant-eligible",
+                        "never infer approval",
+                        "retry with a new body or key",
+                    )
+                )
+                for paragraph in paragraphs
+            ),
+            "422 must stop without inferring approval or synthesizing another grant",
+        ),
+    )
+    for code, passed, message in requirements:
+        if not passed:
+            issues.append(_issue(code, relative, message))
+    contradictions = (
+        r"pending_approval.{0,80}(?:is|counts?\s+as|treat.{0,20}as).{0,30}grant-eligible",
+        r"(?:grant|mark).{0,80}pending_approval",
+        r"(?:different|other).{0,30}(?:resource|permission).{0,50}(?<!not )(?:blocks?|prevents?).{0,30}grant",
+        r"(?:response\s+status|http\s+200).{0,60}(?:alone|by itself).{0,40}(?:proves?|confirms?).{0,30}grant",
+        r"(?<!never )(?<!not )(?:skip|omit).{0,40}(?:confirmation|current\s+access|read-back|verification)",
+    )
+    if any(re.search(pattern, normalized, re.S) for pattern in contradictions):
+        issues.append(
+            _issue(
+                "GRANT_CONTRADICTION",
+                relative,
+                "unsafe prose must not bypass approval, duplicate, confirmation, or read-back checks",
+            )
+        )
+    return issues
+
+
 def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> List[Issue]:
     issues: List[Issue] = []
     if skill in WRITE_SKILLS:
@@ -5746,6 +5911,7 @@ def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> L
     issues.extend(_validate_openapi_field_semantics(skill, text, relative))
     issues.extend(_validate_reporting_and_csv_invariants(skill, text, relative))
     issues.extend(_validate_destructive_invariants(skill, text, relative))
+    issues.extend(_validate_grant_access_semantics(skill, text, relative))
     return issues
 
 

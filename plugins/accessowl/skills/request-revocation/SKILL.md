@@ -59,7 +59,7 @@ triggers the actual removal, so always confirm before creating one.
   status, including `301`, `302`, `303`, `307`, or `308`, even on the same
   origin. A write redirect leaves the outcome uncertain: stop remaining writes
   and never repeat it with a different method, body, or `Idempotency-Key`.
-- Require the exact OpenAPI-documented success status for each operation. For
+- Require the exact AccessOwl API-documented success status for each operation. For
   reads, every other status, including `204`, `206`, another unexpected `2xx`,
   or an otherwise unhandled `4xx` such as `404`, stops as incomplete. For
   mutations, any undocumented status, including another `2xx`, leaves an
@@ -117,7 +117,7 @@ triggers the actual removal, so always confirm before creating one.
   inclusive: exactly at the cap is accepted, and the next byte (cap + 1) is
   rejected. Require a top-level JSON object with correctly typed `data`
   where the endpoint schema defines it and `meta` on
-  cursor-paginated list responses, every OpenAPI-required field, and every
+  cursor-paginated list responses, every AccessOwl API-required field, and every
   optional field this workflow uses, all with the documented type and enum
   value, with only these sandbox-verified exceptions to the current OpenAPI,
   observed on 2026-07-19. User-detail and application-detail responses

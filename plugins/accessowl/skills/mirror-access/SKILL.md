@@ -8,7 +8,8 @@ description: >
   has that Tom doesn't, create a request". Users may also phrase this as
   "clone Lisa's access for Tom", "give the new hire what Maria has", "copy
   Jan's apps to Tom", or "set Tom up like Lisa" - all of these mean creating
-  access requests for what is missing; this skill never grants access itself.
+  access requests for what is missing. Use `grant-access` separately after a
+  fully approved manual request has actually been provisioned.
 ---
 
 # Mirror Access
@@ -16,10 +17,11 @@ description: >
 Compare two users' access in AccessOwl and create access requests for what
 the target user is missing.
 
-This skill only **requests** access. It never approves, grants, or provisions
-anything itself. Only a returned `pending_approval` status means the request is
-awaiting approval. Classify every returned status exactly instead of promising
-one approval path. Never call the grant endpoint.
+This skill only **requests** access. It never approves or provisions anything.
+Only a returned `pending_approval` status means the request is awaiting
+approval. Classify every returned status exactly instead of promising one
+approval path. Never call the grant endpoint here; use `grant-access` as a
+separate confirmed workflow for eligible approved manual requests.
 
 ## API basics
 
@@ -59,7 +61,7 @@ one approval path. Never call the grant endpoint.
   status, including `301`, `302`, `303`, `307`, or `308`, even on the same
   origin. A write redirect leaves the outcome uncertain: stop remaining writes
   and never repeat it with a different method, body, or `Idempotency-Key`.
-- Require the exact OpenAPI-documented success status for each operation. For
+- Require the exact AccessOwl API-documented success status for each operation. For
   reads, every other status, including `204`, `206`, another unexpected `2xx`,
   or an otherwise unhandled `4xx` such as `404`, stops as incomplete. For
   mutations, any undocumented status, including another `2xx`, leaves an
@@ -117,7 +119,7 @@ one approval path. Never call the grant endpoint.
   inclusive: exactly at the cap is accepted, and the next byte (cap + 1) is
   rejected. Require a top-level JSON object with correctly typed `data`
   where the endpoint schema defines it and `meta` on
-  cursor-paginated list responses, every OpenAPI-required field, and every
+  cursor-paginated list responses, every AccessOwl API-required field, and every
   optional field this workflow uses, all with the documented type and enum
   value, with only these sandbox-verified exceptions to the current OpenAPI,
   observed on 2026-07-19. User-detail and application-detail responses

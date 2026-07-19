@@ -29,7 +29,7 @@ VALID_MARKETPLACE = {
         {
             "name": "claudetag-for-accessowl",
             "description": "AccessOwl skills for Claude.",
-            "version": "0.3.1",
+            "version": "0.4.0",
             "source": "./plugins/accessowl",
         }
     ],
@@ -39,7 +39,7 @@ VALID_PLUGIN = {
     "name": "claudetag-for-accessowl",
     "displayName": "ClaudeTag for AccessOwl",
     "description": "AccessOwl skills for Claude.",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "author": {"name": "AccessOwl", "url": "https://github.com/AccessOwl"},
     "homepage": "https://docs.accessowl.com/api-reference/introduction",
     "repository": "https://github.com/AccessOwl/claude-skills-for-customer",
