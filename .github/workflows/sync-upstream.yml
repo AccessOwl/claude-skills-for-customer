@@ -12,17 +12,20 @@ on:
 jobs:
   sync:
     if: github.repository != 'AccessOwl/claude-skills-for-customer'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out fork
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
+          persist-credentials: true
       - name: Fast-forward main from upstream
         run: |
           git remote add upstream https://github.com/AccessOwl/claude-skills-for-customer.git
           git fetch upstream main
-          # ponytail: ff-only — fails loudly if the fork has local commits instead of silently merging
+          # ponytail: ff-only, fails loudly if the fork has local commits instead of silently merging
           git merge --ff-only upstream/main
           git push origin main
