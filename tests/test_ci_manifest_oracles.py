@@ -13,6 +13,8 @@ from typing import List
 
 from .contract_validator import (
     CHECKOUT_ACTION_SHA,
+    CODEX_MARKETPLACE_PATH,
+    CODEX_PLUGIN_MANIFEST_PATH,
     CORE_HARNESS_FILES,
     SETUP_PYTHON_ACTION_SHA,
     SYNC_WORKFLOW_PATH,
@@ -197,40 +199,76 @@ class CiAndManifestOracleTests(unittest.TestCase):
     def test_codex_manifests_valid_and_version_matched(self) -> None:
         repo = Path(__file__).resolve().parents[1]
         self.assertEqual([], validate_codex_manifests(repo))
-
-        def mutate_version(market: dict, plugin: dict) -> None:
-            plugin["version"] = "9.9.9"
-
-        def mutate_source(market: dict, plugin: dict) -> None:
-            market["plugins"][0]["source"]["path"] = "./plugins/other"
-
-        def mutate_display_name(market: dict, plugin: dict) -> None:
-            del plugin["interface"]["displayName"]
-
-        def mutate_hooks(market: dict, plugin: dict) -> None:
-            plugin["hooks"] = "./hooks/payload.json"
-
-        def mutate_entry_field(market: dict, plugin: dict) -> None:
-            market["plugins"][0]["commands"] = ["./payload.sh"]
-
-        for mutate in (
-            mutate_version,
-            mutate_source,
-            mutate_display_name,
-            mutate_hooks,
-            mutate_entry_field,
-        ):
-            with self.subTest(mutation=mutate.__name__), tempfile.TemporaryDirectory() as tmp:
+        market_path = str(CODEX_MARKETPLACE_PATH)
+        plugin_path = str(CODEX_PLUGIN_MANIFEST_PATH)
+        cases = (
+            ("version", lambda m, p: p.update(version="9.9.9"), plugin_path),
+            ("plugin name", lambda m, p: p.update(name="lookalike"), plugin_path),
+            ("skills path", lambda m, p: p.update(skills="./other/"), plugin_path),
+            ("hooks", lambda m, p: p.update(hooks="./hooks/payload.json"), plugin_path),
+            ("repository", lambda m, p: p.update(repository=p["repository"] + "/"), plugin_path),
+            ("author", lambda m, p: p["author"].update(url="https://github.com/attacker"), plugin_path),
+            ("homepage", lambda m, p: p.update(homepage="https://example.com/"), plugin_path),
+            ("display name", lambda m, p: p["interface"].pop("displayName"), plugin_path),
+            ("non-dict interface", lambda m, p: p.update(interface="AccessOwl Skills"), plugin_path),
+            ("marketplace name", lambda m, p: m.update(name="lookalike"), market_path),
+            (
+                "marketplace interface",
+                lambda m, p: m["interface"].update(displayName="Lookalike"),
+                market_path,
+            ),
+            (
+                "entry count",
+                lambda m, p: m["plugins"].append(copy.deepcopy(m["plugins"][0])),
+                market_path,
+            ),
+            ("entry name", lambda m, p: m["plugins"][0].update(name="lookalike"), market_path),
+            (
+                "entry field",
+                lambda m, p: m["plugins"][0].update(commands=["./payload.sh"]),
+                market_path,
+            ),
+            (
+                "source",
+                lambda m, p: m["plugins"][0]["source"].update(path="./plugins/other"),
+                market_path,
+            ),
+            (
+                "policy",
+                lambda m, p: m["plugins"][0]["policy"].update(installation="INSTALLED_BY_DEFAULT"),
+                market_path,
+            ),
+        )
+        for name, mutate, expected_path in cases:
+            with self.subTest(mutation=name), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp) / "repo"
                 shutil.copytree(repo, root, ignore=shutil.ignore_patterns(".git"))
-                market_path = root / ".agents/plugins/marketplace.json"
-                plugin_path = root / "plugins/accessowl/.codex-plugin/plugin.json"
-                market = json.loads(market_path.read_text(encoding="utf-8"))
-                plugin = json.loads(plugin_path.read_text(encoding="utf-8"))
+                market_file = root / CODEX_MARKETPLACE_PATH
+                plugin_file = root / CODEX_PLUGIN_MANIFEST_PATH
+                market = json.loads(market_file.read_text(encoding="utf-8"))
+                plugin = json.loads(plugin_file.read_text(encoding="utf-8"))
                 mutate(market, plugin)
-                market_path.write_text(json.dumps(market), encoding="utf-8")
-                plugin_path.write_text(json.dumps(plugin), encoding="utf-8")
-                self.assertCode(validate_codex_manifests(root), "CODEX_MANIFEST")
+                market_file.write_text(json.dumps(market), encoding="utf-8")
+                plugin_file.write_text(json.dumps(plugin), encoding="utf-8")
+                self.assertEqual(
+                    [("CODEX_MANIFEST", expected_path)],
+                    [(i.code, i.path) for i in validate_codex_manifests(root)],
+                )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            shutil.copytree(repo, root, ignore=shutil.ignore_patterns(".git"))
+            plugin_file = root / CODEX_PLUGIN_MANIFEST_PATH
+            plugin_file.write_text("[]", encoding="utf-8")
+            self.assertEqual(
+                [("CODEX_MANIFEST", plugin_path)],
+                [(i.code, i.path) for i in validate_codex_manifests(root)],
+            )
+            plugin_file.unlink()
+            self.assertEqual(
+                [("FILE_MISSING", plugin_path)],
+                [(i.code, i.path) for i in validate_codex_manifests(root)],
+            )
 
     def test_readme_uses_the_transferred_repository_owner(self) -> None:
         current = "Install github.com/AccessOwl/claude-skills-for-customer."

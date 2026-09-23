@@ -38,8 +38,13 @@ SYNC_WORKFLOW_PATH = Path(".github/workflows/sync-upstream.yml")
 
 EXPECTED_MARKETPLACE_NAME = "accessowl-claude-skills"
 EXPECTED_PLUGIN_NAME = "claudetag-for-accessowl"
+# The Codex marketplace and its only plugin intentionally share this name.
 EXPECTED_CODEX_PLUGIN_NAME = "accessowl-skills"
 EXPECTED_DISPLAY_NAME = "AccessOwl Skills"
+EXPECTED_CODEX_HOMEPAGE = "https://docs.accessowl.com/guides/ai/accessowl-skills"
+EXPECTED_CODEX_POLICY = {"installation": "AVAILABLE", "authentication": "ON_INSTALL"}
+# Same value the Claude PLUGIN_AUTHOR and MARKETPLACE_OWNER checks require.
+EXPECTED_AUTHOR = {"name": "AccessOwl", "url": "https://github.com/AccessOwl"}
 EXPECTED_PLUGIN_SOURCE = "./plugins/accessowl"
 EXPECTED_PLUGIN_HOMEPAGE = "https://docs.accessowl.com/api-reference/introduction"
 EXPECTED_PLUGIN_REPOSITORY = "https://github.com/AccessOwl/claude-skills-for-customer"
@@ -181,7 +186,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/test_adversarial_oracles.py"): "281fd3c7c94b28e23956b58206dd555adf47eb7b971068f1138d14eed334512c",
     Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
-    Path("tests/test_ci_manifest_oracles.py"): "5603e00e5b2098cfbc9922b2805100a6ae7882f2396f37a2d11d0830ea13c946",
+    Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
     Path("tests/test_write_semantic_oracles.py"): "913dff061095b258ef8b8c700fa2ff6f3f0cbcb25cb1f3ce1acb78a03b07c9d1",
@@ -1750,7 +1755,8 @@ def validate_manifests_and_readme(root: Path) -> List[Issue]:
 
 
 # Exact key sets: Codex manifests can declare hooks and MCP servers, which are
-# execution surfaces this repository does not ship.
+# execution surfaces this repository does not ship. Add new top-level fields
+# here only after confirming they do not execute anything.
 CODEX_MARKETPLACE_FIELDS = frozenset({"name", "interface", "plugins"})
 CODEX_MARKETPLACE_ENTRY_FIELDS = frozenset({"name", "source", "policy", "category"})
 CODEX_PLUGIN_FIELDS = frozenset(
@@ -1772,9 +1778,17 @@ def validate_codex_manifests(root: Path) -> List[Issue]:
     market, market_issues = _load_json_file(root, CODEX_MARKETPLACE_PATH)
     plugin, plugin_issues = _load_json_file(root, CODEX_PLUGIN_MANIFEST_PATH)
     claude_plugin, claude_issues = _load_json_file(root, PLUGIN_MANIFEST_PATH)
-    issues.extend(market_issues + plugin_issues + claude_issues)
+    loaded = (
+        (market, market_issues, CODEX_MARKETPLACE_PATH),
+        (plugin, plugin_issues, CODEX_PLUGIN_MANIFEST_PATH),
+        (claude_plugin, claude_issues, PLUGIN_MANIFEST_PATH),
+    )
+    for value, load_issues, relative in loaded:
+        issues.extend(load_issues)
+        # A failed load already reported why; only flag JSON that parsed to a non-object.
+        if not load_issues and not isinstance(value, dict):
+            issues.append(_issue("CODEX_MANIFEST", relative, "Codex manifests must be JSON objects"))
     if not isinstance(market, dict) or not isinstance(plugin, dict) or not isinstance(claude_plugin, dict):
-        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex manifests must be JSON objects"))
         return issues
     entries = market.get("plugins")
     ok_entry = (
@@ -1784,23 +1798,29 @@ def validate_codex_manifests(root: Path) -> List[Issue]:
         and set(entries[0]) == CODEX_MARKETPLACE_ENTRY_FIELDS
         and entries[0].get("name") == EXPECTED_CODEX_PLUGIN_NAME
         and entries[0].get("source") == {"source": "local", "path": EXPECTED_PLUGIN_SOURCE}
+        and entries[0].get("policy") == EXPECTED_CODEX_POLICY
     )
     if (
         set(market) != CODEX_MARKETPLACE_FIELDS
         or market.get("name") != EXPECTED_CODEX_PLUGIN_NAME
+        or market.get("interface") != {"displayName": EXPECTED_DISPLAY_NAME}
         or not ok_entry
     ):
         issues.append(_issue("CODEX_MANIFEST", CODEX_MARKETPLACE_PATH, "Codex marketplace must list exactly accessowl-skills from ./plugins/accessowl"))
     interface = plugin.get("interface")
+    # Version is only compared to the Claude plugin; strict semver is enforced there.
     if (
         set(plugin) != CODEX_PLUGIN_FIELDS
         or plugin.get("name") != EXPECTED_CODEX_PLUGIN_NAME
         or plugin.get("skills") != "./skills/"
         or plugin.get("version") != claude_plugin.get("version")
+        or plugin.get("repository") != EXPECTED_PLUGIN_REPOSITORY
+        or plugin.get("author") != EXPECTED_AUTHOR
+        or plugin.get("homepage") != EXPECTED_CODEX_HOMEPAGE
         or not isinstance(interface, dict)
         or interface.get("displayName") != EXPECTED_DISPLAY_NAME
     ):
-        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex plugin needs exact keys, name, ./skills/, display name, and the Claude plugin version"))
+        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex plugin needs exact keys, name, ./skills/, provenance, display name, and the Claude plugin version"))
     return issues
 
 
