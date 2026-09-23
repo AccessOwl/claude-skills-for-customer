@@ -229,6 +229,10 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("outcome as unknown and stop remaining writes.", "outcome as fine and keep going.", "ONBOARD_UNCERTAIN"),
             ("the new date as unverified", "the new date as confirmed", "ONBOARD_UNCERTAIN"),
             ("Never list or promise", "List", "ONBOARD_VERIFIED_REPORT"),
+            ("switches to Active automatically once AccessOwl finishes", "is Active now", "ONBOARD_VERIFIED_REPORT"),
+            ("a specific app beyond the template is an access request", "the template covers every app",
+             "ONBOARD_VERIFIED_REPORT"),
+            ("a later sync may overwrite the details added here.\"", "the details are final.\"", "ONBOARD_VERIFIED_REPORT"),
         )
         for old, new, code in cases:
             with self.subTest(code=code, old=old):
@@ -293,15 +297,17 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("offer only a reschedule", "offer a new offboarding", "OFFBOARD_STATUS_GATES"),
             ("already underway, so", "already underway, so resend it and", "OFFBOARD_STATUS_GATES"),
             ("is already offboarded, so nothing changes", "is already offboarded, so continue", "OFFBOARD_STATUS_GATES"),
-            ("say the person is inactive in AccessOwl, meaning", "offboard the inactive person, meaning", "OFFBOARD_STATUS_GATES"),
-            ("their assigned access stays in place, and ask", "their access is removed, and ask", "OFFBOARD_STATUS_GATES"),
+            ("Only an Active person is offboarded", "Any person is offboarded", "OFFBOARD_STATUS_GATES"),
             ("cancelled on the\n  person's profile", "cancelled through the\n  API", "OFFBOARD_STATUS_GATES"),
             ("with the Reactivate button", "by offboarding them again", "OFFBOARD_STATUS_GATES"),
-            ("has an onboarding\n  scheduled (Provisioning planned)", "has not finished onboarding", "OFFBOARD_ONBOARDING_WARNING"),
-            ("warn plainly that this person", "note that this person", "OFFBOARD_ONBOARDING_WARNING"),
-            ("never combine the warning", "you may combine the warning", "OFFBOARD_ONBOARDING_WARNING"),
-            ("in one message. Only after a yes, go on to step 3.", "in one message.", "OFFBOARD_ONBOARDING_WARNING"),
-            ("not the confirmation.\n  Only after a yes, go on to step 3.", "not the confirmation.", "OFFBOARD_STATUS_GATES"),
+            ("(Inactive): stop before any write.", "(Inactive): warn, then offboard.", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("the result cannot be confirmed through the API", "the result is confirmed", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("never offboard them from here, even after a warning or a yes.", "offboard them after a warning and a yes.",
+             "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("or wait until they are Active and ask again", "or continue with offboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("the onboarding is cancelled on their profile", "offboard them here", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("and they switch to Active once it finishes", "and they stay Onboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("with their access kept in place", "with their access removed", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("cancelled on the person's profile in AccessOwl, and stop", "cancelled by offboarding now", "OFFBOARD_NO_CANCEL"),
             ("happens only when the user explicitly asks for now", "is fine to fix a date", "OFFBOARD_NO_CANCEL"),
             ("otherwise ask for the timezone", "otherwise assume UTC", "OFFBOARD_DATES"),
@@ -325,6 +331,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("A reschedule to now carries", "A reschedule to now skips", "OFFBOARD_CONFIRMATION"),
             ("Always show the person's", "Optionally show the person's", "OFFBOARD_CONFIRMATION"),
             ("go back to step 2", "continue from step 6", "OFFBOARD_PREWRITE_RECHECK"),
+            ("gets the stop message and nothing is sent", "gets the warning again", "OFFBOARD_PREWRITE_RECHECK"),
             ("Never write from the older snapshot.", "Write from the older snapshot.", "OFFBOARD_PREWRITE_RECHECK"),
             ("with a fresh `Idempotency-Key`. The", "with the previous `Idempotency-Key`. The", "OFFBOARD_CALL"),
             ("for a confirmed date and `{}`", "for a confirmed date and the person's details", "OFFBOARD_CALL"),
@@ -339,6 +346,8 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ('add: "AccessOwl removes the access it can', 'add: "AccessOwl may remove access it can', "OFFBOARD_VERIFIED_REPORT"),
             ('add instead: "On that date, AccessOwl', 'add instead: "AccessOwl', "OFFBOARD_VERIFIED_REPORT"),
             ("Never list or", "List or", "OFFBOARD_VERIFIED_REPORT"),
+            ("Inactive, the offboarding cannot be confirmed", "Inactive, the offboarding is confirmed", "OFFBOARD_VERIFIED_REPORT"),
+            ("never report the offboarding as scheduled or started", "report it as started", "OFFBOARD_VERIFIED_REPORT"),
         )
         for old, new, code in cases:
             with self.subTest(code=code, old=old):
@@ -391,6 +400,13 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "Offboarding can be undone later.",
             "If there is no exact match, use the closest match.",
             "If a first name matches only one user, use that person.",
+            "Warn that the person is Provisioning planned, then offboard after a yes.",
+            "For an Inactive person, ask whether to continue with offboarding.",
+            "If the person is Onboarding, warn and continue with offboarding.",
+            "After a yes to the warning, offboard the Inactive person.",
+            "Offboard an Onboarding person after a warning.",
+            "The offboarding of a Provisioning planned person is confirmed.",
+            "Report the offboarding as scheduled for an Inactive person.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):
@@ -836,6 +852,16 @@ class WriteSemanticOracleTests(unittest.TestCase):
             (
                 'allow selecting it because it is the only resource',
                 'allow selecting it',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'say once in plain words that it has a single resource',
+                'never mention that it has a single resource',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'and that what matters is the permission,',
+                'and that the resource needs a name,',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (

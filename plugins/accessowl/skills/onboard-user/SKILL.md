@@ -305,13 +305,25 @@ Report the status from the re-read in plain words:
 
 - `onboarding_provisioning_planned`: Provisioning planned for the confirmed
   date.
-- `onboarding`: onboarding started now.
+- `onboarding`: onboarding started now. Add that the person is Onboarding
+  and switches to Active automatically once AccessOwl finishes provisioning
+  the access their template matches, and that a specific app beyond the
+  template is an access request.
+
+For a person added in this run, add: "If a directory or HRIS is connected to
+AccessOwl, a later sync may overwrite the details added here."
 
 For example:
 
 > Sarah Lee was added to AccessOwl. Onboarding is scheduled for 2026-10-05
 > (Provisioning planned), when AccessOwl provisions the access Sarah Lee's
-> access template matches.
+> access template matches. If a directory or HRIS is connected to
+> AccessOwl, a later sync may overwrite the details added here.
+
+> Onboarding for Mike Carter, mike@company.com, started now. Mike Carter is
+> Onboarding and switches to Active automatically once AccessOwl finishes
+> provisioning the access Mike Carter's template matches. For a specific app
+> beyond the template, make an access request.
 
 For a reschedule:
 

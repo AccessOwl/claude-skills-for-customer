@@ -130,11 +130,16 @@ writes apply only when the skill performs a write.
   title is null, present that resource as the application itself: label it by
   the application title plus its permission titles, for example
   "1Password, Member", and allow selecting it because it is the only
-  resource. When the application has more than one resource and any of them
-  has a null title, treat that title as unavailable: continue by verified IDs
-  only when the workflow does not need it for display, selection, CSV output,
-  or disambiguation; otherwise stop incomplete as ambiguous. Permission titles
-  must still be nonblank. Never write the displayed label back to AccessOwl.
+  resource. The first time a reply shows such an application, say once in
+  plain words that it has a single resource, so it has no name in AccessOwl,
+  and that what matters is the permission, for example "1Password has a
+  single resource, so it has no name in AccessOwl; what matters is the
+  permission: 1password-user or 1password-admin." When the application has
+  more than one resource and any of them has a null title, treat that title
+  as unavailable: continue by verified IDs only when the workflow does not
+  need it for display, selection, CSV output, or disambiguation; otherwise
+  stop incomplete as ambiguous. Permission titles must still be nonblank.
+  Never write the displayed label back to AccessOwl.
   These exceptions override only the specific stale OpenAPI claims described
   here.
 - On a missing, malformed, or inconsistent read or pre-write response, stop as

@@ -17,16 +17,16 @@ description: >
 Offboard a person in AccessOwl, now or on a date, through the AccessOwl REST
 API.
 
-This skill only **offboards a person**, now or on a date, and **reschedules
-a planned offboarding**. Offboarding sends the offboarding notice and revokes
-the access AccessOwl tracks for the person: AccessOwl removes access
-automatically where it can, and an Application Admin gets a task for the
-rest. It never deletes people: AccessOwl does not support deleting people,
-so "delete this user" means offboarding them. It never cancels a planned
-offboarding: there is no API for that, so point the user to the person's
-profile in AccessOwl. It never revokes access to a single application (that
-is a revocation made with the revocation skill) and never onboards anyone
-(that belongs to the onboarding skill).
+This skill only **offboards an Active person**, now or on a date, and
+**reschedules a planned offboarding**. Offboarding sends the offboarding
+notice and revokes the access AccessOwl tracks for the person: AccessOwl
+removes access automatically where it can, and an Application Admin gets a
+task for the rest. It never deletes people: AccessOwl does not support
+deleting people, so "delete this user" means offboarding them. It never
+cancels a planned offboarding: there is no API for that, so point the user
+to the person's profile in AccessOwl. It never revokes access to a single
+application (that is a revocation made with the revocation skill) and never
+onboards anyone (that belongs to the onboarding skill).
 
 If the request names an application ("remove Tom Smith from Figma"), it is
 a revocation, not an offboarding: say so, suggest a revocation request for
@@ -64,11 +64,11 @@ folder and follow it. The essentials:
 ## Speed
 
 Be fast. Fetch only what you need and do not narrate lookup steps. The user
-should see at most two messages: the confirmation question and the result,
-plus the separate warning when the person's status is Provisioning planned,
-Onboarding, or Inactive. If something is missing (who, now or a date, or the
-timezone), first run every lookup you can, then ask for all of it in one
-message.
+should see at most two messages: the confirmation question and the result.
+A person who cannot be offboarded here gets one message that says why and
+what to do instead, and no questions about the date. If something is missing
+(who, now or a date, or the timezone), first run every lookup you can, then
+ask for all of it in one message.
 
 ## Workflow
 
@@ -97,21 +97,34 @@ email.
 ### 2. Check the status
 
 Read the person with `GET /users/{user_id}` and act on the exact `status`.
-Always show the person's email in the warning and the confirmation.
+Always show the person's email in the stop message and the confirmation.
+Only an Active person is offboarded, and only an Offboarding scheduled
+person is rescheduled.
 
 - `active`: offboard, now or on a date (step 3).
-- `onboarding_provisioning_planned` or `onboarding`: warn plainly that this
-  person has an onboarding scheduled (Provisioning planned) or an onboarding
-  or access request still being provisioned (Onboarding), and ask whether to
-  continue with offboarding. This is its own question, not the confirmation;
-  never combine the warning and the confirmation in one message. Only after
-  a yes, go on to step 3. For example:
+- `onboarding_provisioning_planned` (Provisioning planned), `onboarding`
+  (Onboarding), or `inactive` (Inactive): stop before any write. AccessOwl
+  accepts an offboarding for these people, but the result cannot be
+  confirmed through the API, so never offboard them from here, even after
+  a warning or a yes. Say plainly why, add the line for the status, and give
+  two choices: offboard them from their profile in AccessOwl, or wait until
+  they are Active and ask again.
+  - Provisioning planned: their onboarding is scheduled for later. If they
+    are not joining after all, the onboarding is cancelled on their profile.
+  - Onboarding: their onboarding or an access request is still being
+    provisioned, and they switch to Active once it finishes.
+  - Inactive: their account is suspended in your directory (for example
+    extended leave), with their access kept in place.
 
-  > Sarah Lee, sarah@company.com, has an onboarding scheduled (Provisioning
-  > planned). Offboarding sends the offboarding notice and revokes the
-  > access AccessOwl tracks for Sarah Lee.
-  >
-  > Continue with offboarding?
+  For example:
+
+  > Sarah Lee, sarah@company.com, is Provisioning planned: Sarah Lee's
+  > onboarding is scheduled for later. AccessOwl cannot confirm an
+  > offboarding from here for someone in this status, so nothing was
+  > changed. You can:
+  > - Offboard Sarah Lee from Sarah Lee's profile in AccessOwl. If Sarah Lee
+  >   is not joining after all, cancel the onboarding there.
+  > - Wait until Sarah Lee is Active, then ask again.
 
 - `offboarding_planned` (Offboarding scheduled): offer only a reschedule, to
   a new date, or to now when the user explicitly asks for now. Until it runs,
@@ -122,18 +135,6 @@ Always show the person's email in the warning and the confirmation.
 - `offboarded` (Offboarded): say the person is already offboarded, so
   nothing changes, and stop. If the person returns, they are reactivated
   with the Reactivate button on their profile in AccessOwl.
-- `inactive` (Inactive): say the person is inactive in AccessOwl, meaning
-  their account is suspended in your directory (for example extended leave)
-  and their assigned access stays in place, and ask whether to continue with
-  offboarding. This is its own question, not the confirmation.
-  Only after a yes, go on to step 3. For example:
-
-  > Sarah Lee, sarah@company.com, is Inactive in AccessOwl (suspended in
-  > your directory, for example on extended leave). Sarah Lee's assigned
-  > access is still in place.
-  >
-  > Continue with offboarding?
-
 - Any other status: stop and say the person's state could not be
   classified.
 
@@ -223,8 +224,9 @@ confirm again.
 Immediately before the write, re-fetch `GET /users/{user_id}` and require
 the same email and the same status as confirmed. If the status changed,
 explain what changed and go back to step 2 for the current status (a person
-in Provisioning planned, Onboarding, or Inactive gets the warning again),
-then confirm again. Never write from the older snapshot.
+now Provisioning planned, Onboarding, or Inactive gets the stop message and
+nothing is sent), otherwise confirm again. Never write from the older
+snapshot.
 
 ### 6. Offboard
 
@@ -285,7 +287,10 @@ For example:
 > can automatically, and Application Admins get a task for the rest.
 
 If the status is not the one that was confirmed, for example offboarding
-has started when a date was confirmed, say so plainly. Never list or
+has started when a date was confirmed, say so plainly. If the re-read shows
+Provisioning planned, Onboarding, or Inactive, the offboarding cannot be
+confirmed: say so plainly, never report the offboarding as scheduled or
+started, and suggest checking the person's profile in AccessOwl. Never list or
 promise specific applications, and never claim access was removed: the
 person's record does not show which access was revoked.
 
