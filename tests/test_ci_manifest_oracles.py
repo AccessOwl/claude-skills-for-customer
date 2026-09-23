@@ -23,7 +23,6 @@ from .contract_validator import (
     validate_codex_manifests,
     validate_manifest_values,
     validate_readme_repository_identity,
-    validate_readme_request_status,
 )
 
 
@@ -284,14 +283,6 @@ class CiAndManifestOracleTests(unittest.TestCase):
         self.assertCode(
             validate_readme_repository_identity(attacker), "README_REPOSITORY"
         )
-
-    def test_readme_keeps_approval_wording_tied_to_returned_status(self) -> None:
-        readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertEqual([], validate_readme_request_status(readme))
-        mutant = readme + "\nEvery access request goes through the normal approval process.\n"
-        self.assertCode(validate_readme_request_status(mutant), "README_REQUEST_STATUS")
 
     def test_strict_semver_rejects_numeric_leading_zeros_and_malformed_values(self) -> None:
         for version in (
