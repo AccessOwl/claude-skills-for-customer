@@ -61,8 +61,10 @@ folder and follow it. The essentials:
 Be fast. Never ask permission before a read-only lookup. Fetch the
 application's structure, the user directory, and its current access in
 parallel. Besides the import confirmation, ask for at most two inputs
-(application, CSV), and only when they are missing. When nothing is open,
-send the corrections and the preview in one message.
+(application, CSV), and only when they are missing. The one exception is an
+application whose only resource has no title: also ask which column holds
+the permissions, only if it is not obvious. When nothing is open, send the
+corrections and the preview in one message.
 
 ## Workflow
 
@@ -70,7 +72,9 @@ Stop as incomplete and never answer, preview, import, or produce a file from
 missing, malformed, or inconsistent API data.
 
 If the user wants only a corrected file, do steps 1 to 5, then step 8, and
-never ask to import.
+never ask to import. The corrected-file-only path is not offered for an
+application whose only resource has no title: say the import itself works,
+but the corrected file format for such an application is not confirmed.
 
 ### 1. Establish the application
 
@@ -134,12 +138,13 @@ current user list, they are listed under Removed.
   Never invent a fallback column title.
   The one exception is an application whose only resource has a null title:
   present that resource as the application itself, by the application title
-  plus its permission titles. Its CSV column has an empty header, both when
-  mapping the source file and in the cleaned CSV; if the source file has no
-  empty-header column, ask which column holds its permissions. Its import
-  entries omit the optional `resource` field and carry permission titles
-  only. Never write the application title back as its resource title. A
-  null title on a resource next to any other resource stays rejected.
+  plus its permission titles. When reading the user's file, use the
+  permission column the user has, and ask which column holds the
+  permissions only if it is not obvious. Its import entries omit the
+  optional `resource` field and carry permission titles only; never send
+  `resource: null`, an empty string, or the application title. Never write
+  the application title back as its resource title. A null title on a
+  resource next to any other resource stays rejected.
   If two resources would produce the same column title, including a
   case-insensitive collision, stop without importing or producing a file. The
   same applies if a resource title is **Email**, which conflicts with the
@@ -395,13 +400,16 @@ confirmation, and idempotency key.
 On `200`, require `data.created`, `data.updated`, `data.deleted`, and
 `data.unchanged` to all be present non-negative integers; otherwise the
 response is malformed. Then re-read the current access states with the same
-query and compare them per person with the confirmed target list. Report the
-result per person from that re-read. Use the counts only as a consistency
-check. Report them only as entries, never as people. If they plainly
-contradict the preview, such as no created, updated, or deleted entries when
-the preview had changes, report the result as unverified. If the re-read disagrees with
-the preview, list each difference as unverified instead of claiming the import
-succeeded.
+query and compare them per person with the confirmed target list. For an
+application whose only resource has a null title, a re-read state matches
+only when its `resource_id` is that resource's ID. A `resource_id: null`
+state is a difference. Report the result per person from that re-read. Use
+the counts only as a consistency check.
+Report them only as entries, never as people. If they plainly contradict
+the preview, such as no created, updated, or deleted entries when the
+preview had changes, report the result as unverified. If the re-read
+disagrees with the preview, list each difference as unverified instead of
+claiming the import succeeded.
 
 If the outcome is uncertain, never resend the import with a fresh key
 unless the user confirms again after seeing the verified state. The outcome
@@ -425,13 +433,14 @@ starts over at step 6 with a fresh preview.
 ### 8. Cleaned CSV on request
 
 If the user asks for the cleaned CSV, for their records or to run the import
-in AccessOwl themselves, deliver it only when nothing is open. Build it in
-exactly the importer's format:
+in AccessOwl themselves, deliver it only when nothing is open. For an
+application whose only resource has no title, do not produce it: say the
+import itself works, but the corrected file format for such an application
+is not confirmed. Build it in exactly the importer's format:
 
 - **Email** is always the first column.
 - One column per resource, using the exact resource titles. Child resources
-  get their own column, without the parent name as a prefix. An application
-  whose only resource has a null title gets one column with an empty header.
+  get their own column, without the parent name as a prefix.
 - Multiple permissions for the same resource go in one cell separated by
   semicolons with no spaces (Admin;Editor).
 - When a user has several combinations across separate resources, duplicate

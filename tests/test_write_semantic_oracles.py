@@ -284,11 +284,16 @@ class WriteSemanticOracleTests(unittest.TestCase):
     def test_offboard_user_gates_confirmation_and_verification_are_indivisible(self) -> None:
         text = self.skill_text("offboard-user")
         self.assertEqual([], validate_write_safety_text("offboard-user", text, "SKILL.md"))
+        safe = text + "\n\nFor an Inactive person, never ask whether to continue with offboarding."
+        self.assertEqual([], _validate_offboard_user_semantics("offboard-user", safe, "SKILL.md"))
         cases = (
             ("does not support deleting people", "supports deleting people", "OFFBOARD_SCOPE"),
             ("a revocation, not an offboarding", "an offboarding too", "OFFBOARD_SCOPE"),
             ('"AccessOwl does not delete people, so this', '"AccessOwl deletes people, so this', "OFFBOARD_SCOPE"),
             ("never revokes access to a single application", "also revokes single apps", "OFFBOARD_SCOPE"),
+            ("treat it as an offboarding request and apply the status rules above", "go on with offboarding",
+             "OFFBOARD_SCOPE"),
+            ("When the status allows it, make the first", "Always make the first", "OFFBOARD_SCOPE"),
             ("say so and stop, and never guess.", "pick the newest one.", "OFFBOARD_IDENTITY"),
             ("ask which one is meant; never guess", "pick one", "OFFBOARD_IDENTITY"),
             ("record must have that email", "record may have any email", "OFFBOARD_IDENTITY"),
@@ -301,13 +306,15 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("cancelled on the\n  person's profile", "cancelled through the\n  API", "OFFBOARD_STATUS_GATES"),
             ("with the Reactivate button", "by offboarding them again", "OFFBOARD_STATUS_GATES"),
             ("(Inactive): stop before any write.", "(Inactive): warn, then offboard.", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("the result cannot be confirmed through the API", "the result is confirmed", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("cannot be confirmed through the API (for", "can be confirmed through the API (for", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("AccessOwl returns success but the status does not change", "AccessOwl confirms it", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("never offboard them from here, even after a warning or a yes.", "offboard them after a warning and a yes.",
              "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("or wait until they are Active and ask again", "or continue with offboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("the onboarding is cancelled on their profile", "offboard them here", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("and they switch to Active once it finishes", "and they stay Onboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("with their access kept in place", "with their access removed", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("or wait until the status is Active and ask again", "or continue with offboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("offboard from the profile in AccessOwl, or wait", "offboard here, or wait", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("the onboarding is cancelled on the profile instead", "offboard them here", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("and the status switches to Active once it finishes", "and the status stays Onboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("with access kept in place", "with access removed", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("cancelled on the person's profile in AccessOwl, and stop", "cancelled by offboarding now", "OFFBOARD_NO_CANCEL"),
             ("happens only when the user explicitly asks for now", "is fine to fix a date", "OFFBOARD_NO_CANCEL"),
             ("otherwise ask for the timezone", "otherwise assume UTC", "OFFBOARD_DATES"),
@@ -407,6 +414,13 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "Offboard an Onboarding person after a warning.",
             "The offboarding of a Provisioning planned person is confirmed.",
             "Report the offboarding as scheduled for an Inactive person.",
+            "For a Provisioning planned person, a clear yes to the confirmation is enough to offboard.",
+            "Onboarding people can be offboarded here once the user confirms.",
+            "When the user says it is fine, offboard an Inactive person.",
+            "Treat Inactive like Active and go to step 3.",
+            "A delete request for an Inactive person goes on with offboarding.",
+            "If the user confirms, send the offboard call for an Onboarding person.",
+            "After the stop message, a yes offboards them.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):
@@ -855,13 +869,48 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'say once in plain words that it has a single resource',
+                'say once in that reply, in plain words, that it has a single resource',
                 'never mention that it has a single resource',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'When a reply shows the permissions of such an application,',
+                'In every reply,',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
                 'and that what matters is the permission,',
                 'and that the resource needs a name,',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'Such a resource still has its own resource ID.',
+                'Such a resource has no resource ID.',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'never Application-wide access (a state with `resource_id: null`)',
+                'the same as Application-wide access',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'every request for it carries that resource ID.',
+                'a request for it may omit the resource ID.',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'a null title needs no resource count.',
+                'a null title needs a resource count.',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'show a state with no permissions as `<Application> (resource-level access)`',
+                'hide a state with no permissions',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'and never label it Application-wide access.',
+                'and label it Application-wide access.',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
@@ -1262,10 +1311,17 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 None,
                 "A blocker also clears when the user says it is fine.",
             ),
-            ("RESOURCE_TITLE_REQUIRED", 'Its CSV column has an empty header, both when\n  mapping the source file and in the cleaned CSV', 'Its CSV column is titled Permissions', None),
-            ("RESOURCE_TITLE_REQUIRED", 'Its import\n  entries omit the optional `resource` field and carry permission titles\n  only.', 'Its import entries use the application title as the resource.', None),
-            ("RESOURCE_TITLE_REQUIRED", 'Never write the application title back as its resource title.', '', None),
-            ("RESOURCE_TITLE_REQUIRED", 'A\n  null title on a resource next to any other resource stays rejected.', 'A null title on a resource next to any other resource is shown as the application.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'use the\n  permission column the user has, and ask which column holds the\n  permissions only if it is not obvious.', 'name its column Permissions.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'Its import entries omit the\n  optional `resource` field and carry permission titles only;', 'Its import entries use the application title as the resource;', None),
+            ("RESOURCE_TITLE_REQUIRED", 'never send\n  `resource: null`, an empty string, or the application title.', 'send `resource: null` if needed.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'Never write\n  the application title back as its resource title.', '', None),
+            ("RESOURCE_TITLE_REQUIRED", 'A null title on a\n  resource next to any other resource stays rejected.', 'A null title on a resource next to any other resource is shown as the application.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'The corrected-file-only path is not offered for an', 'The corrected-file-only path is offered for an', None),
+            ("RESOURCE_TITLE_REQUIRED", 'the corrected file format for such an application is not confirmed.\n\n###', 'the file is fine.\n\n###', None),
+            ("RESOURCE_TITLE_REQUIRED", 'a re-read state matches\nonly when its `resource_id` is that resource\'s ID.', 'a re-read state matches\nby permissions alone.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'A `resource_id: null`\nstate is a difference.', 'A `resource_id: null`\nstate also matches.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'do not produce it: say the', 'produce it anyway and say the', None),
+            ("RESOURCE_TITLE_REQUIRED", None, None, "Give its CSV column an empty header."),
         )
         for code, old, new, appended in cases:
             with self.subTest(code=code, old=old, appended=appended):

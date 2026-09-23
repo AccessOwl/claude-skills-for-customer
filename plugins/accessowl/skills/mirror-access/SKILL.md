@@ -110,7 +110,7 @@ its scope, and every permission title to be nonblank and unique
 case-insensitively within its resource. The one exception is an application
 whose only resource has a null title: present and select that resource as the
 application itself, by the application title plus its permission titles, for
-example "1Password, Member". A null resource title next to any other resource
+example "1Password, 1password-user". A null resource title next to any other resource
 stops as ambiguous. On a collision, do not choose by hidden ID; ask for the
 AccessOwl structure to be fixed and stop.
 For duplicate checks, `pending_approval`, `pending_permissions_assignment`,
@@ -135,6 +135,9 @@ permission titles:
 > | HubSpot | Seat | Enterprise |
 > | HubSpot | Permission Set | Marketing |
 > | Notion | Workspace | Member |
+
+For an application whose only resource has no title, the Resource cell shows
+the application name, never a blank cell or a fallback title.
 
 ### 3. Ask: everything or only some?
 

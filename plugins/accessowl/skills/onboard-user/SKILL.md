@@ -307,7 +307,7 @@ Report the status from the re-read in plain words:
   date.
 - `onboarding`: onboarding started now. Add that the person is Onboarding
   and switches to Active automatically once AccessOwl finishes provisioning
-  the access their template matches, and that a specific app beyond the
+  the access the template matches, and that a specific app beyond the
   template is an access request.
 
 For a person added in this run, add: "If a directory or HRIS is connected to

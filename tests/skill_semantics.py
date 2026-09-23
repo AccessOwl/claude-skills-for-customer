@@ -223,7 +223,8 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "so \"delete this user\" means offboarding them", "it never cancels a planned offboarding: there is no api for that",
       "point the user to the person's profile in accessowl", "never revokes access to a single application",
       "never onboards anyone",
-      "if the user asks to delete a person, go on with offboarding, and make the first line of the confirmation "
+      "if the user asks to delete a person, treat it as an offboarding request and apply the status rules above",
+      "when the status allows it, make the first line of the confirmation "
       "\"accessowl does not delete people, so this offboards <name> instead.\"",
       "if the request names an application",
       "it is a revocation, not an offboarding: say so, suggest a revocation request for that access instead, and stop")),
@@ -245,14 +246,14 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
     ("OFFBOARD_NOT_ACTIVE_STOP", "provisioning planned, onboarding, and inactive stop with two choices, never a warning", True,
      ("`onboarding_provisioning_planned` (provisioning planned), `onboarding` (onboarding), or `inactive` "
       "(inactive): stop before any write",
-      "the result cannot be confirmed through the api, so never offboard them from here, even after a warning or a yes",
-      "give two choices: offboard them from their profile in accessowl, or wait until they are active and ask again",
-      "provisioning planned: their onboarding is scheduled for later. if they are not joining after all, "
-      "the onboarding is cancelled on their profile",
-      "onboarding: their onboarding or an access request is still being provisioned, and they switch to active "
-      "once it finishes",
-      "inactive: their account is suspended in your directory (for example extended leave), with their access "
-      "kept in place")),
+      "an offboarding for these people cannot be confirmed through the api (for provisioning planned, accessowl "
+      "returns success but the status does not change), so never offboard them from here, even after a warning or a yes",
+      "give two choices: offboard from the profile in accessowl, or wait until the status is active and ask again",
+      "provisioning planned: an onboarding is scheduled for later. if the person is not joining after all, "
+      "the onboarding is cancelled on the profile instead",
+      "onboarding: an onboarding or an access request is still being provisioned, and the status switches to "
+      "active once it finishes",
+      "inactive: the account is suspended in your directory (for example extended leave), with access kept in place")),
     ("OFFBOARD_NO_CANCEL", "cancelling is on the profile; never offboard now to cancel or fix a planned date", False,
      ("if the user asks to cancel a planned offboarding, say that a planned offboarding is cancelled on the "
       "person's profile in accessowl, and stop", "never offboard now to cancel or fix a planned offboarding",
@@ -309,6 +310,7 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "never list or promise specific applications, and never claim access was removed")),
 )
 _NA = r"\b(?:provisioning\s+planned|onboarding|inactive)"
+_G = r"(?:(?!\bnever\b|\bnot\b|\bcannot\b|\bno\b)[^.])"
 _NOW = r"(?:switch\w*\s+to\s+now|offboard\w*\s+(?:them\s+|it\s+|the\s+person\s+)?now|send\w*\s+(?:it\s+)?(?:as\s+)?now)"
 OFFBOARD_CONTRADICTIONS = (
     r"(?:^|[.!?:,]\s)(?:then\s+|instead,?\s+)?delete\s+(?:the|this|that)\s+(?:user|person|employee|record)",
@@ -351,8 +353,12 @@ OFFBOARD_CONTRADICTIONS = (
     r"\b(?:no|without\s+an?|missing|any)\s+(?:date|day)\b[^.]{0,40}\b(?:means|use|offboard\w*|defaults?\s+to)\s+(?:them\s+)?now\b",
     r"\b(?:inactive|onboarding)\b[^.]{0,40}\b(?:needs?\s+no\s+warning|without\s+(?:a|the)\s+warning|straight\s+to\s+the\s+confirmation)",
     r"\bnot\s+(?:yet\s+)?finished\s+onboarding",
-    _NA + r"\b[^.]{0,80}\b(?:ask\w*\s+whether\s+to\s+continue|continue\s+with\s+(?:the\s+)?offboarding|after\s+a\s+yes"
-    r"|(?:then|and)\s+(?:offboard|proceed|continue))",
+    _NA + r"\b" + _G + r"{0,60}\b(?:ask\w*\s+whether\s+to\s+continue|continue\s+with\s+(?:the\s+)?offboarding"
+    r"|after\s+a\s+yes|(?:then|and)\s+(?:offboard|proceed|continue))",
+    _NA + r"\b" + _G + r"{0,60}\b(?:go(?:es)?\s+(?:on\s+)?(?:to\s+step\s+3|with\s+(?:the\s+)?offboarding)|step\s+3\s+applies"
+    r"|like\s+(?:an?\s+)?active|(?:can|may)\s+be\s+offboarded|enough\s+to\s+offboard)",
+    r"(?<!never )(?<!not )\boffboard\w*(?:\s+call)?\s+(?:for\s+)?(?:the\s+|a\s+|an\s+)?" + _NA + r"\s+(?:person|people|user)",
+    r"\b(?:after|once)\s+(?:the\s+)?stop\s+message\b[^.]{0,40}\b(?:yes|confirm\w*|offboard\w*)",
     r"\b(?:after\s+(?:a\s+|the\s+)?(?:yes|warning))\b[^.]{0,60}\boffboard\w*\s+(?:the\s+|a\s+|an\s+)?" + _NA,
     r"\boffboard\w*\s+(?:the\s+|a\s+|an\s+)?" + _NA + r"\b[^.]{0,40}\bafter\s+(?:a\s+|the\s+)?(?:warning|yes)",
     _NA + r"\b(?:(?!\bnever\b|\bnot\b|cannot)[^.]){0,60}\b(?:is|as|are|was)\s+(?:confirmed|verified)",
