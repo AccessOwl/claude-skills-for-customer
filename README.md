@@ -151,7 +151,13 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
   claude plugin update claudetag-for-accessowl@accessowl-claude-skills
   ```
 
-- **Codex:** run `codex plugin marketplace upgrade accessowl-skills`.
+- **Codex:** refresh the marketplace, then install the new version over the
+  old one:
+
+  ```bash
+  codex plugin marketplace upgrade accessowl-skills
+  codex plugin add accessowl-skills@accessowl-skills
+  ```
 
 ## Learn more
 
