@@ -162,10 +162,10 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "436c58c219eea10ba1106827c728828919f76617f5b38d3f29071a0829230d85",
+    Path("README.md"): "34122be0708b7e11d0b96bb0e13cac09c94f9d16cef84fe909c0a2c52cd7fbf9",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
-    SKILL_ROOT / "close-request" / "SKILL.md": "a8a2181d485370370fe87adc1e88b5351c6702c73954b33bce1a23608b4f5468",
+    SKILL_ROOT / "close-request" / "SKILL.md": "9e1b92b2079eb36a1b6f5feabc8430b5a3258a6e545a5a9b9c1f180f9f250c86",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
@@ -190,13 +190,13 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "919fbeb5b51ceb0fe7863e649f389e69ad16495cf071ee231ba5bd0620061ba7",
+    Path("tests/skill_semantics.py"): "72613c6d2373adedbf2e4dbacb2321b67c95ff902ebbe3825c08fbfa57d4ec1c",
     Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "705a5e3817a961f956960384fc2d2906824c391374519cb4563464ce5e6d8c13",
+    Path("tests/test_write_semantic_oracles.py"): "8eaf8a5349587d1b0f34858d4ac0fd8cc52256e611e72d9c6ade08d83730a6ff",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The

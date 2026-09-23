@@ -15,8 +15,8 @@ request's workflow status; only `pending_approval` means it is awaiting
 approval. Revocations may begin removal immediately, depending on the
 application. Claude can also mark a fully approved, manually provisioned
 request as granted after you confirm the access was set up. The close skill
-denies or rejects open requests you confirm, and it never grants them. It
-never approves a request.
+denies or rejects open requests you confirm, and it never grants them. The
+assistant never approves a request.
 
 ## The skills
 
@@ -71,9 +71,8 @@ That's it. Mention `@Claude` in your access channel and ask.
   close skill denies or rejects only the open requests you confirm; it never
   grants them. The vendor skill makes only the direct metadata updates you
   confirm. Structure and policy changes are previewed, then completed in
-  AccessOwl. Structure
-  reads expose no usable version token, and policy assignment is an
-  unprotected full-set replacement.
+  AccessOwl. Structure reads expose no usable version token, and policy
+  assignment is an unprotected full-set replacement.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.
 - New threads pick up skill updates automatically; ongoing threads keep the version they started with.

@@ -67,11 +67,13 @@ CLOSE_REQUIREMENTS: PhraseRules = (
     ("CLOSE_SCOPE", "close-request only denies or rejects", False,
      ("never approves or grants a request", "never revokes access someone already has", "never changes approvers, approval steps, or policies")),
     ("CLOSE_STATUS_ACTION", "the status alone picks deny, reject, or stop", False,
-     ("`pending_approval` (waiting for approval): deny it", "`pending_permissions_assignment`, `scheduled`, `pending_dependency`, or `processing_access` (approved", "being provisioned): reject it", "`access_granted`, `denied`, or `rejected` (granted, denied, rejected): it is already closed", "any other status: stop", "the status decides the action, not the user's wording")),
+     ("`pending_approval` (waiting for approval): deny it", "`pending_permissions_assignment`, `scheduled`, `pending_dependency`, or `processing_access` (approved", "being provisioned): reject it", "`access_granted`, `denied`, or `rejected` (granted, denied, rejected): it is already closed", "any other status: stop", "the status decides the action, not the user's wording",
+      "an approved request is never denied", "name the reject in the confirmation instead")),
     ("CLOSE_DENY_APPROVER", "deny only for a pending current-step approver", False,
      ("lowest-numbered step whose `status` is `pending`", "never pick one yourself", "never record a denial for someone who is not a pending approver of the current step", "always include `on_behalf_of_user_id`")),
     ("CLOSE_CONFIRMATION", "only a clear yes after the confirmation counts", False,
-     ("only a clear yes given after this confirmation counts", "ask nothing else in that message", "will not receive this access")),
+     ("only a clear yes given after this confirmation counts", "ask nothing else in that message", "will not receive this access",
+      "a question, a change, or a partial yes means no write")),
     ("CLOSE_PREWRITE_RECHECK", "re-check status and approver before each write", False,
      ("same current step with the confirmed approver still pending", "never write from the older snapshot")),
     ("CLOSE_422", "422 re-reads and changes nothing", True,
@@ -85,6 +87,10 @@ CLOSE_CONTRADICTIONS = (
     r"on_behalf_of_user_id[^.]{0,60}\b(?:optional|omit|skip|grantee|requester)\b",
     r"\b(?:pick|choose|use)\s+(?:the\s+)?first\s+(?:pending\s+)?approver",
     r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
+    r"\b(?:deny|reject)\s+(?:it|them)\s+anyway\b",
+    r"\b(?:unknown|unrecognized|unclassified|other)\s+status(?:es)?[^.]{0,40}\b(?:rejected|denied|reject|deny)\b",
+    r"\b(?:go-ahead|go\s+ahead|yes)\b[^.]{0,60}\b(?:first|earlier|initial|original|opening)\s+message\b[^.]{0,40}"
+    r"\b(?:works|counts|suffices|is\s+enough)\b",
 )
 
 

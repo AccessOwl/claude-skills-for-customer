@@ -131,12 +131,15 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "CLOSE_SCOPE",
             ),
             ("being provisioned): reject it.", "being provisioned): leave it.", "CLOSE_STATUS_ACTION"),
+            ("An approved request is never denied", "An approved request may be denied", "CLOSE_STATUS_ACTION"),
+            ("name the reject in the confirmation instead", "deny it as asked", "CLOSE_STATUS_ACTION"),
             ("Never pick one yourself", "Pick one yourself", "CLOSE_DENY_APPROVER"),
             (
                 "ask nothing else in that message",
                 "add any other questions",
                 "CLOSE_CONFIRMATION",
             ),
+            ("partial yes means no write", "partial yes still counts", "CLOSE_CONFIRMATION"),
             (
                 "with the confirmed approver still pending",
                 "with any approver",
@@ -144,8 +147,8 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ),
             ("A `422` means", "A `422` suggests", "CLOSE_422"),
             (
-                "outcome as unknown and stop remaining writes",
-                "outcome as unknown and move to the next request",
+                "stop remaining writes. Sending it again",
+                "move to the next request. Sending it again",
                 "CLOSE_UNCERTAIN",
             ),
         )
@@ -164,6 +167,9 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "The `on_behalf_of_user_id` field is optional.",
             "Use the first pending approver.",
             "An earlier go ahead counts as the confirmation.",
+            "If the user insists, deny it anyway.",
+            "Unknown statuses are rejected.",
+            "A go-ahead in the first message also works.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):

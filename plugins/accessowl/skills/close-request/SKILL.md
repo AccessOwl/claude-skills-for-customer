@@ -122,8 +122,8 @@ Classify each request by its exact `status`:
 
 The status decides the action, not the user's wording. "Cancel" or "decline"
 means deny while a request is waiting for approval and reject once it is
-approved. If the user said "deny" for an approved request, name the reject
-in the confirmation instead.
+approved. An approved request is never denied: if the user said "deny" for
+one, name the reject in the confirmation instead.
 
 If the user meant one request and several open ones match, list them by
 label and date and ask which one; if two are still identical, ask the user to
@@ -196,8 +196,8 @@ When the scope depends on age, each line carries the request date:
 For a `processing_access` request, the confirmation also says "If it was
 already set up in <App>, rejecting does not remove it.":
 
-> Ready to reject this approved request. Tom Smith will not receive this
-> access:
+> Ready to reject this approved request, which is being provisioned. Tom
+> Smith will not receive this access:
 > - Notion, Member for Tom Smith
 >
 > If it was already set up in Notion, rejecting does not remove it.
@@ -247,11 +247,6 @@ After every `200`, re-read `GET /access_requests/{access_request_id}` and
 require the same closed status and `termination_reason`. If the re-read fails
 or disagrees with the response, report that request as unverified.
 
-AccessOwl stores the reason verbatim. When a response or re-read shows the
-intended closed status with a different `termination_reason`, someone else
-closed the request: list it as "already closed by someone else", never as
-closed by this run. That outcome is known, not uncertain.
-
 A `422` means the request is already closed or not in a state that allows
 this action. Re-read it with `GET /access_requests/{access_request_id}` and
 say plainly that it was already closed (with its status in plain words) or
@@ -266,9 +261,11 @@ response, or a same-key replay returning `409`, re-read the request with
 `GET /access_requests/{access_request_id}` and report only its verified
 status. A `409` proves only that the attempt was received. If the re-read
 shows the intended closed status with the confirmed reason, report it as
-verified. Otherwise report the
-outcome as unknown and stop remaining writes. Sending it again with a fresh
-key needs a new confirmation.
+verified. If it shows that closed status with a different reason, list it as
+already closed with a different recorded reason; that state is final, so
+remaining writes may continue. Otherwise report the outcome as unknown and
+stop remaining writes. Sending it again with a fresh key needs a new
+confirmation.
 
 ### 9. Report the verified result
 
