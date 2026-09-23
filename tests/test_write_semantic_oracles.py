@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Iterable, Set
 
 from .contract_validator import (
-    SKILL_ROOT,
     Issue,
     _validate_grant_access_semantics,
+    skill_document_text,
     validate_resilience_text,
     validate_write_safety_text,
 )
@@ -20,7 +20,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class WriteSemanticOracleTests(unittest.TestCase):
     def skill_text(self, skill: str) -> str:
-        return (ROOT / SKILL_ROOT / skill / "SKILL.md").read_text(encoding="utf-8")
+        text, issues = skill_document_text(ROOT, skill)
+        self.assertEqual([], issues)
+        assert text is not None
+        return text
 
     def codes(self, issues: Iterable[Issue]) -> Set[str]:
         return {issue.code for issue in issues}

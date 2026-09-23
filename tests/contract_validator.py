@@ -23,6 +23,8 @@ MAX_TREE_DEPTH = 16
 MAX_JSON_DEPTH = 128
 MAX_JSON_NUMBER_CHARS = 1024
 SKILL_ROOT = Path("plugins/accessowl/skills")
+API_RULES_RELATIVE = Path("references/api-rules.md")
+TOOL_NAME_RE = re.compile(r"\b(?:claude|codex|chatgpt|openai|anthropic)\b", re.IGNORECASE)
 MARKETPLACE_PATH = Path(".claude-plugin/marketplace.json")
 PLUGIN_MANIFEST_PATH = Path("plugins/accessowl/.claude-plugin/plugin.json")
 WORKFLOW_PATH = Path(".github/workflows/adversarial-tests.yml")
@@ -138,30 +140,41 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     }
     | set(CORE_HARNESS_FILES)
     | {SKILL_ROOT / skill / "SKILL.md" for skill in EXPECTED_SKILLS}
+    | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "3771bf362ae75ce5b6cd1e70a3cb38951400af2e3b06a0f71665224a6492ab98",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
-    SKILL_ROOT / "access-report" / "SKILL.md": "04b0cb7596cbfc47d5bfdd94212cfc47eba37034edd6bb007d5eec0a78a684e2",
-    SKILL_ROOT / "discovered-apps" / "SKILL.md": "5b44042f86381748e2e47867f52d712b4804828367bc1956cacfda2eaf919eaf",
-    SKILL_ROOT / "grant-access" / "SKILL.md": "4526d14bfb164f3c259fcbb53049e48fc593c7cda5a5bdc32ee7c8b894c34118",
-    SKILL_ROOT / "list-access" / "SKILL.md": "27ad420d032595be4b56ab3b3e4878f8675988ed1ed60130aafa4fce5caff230",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "29278059cd301c935872cfd1a84ada9b71a26365285c54cd204ed56de15a4f34",
-    SKILL_ROOT / "request-access" / "SKILL.md": "b0d2279cb572721b4fb5ebdfd1531875dc287908b3aa8cd624f127f04617820e",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "03aa615fcc621693ac5053fecc361db7c2b218b7a2fb6884d5c0f4572a1955f9",
-    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "cf46be52a0ca4c6ab73cbba1638a60423e8f7388f8e603f3c338485b71486f5a",
-    SKILL_ROOT / "vendor-update" / "SKILL.md": "43e09501d5407379b09c6ef0ed3d8a4209cb4b8783b3c270b3f2d193184b0dde",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "5069085ddd93aa5bff3ddc6dc50565c7690d701d0ae19c3bd33ceaccbc48e685",
+    SKILL_ROOT / "access-report" / "SKILL.md": "c6ff577204501b286b484b12386e5349edec7dcdf6e8f9fdc586df3955d2d2e2",
+    SKILL_ROOT / "discovered-apps" / "SKILL.md": "fd1a0be0c81fb5d1e5988b15efedd6d6aa3ffbf3bbd1a7d6621f74224ff163e2",
+    SKILL_ROOT / "grant-access" / "SKILL.md": "4db5da6643ae0c65900391794b04241945b4d3deb27411ce0b53dac641549e10",
+    SKILL_ROOT / "list-access" / "SKILL.md": "6a052de0b3bfff33c392d749b951a1b1c4d0291d6b94955135c150efb4c4634a",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "5de81a1ea11a40cddbbcc95d94fae2213ec17f7ae1f020a257a9413d700aae5f",
+    SKILL_ROOT / "request-access" / "SKILL.md": "9a415bb191b3b5868d5ceb8612fdbeb389b4866afacc8360601a12216bb2fcb5",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "9b8c670018f2ad77028173716c2639364a818d5b491c6bca1690395b695531ff",
+    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "c898d62eecd9afddd3a8c92a970974b02105f36e5a5c30cfd14adbc972f70284",
+    SKILL_ROOT / "vendor-update" / "SKILL.md": "26a8503267764fa66d3af69f1637c55e601ea134db9613a435597a66d8447013",
+    SKILL_ROOT / "view-policies" / "SKILL.md": "8ff01728f1e95e38e16ac6e35d2dc3e47f7d55d6c61b550f86e632e008db4442",
+    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "userlist-import-preflight" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
+    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "5070e7c3e34d2501a32c109c620dbc8bcf1f368bd674b339178101c44e0a6e49",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/test_adversarial_oracles.py"): "a9237701bce7c5b0a98a3e0eb712d6426e5f3f4b027a079dcbb8c48c6ac8cf19",
+    Path("tests/test_adversarial_oracles.py"): "a797626c43eeb1ea297ea250158090cbfb557294d3786a1c589ecd36b9d5fe43",
     Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
     Path("tests/test_ci_manifest_oracles.py"): "12a4f88b57cb45d53a5efe612d99ac6331d675b53aea5df710155759df58b8f1",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "283687a797d3610b9b1ba18f72d6a3fd56bfd372a77838e4f85e993850d9e96e",
+    Path("tests/test_write_semantic_oracles.py"): "500dca29b25f9ef9245997ffbab75148a52c3aa05b2a69683b7c12fdf462b12f",
 }
 
 # Curated from https://docs.accessowl.com/api-reference/openapi.json on 2026-07-17. The
@@ -2118,13 +2131,24 @@ def validate_api_reference_text(
     return issues
 
 
+def skill_document_text(root: Path, skill: str) -> Tuple[Optional[str], List[Issue]]:
+    """SKILL.md plus its bundled references/api-rules.md, validated as one document."""
+    relative = SKILL_ROOT / skill / "SKILL.md"
+    text, issues = read_text(root / relative, relative)
+    rules_relative = SKILL_ROOT / skill / API_RULES_RELATIVE
+    rules, rule_issues = read_text(root / rules_relative, rules_relative)
+    issues = list(issues) + list(rule_issues)
+    if text is None or rules is None:
+        return None, issues
+    return text + "\n\n" + rules, issues
+
+
 def _skill_documents(
     root: Path,
 ) -> Iterable[Tuple[str, Path, Optional[str], List[Issue]]]:
     for skill in EXPECTED_SKILLS:
-        relative = SKILL_ROOT / skill / "SKILL.md"
-        text, issues = read_text(root / relative, relative)
-        yield skill, relative, text, issues
+        text, issues = skill_document_text(root, skill)
+        yield skill, SKILL_ROOT / skill / "SKILL.md", text, issues
 
 
 def validate_api_contract_text(
@@ -6243,6 +6267,63 @@ def validate_ci(root: Path) -> List[Issue]:
     return issues
 
 
+def validate_shared_api_rules(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    baseline: Optional[bytes] = None
+    for skill in EXPECTED_SKILLS:
+        relative = SKILL_ROOT / skill / API_RULES_RELATIVE
+        data, read_issues = secure_read_bytes(root / relative, relative)
+        issues.extend(read_issues)
+        if data is None:
+            issues.append(
+                _issue("API_RULES_MISSING", relative, "every skill bundles references/api-rules.md")
+            )
+        elif baseline is None:
+            baseline = data
+        elif data != baseline:
+            issues.append(
+                _issue("API_RULES_DRIFT", relative, "references/api-rules.md must be identical in every skill")
+            )
+        skill_relative = SKILL_ROOT / skill / "SKILL.md"
+        text, text_issues = read_text(root / skill_relative, skill_relative)
+        issues.extend(text_issues)
+        if text is None:
+            continue
+        has_pointer = (
+            "read `references/api-rules.md` in this skill\n  folder" in text
+            or "read `references/api-rules.md` in this skill folder" in text
+        )
+        if "\n## API rules\n" not in text or not has_pointer:
+            issues.append(
+                _issue(
+                    "API_RULES_POINTER",
+                    skill_relative,
+                    "SKILL.md needs an API rules section pointing to references/api-rules.md",
+                )
+            )
+    return issues
+
+
+def validate_tool_neutral_text(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    for skill in EXPECTED_SKILLS:
+        for relative in (SKILL_ROOT / skill / "SKILL.md", SKILL_ROOT / skill / API_RULES_RELATIVE):
+            text, read_issues = read_text(root / relative, relative)
+            issues.extend(read_issues)
+            if text is None:
+                continue
+            for match in TOOL_NAME_RE.finditer(text):
+                issues.append(
+                    _issue(
+                        "TOOL_NAME_IN_SKILL",
+                        relative,
+                        "skill text must not name an AI tool: %s" % match.group(0),
+                        _line_number(text, match.start()),
+                    )
+                )
+    return issues
+
+
 def validate_repository(root: Path) -> List[Issue]:
     issues = validate_repository_files(root)
     fatal_filesystem_codes = {
@@ -6268,6 +6349,8 @@ def validate_repository(root: Path) -> List[Issue]:
         validate_api_contracts,
         validate_read_safety,
         validate_write_safety,
+        validate_shared_api_rules,
+        validate_tool_neutral_text,
         validate_ci,
     )
     for validator in validators:

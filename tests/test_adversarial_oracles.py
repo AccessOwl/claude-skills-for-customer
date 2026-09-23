@@ -14,6 +14,7 @@ from typing import List
 
 from .contract_validator import (
     ALLOWED_REPOSITORY_FILES,
+    API_RULES_RELATIVE,
     APPROVED_CONTENT_SHA256,
     APPROVED_HARNESS_SHA256,
     MAX_FILE_BYTES,
@@ -22,6 +23,7 @@ from .contract_validator import (
     MAX_REPOSITORY_BYTES,
     MAX_REPOSITORY_ENTRIES,
     MAX_TREE_DEPTH,
+    SKILL_ROOT,
     Issue,
     VENDOR_CERTIFICATES,
     _validate_access_creation_invariants,
@@ -36,6 +38,7 @@ from .contract_validator import (
     parse_frontmatter,
     parse_json_strict,
     secure_read_bytes,
+    skill_document_text,
     validate_approved_content,
     validate_approved_harness,
     validate_api_reference_text,
@@ -46,7 +49,9 @@ from .contract_validator import (
     validate_repository,
     validate_read_safety,
     validate_resilience_text,
+    validate_shared_api_rules,
     validate_skill_operation_scope,
+    validate_tool_neutral_text,
     validate_write_safety,
 )
 from .run_tests import run_discovered_tests
@@ -220,6 +225,52 @@ class AdversarialOracleTests(unittest.TestCase):
             self.assertCode(
                 validate_repository_inventory(root), "REPOSITORY_INVENTORY"
             )
+
+    def copy_repository(self, root: Path) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in ALLOWED_REPOSITORY_FILES:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repository_root / relative, target)
+
+    def test_api_rules_drift_missing_and_pointer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            self.assertEqual([], validate_shared_api_rules(root))
+            drift = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            drift.write_text(drift.read_text(encoding="utf-8") + "\nextra\n", encoding="utf-8")
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_DRIFT")
+            drift.unlink()
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_MISSING")
+            skill = root / SKILL_ROOT / "view-policies" / "SKILL.md"
+            skill.write_text(
+                skill.read_text(encoding="utf-8").replace("## API rules", "## Rules"),
+                encoding="utf-8",
+            )
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+
+    def test_tool_names_rejected_in_skill_text(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            self.assertEqual([], validate_tool_neutral_text(root))
+            skill = root / SKILL_ROOT / "request-access" / "SKILL.md"
+            skill.write_text(
+                skill.read_text(encoding="utf-8") + "\nRequested via Claude.\n",
+                encoding="utf-8",
+            )
+            self.assertCode(validate_tool_neutral_text(root), "TOOL_NAME_IN_SKILL")
+            rules = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            rules.write_text(
+                rules.read_text(encoding="utf-8") + "\nWorks with Codex.\n",
+                encoding="utf-8",
+            )
+            codes = [
+                issue for issue in validate_tool_neutral_text(root)
+                if issue.path == str(SKILL_ROOT / "list-access" / API_RULES_RELATIVE)
+            ]
+            self.assertCode(codes, "TOOL_NAME_IN_SKILL")
 
     def test_reviewed_instruction_digest_rejects_arbitrary_paraphrase_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -579,12 +630,16 @@ class AdversarialOracleTests(unittest.TestCase):
             "IDEMPOTENCY_VERIFY",
         )
         repository_root = Path(__file__).resolve().parents[1]
-        revocation = (
-            repository_root
-            / "plugins/accessowl/skills/request-revocation/SKILL.md"
-        ).read_text(encoding="utf-8")
+        revocation, revocation_issues = skill_document_text(
+            repository_root, "request-revocation"
+        )
+        self.assertEqual([], revocation_issues)
+        assert revocation is not None
+        self.assertEqual(
+            [], _validate_idempotency("request-revocation", revocation, "SKILL.md")
+        )
         unverifiable_mutant = revocation.replace(
-            "cannot be verified and ask\n  the user to check AccessOwl",
+            "cannot be verified and ask the user to\ncheck AccessOwl",
             "cannot be verified",
             1,
         )
