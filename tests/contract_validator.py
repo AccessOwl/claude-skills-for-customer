@@ -166,7 +166,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "309b845404475b6f68f54d7c06c639dab37a79fe7e0e1af1055496841e37da39",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "63a515de531ac0d5109e760088440d2d7d9a8a6a092170f30363ab6ae5d925dd",
     SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "0121a8f60eddd8670e80a163dc3fdd7d77aff00c91abfa512ce2821f4c8b0743",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
     SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
