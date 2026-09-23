@@ -16,14 +16,16 @@ description: >
 Add a new person to AccessOwl and onboard them, now or on a start date,
 through the AccessOwl REST API.
 
-This skill only **adds a person** and **starts or schedules their
-onboarding**. Onboarding provisions whatever access the person's access
+This skill only **adds a person** and **starts, schedules, or reschedules
+their onboarding**. Onboarding provisions whatever access the person's access
 template matches for their department, team, and other details. It never
-edits an existing person's details: AccessOwl has no API for changing a
-manager, department, team, job title, location, or employment type, so point
-the user to the person's profile in AccessOwl for those edits. It never
-grants individual app access (that is a request made with the request skill)
-and never offboards anyone (that belongs to the offboarding skill).
+edits an existing person's details (manager, department, team, job title,
+location, or employment type): AccessOwl has no API for editing a person's
+details, and onboarding is never used for it, because onboarding an active
+person sets any details sent with it. Point the user to the person's profile
+in AccessOwl for those edits. It never grants individual app access (that is
+a request made with the request skill) and never offboards anyone (that
+belongs to the offboarding skill).
 
 ## API rules
 
@@ -57,9 +59,10 @@ folder and follow it. The essentials:
 Be fast. Run independent lookups at the same time (the email lookup and the
 user list for the manager). Fetch only what you need and do not narrate
 lookup steps. The user should see at most two messages: the confirmation
-question and the result. If something is missing (name, email, manager, or
-an unclear date or employment type), first run every lookup you can, then ask
-for all of it in one message.
+question and the result, plus the separate warning when the person is
+already active. If something is missing (name, email, manager, or an unclear
+date or employment type), first run every lookup you can, then ask for all
+of it in one message.
 
 ## Workflow
 
@@ -77,7 +80,7 @@ say so and stop, and never guess. When the user names someone without an
 email ("schedule onboarding for Tom"), look for them in
 `GET /users?status=all&limit=100` by a name that matches exactly one user
 case-insensitively. If several match, ask which one is meant. If no one
-matches, ask for the email, which a new person needs anyway.
+matches, ask for the email, which a new person needs.
 
 ### 2. New person: collect the details
 
@@ -87,10 +90,17 @@ Collect:
 - Manager (required, because onboarding needs one). Resolve the manager with
   `GET /users?status=all&limit=100` by email or by a name that matches exactly
   one user case-insensitively. If several people match, ask which one is
-  meant; never guess.
+  meant; never guess. The manager must be active or onboarding (`active`,
+  `onboarding_provisioning_planned`, or `onboarding`); otherwise say so and
+  ask for another manager.
 - Optional: department or departments, team or teams, job title, city, and
   employment type.
 - Start date (optional). Without one, onboarding starts now.
+
+Compare the full name with the user list. If the email is new but someone
+with the same full name is already listed, name them in the confirmation
+with their email and status, for example "There is already a Sarah Lee,
+s.lee@company.com, offboarded."
 
 Departments and teams are free text sent exactly as given. The access
 template rules match the person's details, so when the user list already has
@@ -108,38 +118,51 @@ type, in one message.
 
 ### 3. Existing person: check the status
 
-Read the person with `GET /users/{user_id}` and act on the exact `status`:
+Read the person with `GET /users/{user_id}` and act on the exact `status`.
+Onboarding an existing person never sends their details, only
+`scheduled_at`. Always show the person's email in the warning and the
+confirmation.
 
-- `active`: warn plainly before anything else that onboarding switches the
-  person to onboarding, provisions whatever access their access template
-  matches, cannot be undone through the API, and does not change their
-  details, also when onboarding them again later. Ask whether to continue.
-  This is its own question, not the confirmation. When an active person's
-  record has no manager, ask for one in the same message, because onboarding
-  needs one. For example:
+- `active`: first check the manager (see below). Then warn plainly that
+  onboarding switches the person to onboarding, provisions whatever access
+  their access template matches, cannot be undone through the API, and does
+  not change their details, since none are sent. Ask whether to continue.
+  This is its own question, not the confirmation; never combine the warning
+  and the confirmation in one message. For example:
 
-  > Mike Carter is already active in AccessOwl. Onboarding switches Mike
-  > Carter to onboarding and provisions whatever access Mike Carter's access
-  > template matches. It cannot be undone through the API, and it does not
-  > change Mike Carter's details. To edit the manager, department, or other
-  > details, use Mike Carter's profile in AccessOwl.
+  > Mike Carter, mike@company.com, is already active in AccessOwl.
+  > Onboarding switches Mike Carter to onboarding and provisions whatever
+  > access Mike Carter's access template matches. It cannot be undone
+  > through the API, and it does not change Mike Carter's details. To edit
+  > the manager, department, or other details, use Mike Carter's profile in
+  > AccessOwl.
   >
   > Continue with onboarding?
 
-  Only after a yes, go on to the confirmation in step 5. Onboarding sends no
-  details for an active person, except the manager when their record has
-  none. Show the manager by name from the user list.
-- `onboarding_provisioning_planned` (onboarding scheduled) or `onboarding`
-  (onboarding started): offer only a reschedule, to a new date or to now.
-  Department, team, and other details are ignored on a reschedule, so if the
-  user gave any, say they are not changed and point to the person's profile
-  in AccessOwl. An onboarding that AccessOwl is already provisioning cannot
-  be rescheduled.
+  Only after a yes, go on to the confirmation in step 5.
+- `onboarding_provisioning_planned` (onboarding scheduled): offer only a
+  reschedule, to a new date or to now. Details are ignored on a reschedule,
+  so if the user gave any, say they are not changed and point to the
+  person's profile in AccessOwl.
+- `onboarding` (onboarding started): say onboarding has already started and
+  cannot be rescheduled, and stop.
 - `offboarding_planned` (offboarding planned), `offboarding`, `offboarded`, or
-  `inactive`: stop and explain in plain words that this person cannot be
-  onboarded from here.
+  `inactive`: stop and explain that this person cannot be onboarded from
+  here.
 - Any other status: stop and say the person's state could not be
   classified.
+
+An active person needs a manager on their record, and the manager must be
+active or onboarding. If the record has no manager, stop and say, for
+example: "Mike Carter has no manager in AccessOwl, and onboarding needs one.
+Set it on Mike Carter's profile in AccessOwl, then ask again." If the manager
+is not active or onboarding, say so the same way and stop.
+
+A person added in this run is `active` too, but gets no warning: the
+confirmation already covered adding and onboarding them, so go straight to
+the onboard call. In a later request, a person who was added but not
+onboarded gets no warning either once the user confirms this is the new
+hire just added; onboarding them still needs its own confirmation.
 
 If the user asked to change an existing person's manager, department, team,
 job title, location, or employment type, say that is done on the person's
@@ -147,19 +170,21 @@ profile in AccessOwl. Onboarding is not a way to edit those details.
 
 ### 4. Settle the date
 
-Interpret a relative date ("Monday", "the 1st") in the user's timezone when
-you know it from the conversation or workspace; otherwise ask for the
-timezone. Always show the absolute date in the confirmation. A start date in
-the past is not allowed: ask for a new date. A start date of today means
-onboarding now. For a future date, send `scheduled_at` as the start of that
-day (00:00) in that timezone, in ISO 8601 with its UTC offset. For now, leave
-`scheduled_at` out.
+Interpret every start date, relative ("Monday", "the 1st") or absolute, in
+the user's timezone when you know it from the conversation or workspace;
+otherwise ask for the timezone. Always show the absolute date in the
+confirmation. A start date of today means onboarding now. A start date in
+the past is not allowed: say so and offer to onboard now instead, or ask for
+a new date. For a future date, send `scheduled_at` as the start of that day
+(00:00) in that timezone, in ISO 8601 with the UTC offset in effect on that
+date, for example `2026-12-31T00:00:00-05:00`. For now, leave `scheduled_at`
+out.
 
 ### 5. Confirm once
 
-Show one short message with the person, the manager, every detail that will
-be sent, and the start (a date or now). End with one question and ask
-nothing else in that message. For example:
+Show one short message with the person and their email, the manager, every
+detail that will be sent, and the start (a date or now). End with one
+question and ask nothing else in that message. For example:
 
 > Ready to add and onboard:
 > - Sarah Lee, sarah@company.com
@@ -169,11 +194,21 @@ nothing else in that message. For example:
 > - Start: 2026-10-05
 >
 > This adds Sarah Lee to AccessOwl and provisions the access Sarah Lee's
-> access template matches on that date. OK to onboard?
+> access template matches on that date. OK to add and onboard?
+
+After the warning for an active person:
+
+> Ready to onboard:
+> - Mike Carter, mike@company.com, active
+> - Manager: Dana Lee
+> - Start: now
+>
+> This switches Mike Carter to onboarding and provisions the access Mike
+> Carter's access template matches now. OK to onboard?
 
 For a reschedule:
 
-> Ready to reschedule onboarding for Tom Smith:
+> Ready to reschedule onboarding for Tom Smith, tom@company.com:
 > - New start: 2026-10-01
 >
 > OK to reschedule?
@@ -189,9 +224,11 @@ Immediately before each write, re-fetch the current state. For a new person,
 re-fetch `GET /users?email=<email>&status=all&limit=100` and require that it
 still returns no one. Before every onboard call, re-fetch
 `GET /users/{user_id}` and require the same email and the same status as
-confirmed (for a person just added, the status the add returned). If the
-email now belongs to someone, or the status changed, explain what changed
-and confirm again. Never write from the older snapshot.
+confirmed (for a person added in this run, `active`, as the add returned or
+the re-read showed). If the email now belongs to someone, or the status
+changed, explain what changed and go back to step 3 for the current status
+(an active person gets the warning again), then confirm again. Never write
+from the older snapshot.
 
 ### 7. Add and onboard
 
@@ -201,45 +238,53 @@ For a new person, send two calls in order, each with its own fresh
 1. `POST /users` with body `{"email": "<email>", "first_name": "<first_name>", "last_name": "<last_name>"}`
    plus the confirmed `departments`, `teams`, `job_title`, `location_city`,
    `employment_type`, and `manager_user_id`. The documented success status is
-   `201` with the person. Require the confirmed email, first name, and last
-   name. Adding a person does not onboard them.
+   `201` with the person, who is `active` until onboarded. Require the
+   confirmed email, first name, and last name. Adding a person does not
+   onboard them.
 2. `POST /users/{user_id}/onboard` for that person, with the confirmed
    `manager_user_id` and details, plus `scheduled_at` when a start date was
    confirmed. The documented success status is `200` with the person.
    Require the same person ID and email.
 
-For an existing person, send only `POST /users/{user_id}/onboard`, with
-`scheduled_at` for a date and without it for now, plus `manager_user_id` only
-when an active person's record has no manager.
+For an existing person, send only `POST /users/{user_id}/onboard`, with its
+own fresh `Idempotency-Key`. An existing person gets only `scheduled_at`: the
+body is `{"scheduled_at": "<scheduled_at>"}` for a date and `{}` for now.
+Never send details for an existing person.
 
 After a `201` or `200`, re-read the person with `GET /users/{user_id}`. A
-missing, malformed, or mismatched response is an uncertain outcome and stops
-all remaining writes.
+missing, malformed, or mismatched response is an uncertain outcome, handled
+as described below.
 
 If the add succeeded but the onboarding failed, say plainly that the person
 was added to AccessOwl but not onboarded, and that people cannot be deleted,
-only offboarded. Onboarding them again needs a new confirmation.
+only offboarded. Onboarding them later needs a new confirmation, but no
+active-person warning once the user confirms this is the new hire just
+added.
 
-A `422` means AccessOwl did not accept the change. On a `422` from the add,
-for example "a user with this email already exists", never retry the add.
-Re-read the email with `GET /users?email=<email>&status=all&limit=100`, say
-plainly that nothing was added, and continue only through step 3 with a
-fresh confirmation. On a `422` from the onboarding, re-read the person with
-`GET /users/{user_id}` and say plainly why, in plain words (for example no
-manager, or onboarding is already being provisioned and cannot be
-rescheduled), and that nothing changed. Never resend it or switch to another
-action on your own.
+A `400` or `422` means AccessOwl did not accept the change. On one from the
+add, for example "a user with this email already exists", never retry the
+add. Re-read the email with `GET /users?email=<email>&status=all&limit=100`,
+say plainly that nothing was added, and continue only through step 3 with a
+fresh confirmation. On one from the onboarding, re-read the person with
+`GET /users/{user_id}` and say plainly why (for example the start date must
+be in the future, or onboarding has already started and cannot be
+rescheduled) and that nothing changed. For a start date that has passed,
+offer now or a new date, with a new confirmation. Never resend it or switch
+to another action on your own.
 
-After a timeout, network error, `5xx`, exhausted retries, a malformed
-response, or a same-key replay returning `409`, re-read the state and report
-only verified state. A `409` proves only that the attempt was received. For
-the add, re-read `GET /users?email=<email>&status=all&limit=100`: one person
-with the confirmed email, first name, and last name means the add is
-verified and the confirmed onboarding may follow. For the onboarding,
-re-read `GET /users/{user_id}`: a status of onboarding scheduled or onboarding
-started means it is verified. Otherwise report the outcome as unknown and
-stop remaining writes. Sending it again with a fresh key needs a new
-confirmation.
+After a timeout, network error, `5xx`, exhausted retries, a missing,
+malformed, or mismatched response, or a same-key replay returning `409`,
+re-read the state and report only verified state. A `409` proves only that
+the attempt was received. For the add, re-read
+`GET /users?email=<email>&status=all&limit=100`: one person with the
+confirmed email, first name, and last name means the add is verified and the
+confirmed onboarding may follow. For the onboarding, re-read
+`GET /users/{user_id}`: onboarding scheduled after a confirmed date, or
+onboarding started after a confirmed now, means it is verified. For a
+reschedule, the re-read cannot show the date: after an uncertain outcome,
+report the new date as unverified and suggest checking the person's profile
+in AccessOwl. Otherwise report the outcome as unknown and stop remaining
+writes. Sending it again with a fresh key needs a new confirmation.
 
 ### 8. Report the verified result
 
@@ -253,6 +298,10 @@ For example:
 
 > Sarah Lee was added to AccessOwl. Onboarding is scheduled for 2026-10-05,
 > when AccessOwl provisions the access Sarah Lee's access template matches.
+
+For a reschedule:
+
+> Onboarding for Tom Smith, tom@company.com, is rescheduled to 2026-10-01.
 
 If the status is not the one that was confirmed, for example onboarding
 started now when a date was confirmed, say so plainly. Never list or promise

@@ -165,7 +165,7 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "68048fa5080bc7dcea2b623a443302ff919ee8f10bbfeff2b0d1e75687913ec2",
+    Path("README.md"): "28c1d829add279b21bdb1f7627791548dc354e162dd9608e223cc7debef1dcd0",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
     SKILL_ROOT / "close-request" / "SKILL.md": "9e1b92b2079eb36a1b6f5feabc8430b5a3258a6e545a5a9b9c1f180f9f250c86",
@@ -174,7 +174,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
-    SKILL_ROOT / "onboard-user" / "SKILL.md": "7fca4fb2559665c06934732de15877371269f79663dab1b160bdafbb4c03588e",
+    SKILL_ROOT / "onboard-user" / "SKILL.md": "8c310a8d42839403623630001e99788ee1e780f4d9a1c5877e2005e93729f2f6",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "453c777baa2f3b23167738d02dca24157ec4e662531bb345104618bce7b5aa2f",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
@@ -195,13 +195,13 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "1a73464b4df02371524c800dfac238cbdc867a8d85922fdc626c42083cfe3d62",
+    Path("tests/skill_semantics.py"): "d241745cb40f59d120fab13dc0e61b5a57011d6874ef71c00686df6e48c95b19",
     Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "5507a23488061b3edfd261bd6d66198646d557a9ff2e37aa1afac800a1d40ca8",
+    Path("tests/test_write_semantic_oracles.py"): "a3fba16502c2c6f3f1d3bf9bd42bf1cf55336140551e1183a3974a74ead93e1d",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The

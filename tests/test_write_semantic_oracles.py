@@ -185,32 +185,30 @@ class WriteSemanticOracleTests(unittest.TestCase):
         text = self.skill_text("onboard-user")
         self.assertEqual([], validate_write_safety_text("onboard-user", text, "SKILL.md"))
         cases = (
-            (
-                "the user to the person's profile in AccessOwl for those edits",
-                "the user to a repeat onboarding for those edits",
-                "ONBOARD_SCOPE",
-            ),
+            ("Point the user to the person's profile", "Point the user to a repeat onboarding", "ONBOARD_SCOPE"),
             ("cannot be undone through the API", "can be undone later", "ONBOARD_ACTIVE_WARNING"),
-            (
-                "(onboarding started): offer only a reschedule",
-                "(onboarding started): onboard them again",
-                "ONBOARD_STATUS_GATES",
-            ),
+            ("never combine the warning", "you may combine the warning", "ONBOARD_ACTIVE_WARNING"),
+            ("but gets no warning", "and gets the warning", "ONBOARD_ADDED_THIS_RUN"),
+            ("cannot be rescheduled, and stop", "can be rescheduled", "ONBOARD_STATUS_GATES"),
             ("Manager (required, because onboarding needs one)", "Manager (optional)", "ONBOARD_MANAGER_REQUIRED"),
+            ("then ask again", "then continue", "ONBOARD_MANAGER_REQUIRED"),
+            ("must be active or onboarding", "can have any status", "ONBOARD_MANAGER_REQUIRED"),
+            ("say so the same way and stop", "continue", "ONBOARD_MANAGER_REQUIRED"),
+            (
+                "Never send details for an existing person.",
+                "Send any details the user gave.",
+                "ONBOARD_EXISTING_NO_DETAILS",
+            ),
             ("Always show the absolute date", "Show the relative date", "ONBOARD_DATES"),
+            ("UTC offset in effect on that", "current UTC offset on that", "ONBOARD_DATES"),
+            ("offer to onboard now instead", "use it as given", "ONBOARD_DATES"),
             ("partial yes means no write", "partial yes still counts", "ONBOARD_CONFIRMATION"),
-            (
-                "Never write from the older snapshot.",
-                "Writing from the older snapshot is fine.",
-                "ONBOARD_PREWRITE_RECHECK",
-            ),
-            ("never retry the add.", "retry the add once.", "ONBOARD_CREATE_ONCE"),
-            ("that people cannot be deleted,", "that the person can be deleted,", "ONBOARD_CREATE_ONCE"),
-            (
-                "Otherwise report the outcome as unknown and",
-                "Otherwise assume it worked and",
-                "ONBOARD_UNCERTAIN",
-            ),
+            ("Always show the person's", "Optionally show the person's", "ONBOARD_CONFIRMATION"),
+            ("go back to step 3", "continue from step 7", "ONBOARD_PREWRITE_RECHECK"),
+            ("never retry the", "retry the", "ONBOARD_CREATE_ONCE"),
+            ("that people cannot be deleted,", "that the person can be deleted,", "ONBOARD_PARTIAL_ADD"),
+            ("report the outcome as unknown and", "assume it worked and", "ONBOARD_UNCERTAIN"),
+            ("the new date as unverified", "the new date as confirmed", "ONBOARD_UNCERTAIN"),
             ("Never list or promise", "List", "ONBOARD_VERIFIED_REPORT"),
         )
         for old, new, code in cases:
@@ -225,12 +223,22 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "To change an existing person's department, onboard them again.",
             "An earlier go ahead counts as the confirmation.",
             "A yes to the warning counts as the confirmation.",
+            "Combine the warning and the confirmation in one message.",
+            "Skip the re-check for a person added in this run.",
+            "If several people match, pick the most recent one.",
+            "Use the newest matching record.",
+            "If the status changed, onboard anyway.",
             "Past start dates are fine.",
             "Accept a start date in the past.",
             "After a `422` that says the email already exists, retry the add.",
+            "After a `422`, try again.",
+            "After a `422` from the add, try the add again.",
             "An offboarded person can still be onboarded.",
             "The manager is optional.",
             "Onboarding without a manager works.",
+            "Send the onboard call without an Idempotency-Key.",
+            "The `Idempotency-Key` is optional for the onboard call.",
+            "Omit the Idempotency-Key on the onboard call.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):

@@ -104,40 +104,57 @@ def close_request_findings(skill: str, text: str) -> List[Finding]:
 ONBOARD_REQUIREMENTS: PhraseRules = (
     ("ONBOARD_SCOPE", "onboard-user adds and onboards only; existing details are edited on the profile", False,
      ("it never edits an existing person's details", "point the user to the person's profile in accessowl",
+      "onboarding is never used for it, because onboarding an active person sets any details sent with it",
       "never grants individual app access", "never offboards anyone", "onboarding is not a way to edit those details")),
     ("ONBOARD_ACTIVE_WARNING", "warn before onboarding an active person, as its own question", True,
-     ("`active`: warn plainly before anything else", "switches the person to onboarding",
+     ("`active`: first check the manager", "then warn plainly that onboarding switches the person to onboarding",
       "provisions whatever access their access template matches", "cannot be undone through the api",
-      "does not change their details", "this is its own question, not the confirmation")),
-    ("ONBOARD_STATUS_GATES", "onboarding statuses only reschedule; offboarding and inactive stop", False,
-     ("`onboarding_provisioning_planned` (onboarding scheduled) or `onboarding` (onboarding started): offer only a reschedule",
-      "are ignored on a reschedule",
+      "does not change their details", "this is its own question, not the confirmation",
+      "never combine the warning and the confirmation")),
+    ("ONBOARD_ADDED_THIS_RUN", "a person added in this run is active but gets no active-person warning", False,
+     ("who is `active` until onboarded", "a person added in this run is `active` too, but gets no warning",
+      "confirms this is the new hire just added")),
+    ("ONBOARD_STATUS_GATES", "scheduled onboarding only reschedules; started, offboarding, and inactive stop", False,
+     ("`onboarding_provisioning_planned` (onboarding scheduled): offer only a reschedule",
+      "details are ignored on a reschedule",
+      "`onboarding` (onboarding started): say onboarding has already started and cannot be rescheduled, and stop",
       "`offboarding_planned` (offboarding planned), `offboarding`, `offboarded`, or `inactive`: stop",
       "any other status: stop")),
-    ("ONBOARD_MANAGER_REQUIRED", "a manager resolved to exactly one person is required", False,
+    ("ONBOARD_MANAGER_REQUIRED", "an active or onboarding manager resolved to exactly one person is required", False,
      ("manager (required, because onboarding needs one)", "matches exactly one user case-insensitively",
-      "ask which one is meant; never guess", "when an active person's record has no manager")),
-    ("ONBOARD_DATES", "relative dates need a timezone, past dates are refused", False,
-     ("otherwise ask for the timezone", "always show the absolute date in the confirmation",
-      "a start date in the past is not allowed")),
+      "ask which one is meant; never guess",
+      "the manager must be active or onboarding (`active`, `onboarding_provisioning_planned`, or `onboarding`); "
+      "otherwise say so and ask for another manager",
+      "has no manager in accessowl, and onboarding needs one", "then ask again",
+      "if the manager is not active or onboarding, say so the same way and stop")),
+    ("ONBOARD_EXISTING_NO_DETAILS", "an existing person's onboard call carries only scheduled_at", False,
+     ("onboarding an existing person never sends their details, only `scheduled_at`",
+      "an existing person gets only `scheduled_at`", "never send details for an existing person")),
+    ("ONBOARD_DATES", "start dates need a timezone, past dates are refused", False,
+     ("interpret every start date", "otherwise ask for the timezone", "always show the absolute date in the confirmation",
+      "a start date in the past is not allowed", "offer to onboard now instead", "the utc offset in effect on that date")),
     ("ONBOARD_CONFIRMATION", "only a clear yes after the confirmation counts, asked alone", False,
      ("only a clear yes given after this confirmation counts", "is not the confirmation",
       "ask nothing else in that message", "a question, a change, or a partial yes means no write",
-      "in one message")),
+      "in one message", "always show the person's email in the warning and the confirmation", "there is already a")),
     ("ONBOARD_PREWRITE_RECHECK", "re-check the email and status right before each write", False,
      ("require that it still returns no one", "the same email and the same status as confirmed",
+      "go back to step 3 for the current status (an active person gets the warning again)",
       "never write from the older snapshot")),
-    ("ONBOARD_CREATE_ONCE", "a 422 on the add is never retried", True,
-     ("never retry the add", "re-read the email", "nothing was added", "fresh confirmation")),
-    ("ONBOARD_CREATE_ONCE", "an added but not onboarded person cannot be deleted", False,
+    ("ONBOARD_CREATE_ONCE", "a 400 or 422 on the add is never retried", True,
+     ("a `400` or `422` means accessowl did not accept the change", "never retry the add", "re-read the email",
+      "nothing was added", "fresh confirmation")),
+    ("ONBOARD_PARTIAL_ADD", "an added but not onboarded person cannot be deleted", False,
      ("added to accessowl but not onboarded", "people cannot be deleted, only offboarded")),
-    ("ONBOARD_UNCERTAIN", "an uncertain outcome stops all writes", False,
-     ("report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation")),
+    ("ONBOARD_UNCERTAIN", "an uncertain outcome stops all writes; a rescheduled date stays unverified", False,
+     ("report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation",
+      "report the new date as unverified")),
     ("ONBOARD_VERIFIED_REPORT", "report the re-read status in plain words, never specific apps", False,
      ("`onboarding_provisioning_planned`: onboarding scheduled", "`onboarding`: onboarding started now",
       "never list or promise specific applications")),
 )
 _EDITABLE = r"(?:manager|department|team|job\s+title|location|city|employment\s+type|details)"
+_KEY = r"`?idempotency-key`?"
 ONBOARD_CONTRADICTIONS = (
     r"\b(?:use|call|run|send)\s+(?:the\s+)?onboard\w*[^.]{0,40}\bto\s+(?:update|change|edit|set)\b[^.]{0,40}" + _EDITABLE,
     r"\bonboard\w*\s+(?:(?:can|also|will|may)\s+){1,2}(?:update|change|edit)",
@@ -145,12 +162,20 @@ ONBOARD_CONTRADICTIONS = (
     + r"[^.]{0,20}\b(?:by|through|via|with|,)\s*(?:re-?)?onboard",
     r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
     r"(?:warning|continue)[^.]{0,60}(?:counts?\s+as|doubles?\s+as|serves?\s+as)\s+(?:the\s+)?confirmation",
+    r"(?<!never )(?<!not )\b(?:combine|merge|skip)\w*\b[^.]{0,40}\b(?:warning|re-?check|confirmation)",
+    r"\b(?:pick|choose|use|take)\s+(?:the\s+)?(?:first|newest|latest|most\s+recent)\s+(?:match\w*|one|person|user|record)",
+    r"\b(?:status|state)\b[^.]{0,40}\bchanged?\b[^.]{0,60}\banyway\b",
+    r"\b(?:onboard|write|send|continue|proceed|go\s+ahead)\w*\s+(?:it\s+|them\s+)?anyway\b",
     r"past\s+(?:start\s+)?dates?[^.]{0,40}\b(?:is|are)\s+(?:allowed|accepted|fine|ok)",
     r"\b(?:accept|allow|send|use)\s+(?:a\s+)?(?:start\s+)?dates?\s+in\s+the\s+past",
-    r"(?:422|already\s+exists)[^.]{0,60}(?<!never )\b(?:retry|resend|repeat)\s+(?:the\s+)?(?:add|create)",
+    r"(?:422|already\s+exists)[^.]{0,60}(?<!never )\b(?:(?:retry|resend|repeat)\s+(?:the\s+)?(?:add|create)"
+    r"|try\s+(?:the\s+add\s+)?again)",
     r"\b(?:offboarding|offboarded|inactive)[^.]{0,60}\b(?:can|may)\s+(?:still\s+)?be\s+onboarded",
     r"\bmanager[^.]{0,20}\bis\s+optional",
     r"\b(?:without|with\s+no)\s+(?:a\s+)?manager[^.]{0,30}\b(?:is\s+fine|works|is\s+allowed)",
+    r"\bonboard\w*[^.]{0,40}\bwithout\s+(?:an?\s+)?(?:new\s+|fresh\s+|its\s+own\s+)?" + _KEY,
+    _KEY + r"[^.]{0,40}\b(?:optional|not\s+needed|unnecessary)\b[^.]{0,40}\bonboard",
+    r"\b(?:skip|omit|drop)\w*\s+(?:the\s+)?" + _KEY + r"[^.]{0,40}\bonboard",
 )
 
 
@@ -159,6 +184,7 @@ def onboard_user_findings(skill: str, text: str) -> List[Finding]:
         return []
     return _phrase_contract(
         text, ONBOARD_REQUIREMENTS, ONBOARD_CONTRADICTIONS, ("ONBOARD_CONTRADICTION", "unsafe onboarding prose"))
+
 
 def userlist_import_findings(skill: str, text: str) -> List[Finding]:
     """The import is one full-replace PUT; pin its preview and write-path safety."""

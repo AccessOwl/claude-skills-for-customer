@@ -16,9 +16,9 @@ approval. Revocations may begin removal immediately, depending on the
 application. Claude can also mark a fully approved, manually provisioned
 request as granted after you confirm the access was set up. The close skill
 denies or rejects open requests you confirm, and it never grants them. The
-onboarding skill adds a new person and starts or schedules their onboarding
-after you confirm; it never edits an existing person's details. The
-assistant never approves a request.
+onboarding skill adds a new person or onboards an existing one, now or on a
+start date, and reschedules a planned onboarding, after you confirm; it never
+edits a person's details. The assistant never approves a request.
 
 ## The skills
 
