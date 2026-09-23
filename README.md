@@ -16,6 +16,8 @@ approval. Revocations may begin removal immediately, depending on the
 application. Claude can also mark a fully approved, manually provisioned
 request as granted after you confirm the access was set up. The close skill
 denies or rejects open requests you confirm, and it never grants them. The
+onboarding skill adds a new person and starts or schedules their onboarding
+after you confirm; it never edits an existing person's details. The
 assistant never approves a request.
 
 ## The skills
@@ -26,6 +28,7 @@ assistant never approves a request.
 | `grant-access` | "Mixpanel is set up for Dwight, mark the approved request granted." |
 | `close-request` | "Deny Tom's Figma request, he no longer needs it." |
 | `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
+| `onboard-user` | "Onboard Sarah Lee, sarah@company.com, starts Monday, manager Mike Carter." |
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
 | `access-report` | "Everyone in Marketing without HubSpot." |
@@ -69,7 +72,10 @@ That's it. Mention `@Claude` in your access channel and ask.
 - Request skills create **requests**. The grant skill records that a fully
   approved manual request was set up, then verifies the resulting access. The
   close skill denies or rejects only the open requests you confirm; it never
-  grants them. The vendor skill makes only the direct metadata updates you
+  grants them. The onboarding skill adds the new person you confirm and
+  starts or schedules their onboarding, which provisions what their access
+  template matches; details of existing people are edited on their profile
+  in AccessOwl. The vendor skill makes only the direct metadata updates you
   confirm. Structure and policy changes are previewed, then completed in
   AccessOwl. Structure reads expose no usable version token, and policy
   assignment is an unprotected full-set replacement.

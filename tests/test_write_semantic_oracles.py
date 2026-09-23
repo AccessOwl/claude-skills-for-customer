@@ -10,6 +10,7 @@ from .contract_validator import (
     Issue,
     _validate_close_request_semantics,
     _validate_grant_access_semantics,
+    _validate_onboard_user_semantics,
     skill_document_text,
     validate_resilience_text,
     validate_write_safety_text,
@@ -178,6 +179,64 @@ class WriteSemanticOracleTests(unittest.TestCase):
                         "close-request", text + "\n\n" + unsafe, "SKILL.md"
                     ),
                     "CLOSE_CONTRADICTION",
+                )
+
+    def test_onboard_user_scope_confirmation_and_create_once_are_indivisible(self) -> None:
+        text = self.skill_text("onboard-user")
+        self.assertEqual([], validate_write_safety_text("onboard-user", text, "SKILL.md"))
+        cases = (
+            (
+                "the user to the person's profile in AccessOwl for those edits",
+                "the user to a repeat onboarding for those edits",
+                "ONBOARD_SCOPE",
+            ),
+            ("cannot be undone through the API", "can be undone later", "ONBOARD_ACTIVE_WARNING"),
+            (
+                "(onboarding started): offer only a reschedule",
+                "(onboarding started): onboard them again",
+                "ONBOARD_STATUS_GATES",
+            ),
+            ("Manager (required, because onboarding needs one)", "Manager (optional)", "ONBOARD_MANAGER_REQUIRED"),
+            ("Always show the absolute date", "Show the relative date", "ONBOARD_DATES"),
+            ("partial yes means no write", "partial yes still counts", "ONBOARD_CONFIRMATION"),
+            (
+                "Never write from the older snapshot.",
+                "Writing from the older snapshot is fine.",
+                "ONBOARD_PREWRITE_RECHECK",
+            ),
+            ("never retry the add.", "retry the add once.", "ONBOARD_CREATE_ONCE"),
+            ("that people cannot be deleted,", "that the person can be deleted,", "ONBOARD_CREATE_ONCE"),
+            (
+                "Otherwise report the outcome as unknown and",
+                "Otherwise assume it worked and",
+                "ONBOARD_UNCERTAIN",
+            ),
+            ("Never list or promise", "List", "ONBOARD_VERIFIED_REPORT"),
+        )
+        for old, new, code in cases:
+            with self.subTest(code=code, old=old):
+                mutant = text.replace(old, new, 1)
+                self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
+                self.assertCode(_validate_onboard_user_semantics("onboard-user", mutant, "SKILL.md"), code)
+
+        contradictions = (
+            "Use onboarding to update an existing person's manager.",
+            "Onboarding can also change a person's department.",
+            "To change an existing person's department, onboard them again.",
+            "An earlier go ahead counts as the confirmation.",
+            "A yes to the warning counts as the confirmation.",
+            "Past start dates are fine.",
+            "Accept a start date in the past.",
+            "After a `422` that says the email already exists, retry the add.",
+            "An offboarded person can still be onboarded.",
+            "The manager is optional.",
+            "Onboarding without a manager works.",
+        )
+        for unsafe in contradictions:
+            with self.subTest(unsafe=unsafe):
+                self.assertCode(
+                    _validate_onboard_user_semantics("onboard-user", text + "\n\n" + unsafe, "SKILL.md"),
+                    "ONBOARD_CONTRADICTION",
                 )
 
     def test_idempotency_retry_tuple_is_indivisible(self) -> None:

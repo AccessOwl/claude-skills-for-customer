@@ -101,6 +101,65 @@ def close_request_findings(skill: str, text: str) -> List[Finding]:
         text, CLOSE_REQUIREMENTS, CLOSE_CONTRADICTIONS, ("CLOSE_CONTRADICTION", "unsafe close prose"))
 
 
+ONBOARD_REQUIREMENTS: PhraseRules = (
+    ("ONBOARD_SCOPE", "onboard-user adds and onboards only; existing details are edited on the profile", False,
+     ("it never edits an existing person's details", "point the user to the person's profile in accessowl",
+      "never grants individual app access", "never offboards anyone", "onboarding is not a way to edit those details")),
+    ("ONBOARD_ACTIVE_WARNING", "warn before onboarding an active person, as its own question", True,
+     ("`active`: warn plainly before anything else", "switches the person to onboarding",
+      "provisions whatever access their access template matches", "cannot be undone through the api",
+      "does not change their details", "this is its own question, not the confirmation")),
+    ("ONBOARD_STATUS_GATES", "onboarding statuses only reschedule; offboarding and inactive stop", False,
+     ("`onboarding_provisioning_planned` (onboarding scheduled) or `onboarding` (onboarding started): offer only a reschedule",
+      "are ignored on a reschedule",
+      "`offboarding_planned` (offboarding planned), `offboarding`, `offboarded`, or `inactive`: stop",
+      "any other status: stop")),
+    ("ONBOARD_MANAGER_REQUIRED", "a manager resolved to exactly one person is required", False,
+     ("manager (required, because onboarding needs one)", "matches exactly one user case-insensitively",
+      "ask which one is meant; never guess", "when an active person's record has no manager")),
+    ("ONBOARD_DATES", "relative dates need a timezone, past dates are refused", False,
+     ("otherwise ask for the timezone", "always show the absolute date in the confirmation",
+      "a start date in the past is not allowed")),
+    ("ONBOARD_CONFIRMATION", "only a clear yes after the confirmation counts, asked alone", False,
+     ("only a clear yes given after this confirmation counts", "is not the confirmation",
+      "ask nothing else in that message", "a question, a change, or a partial yes means no write",
+      "in one message")),
+    ("ONBOARD_PREWRITE_RECHECK", "re-check the email and status right before each write", False,
+     ("require that it still returns no one", "the same email and the same status as confirmed",
+      "never write from the older snapshot")),
+    ("ONBOARD_CREATE_ONCE", "a 422 on the add is never retried", True,
+     ("never retry the add", "re-read the email", "nothing was added", "fresh confirmation")),
+    ("ONBOARD_CREATE_ONCE", "an added but not onboarded person cannot be deleted", False,
+     ("added to accessowl but not onboarded", "people cannot be deleted, only offboarded")),
+    ("ONBOARD_UNCERTAIN", "an uncertain outcome stops all writes", False,
+     ("report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation")),
+    ("ONBOARD_VERIFIED_REPORT", "report the re-read status in plain words, never specific apps", False,
+     ("`onboarding_provisioning_planned`: onboarding scheduled", "`onboarding`: onboarding started now",
+      "never list or promise specific applications")),
+)
+_EDITABLE = r"(?:manager|department|team|job\s+title|location|city|employment\s+type|details)"
+ONBOARD_CONTRADICTIONS = (
+    r"\b(?:use|call|run|send)\s+(?:the\s+)?onboard\w*[^.]{0,40}\bto\s+(?:update|change|edit|set)\b[^.]{0,40}" + _EDITABLE,
+    r"\bonboard\w*\s+(?:(?:can|also|will|may)\s+){1,2}(?:update|change|edit)",
+    r"\b(?:update|change|edit)\w*\s+(?:an?\s+)?(?:existing\s+)?(?:person's|user's|their)\s+" + _EDITABLE
+    + r"[^.]{0,20}\b(?:by|through|via|with|,)\s*(?:re-?)?onboard",
+    r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
+    r"(?:warning|continue)[^.]{0,60}(?:counts?\s+as|doubles?\s+as|serves?\s+as)\s+(?:the\s+)?confirmation",
+    r"past\s+(?:start\s+)?dates?[^.]{0,40}\b(?:is|are)\s+(?:allowed|accepted|fine|ok)",
+    r"\b(?:accept|allow|send|use)\s+(?:a\s+)?(?:start\s+)?dates?\s+in\s+the\s+past",
+    r"(?:422|already\s+exists)[^.]{0,60}(?<!never )\b(?:retry|resend|repeat)\s+(?:the\s+)?(?:add|create)",
+    r"\b(?:offboarding|offboarded|inactive)[^.]{0,60}\b(?:can|may)\s+(?:still\s+)?be\s+onboarded",
+    r"\bmanager[^.]{0,20}\bis\s+optional",
+    r"\b(?:without|with\s+no)\s+(?:a\s+)?manager[^.]{0,30}\b(?:is\s+fine|works|is\s+allowed)",
+)
+
+
+def onboard_user_findings(skill: str, text: str) -> List[Finding]:
+    if skill != "onboard-user":
+        return []
+    return _phrase_contract(
+        text, ONBOARD_REQUIREMENTS, ONBOARD_CONTRADICTIONS, ("ONBOARD_CONTRADICTION", "unsafe onboarding prose"))
+
 def userlist_import_findings(skill: str, text: str) -> List[Finding]:
     """The import is one full-replace PUT; pin its preview and write-path safety."""
     if skill != "import-userlist":
