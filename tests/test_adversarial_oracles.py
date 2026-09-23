@@ -607,6 +607,10 @@ class AdversarialOracleTests(unittest.TestCase):
             ("encoded key delimiter", "`GET /users?status%26admin=all`", "API_QUERY_PARAMETER"),
             ("evil absolute host", "`GET https://evil.example/api/v1/users?status=all`", "API_ABSOLUTE_URL"),
             ("empty value", "`GET /users?status=`", "API_QUERY_EMPTY_VALUE"),
+            ("request status from user enum", "`GET /access_requests?status=active`", "API_STATUS"),
+            ("revocation status all", "`GET /access_revocations?status=all`", "API_STATUS"),
+            ("application status from user enum", "`GET /applications?status=active`", "API_STATUS"),
+            ("user status from request enum", "`GET /users?status=revoked`", "API_STATUS"),
             ("raw slash", "`GET /applications?title_like=R/D`", "API_QUERY_ENCODING"),
             ("raw equals", "`GET /applications?title_like=R=D`", "API_QUERY_ENCODING"),
             ("raw semicolon", "`GET /applications?title_like=R;D`", "API_QUERY_ENCODING"),
@@ -635,6 +639,15 @@ class AdversarialOracleTests(unittest.TestCase):
                 "`GET /applications?title_like=%C3%A9`", "SKILL.md"
             ),
         )
+
+        for value in (
+            "`GET /access_requests?status=pending_approval`",
+            "`GET /access_revocations?status=processing_access`",
+            "`GET /applications?status=requestable`",
+            "`GET /users?status=all`",
+        ):
+            with self.subTest(value=value):
+                self.assertEqual([], validate_api_reference_text(value, "SKILL.md"))
 
         self.assertEqual([], extract_api_references("`GET http://[`"))
 
