@@ -118,7 +118,7 @@ class ApiSemanticOracleTests(unittest.TestCase):
     def test_refused_writes_cannot_be_reintroduced_beside_safe_prose(self) -> None:
         cases = (
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "Call `PUT /applications/{id}/structure` to fix the structure now.",
             ),
             (
@@ -141,7 +141,7 @@ class ApiSemanticOracleTests(unittest.TestCase):
     def test_refusal_in_one_sentence_cannot_camouflage_an_action_in_the_next(self) -> None:
         cases = (
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "Do not call `PUT /applications/{id}/structure`. Now execute `PUT /applications/{id}/structure`.",
             ),
             (

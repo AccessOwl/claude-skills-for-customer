@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,11 +13,14 @@ from typing import List
 
 from .contract_validator import (
     CHECKOUT_ACTION_SHA,
+    CODEX_MARKETPLACE_PATH,
+    CODEX_PLUGIN_MANIFEST_PATH,
     CORE_HARNESS_FILES,
     SETUP_PYTHON_ACTION_SHA,
     SYNC_WORKFLOW_PATH,
     WORKFLOW_PATH,
     validate_ci,
+    validate_codex_manifests,
     validate_manifest_values,
     validate_readme_repository_identity,
     validate_readme_request_status,
@@ -30,7 +35,7 @@ VALID_MARKETPLACE = {
         {
             "name": "claudetag-for-accessowl",
             "description": "AccessOwl skills for Claude.",
-            "version": "0.4.0",
+            "version": "1.0.0",
             "source": "./plugins/accessowl",
         }
     ],
@@ -38,11 +43,11 @@ VALID_MARKETPLACE = {
 
 VALID_PLUGIN = {
     "name": "claudetag-for-accessowl",
-    "displayName": "ClaudeTag for AccessOwl",
+    "displayName": "AccessOwl Skills",
     "description": "AccessOwl skills for Claude.",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "author": {"name": "AccessOwl", "url": "https://github.com/AccessOwl"},
-    "homepage": "https://docs.accessowl.com/api-reference/introduction",
+    "homepage": "https://docs.accessowl.com/guides/ai/accessowl-skills",
     "repository": "https://github.com/AccessOwl/claude-skills-for-customer",
 }
 
@@ -152,7 +157,7 @@ class CiAndManifestOracleTests(unittest.TestCase):
         )
 
         bad_homepage = copy.deepcopy(VALID_PLUGIN)
-        bad_homepage["homepage"] = "http://docs.accessowl.com/api-reference/introduction"
+        bad_homepage["homepage"] = "http://docs.accessowl.com/guides/ai/accessowl-skills"
         cases.append(("homepage", VALID_MARKETPLACE, bad_homepage, "PLUGIN_HOMEPAGE"))
 
         bad_repository = copy.deepcopy(VALID_PLUGIN)
@@ -164,6 +169,10 @@ class CiAndManifestOracleTests(unittest.TestCase):
         cases.append(
             ("repository object", VALID_MARKETPLACE, repository_object, "PLUGIN_REPOSITORY")
         )
+
+        bad_display_name = copy.deepcopy(VALID_PLUGIN)
+        bad_display_name["displayName"] = "ClaudeTag for AccessOwl"
+        cases.append(("display name", VALID_MARKETPLACE, bad_display_name, "PLUGIN_DISPLAY_NAME"))
 
         for name, marketplace, plugin, code in cases:
             with self.subTest(name=name):
@@ -186,6 +195,80 @@ class CiAndManifestOracleTests(unittest.TestCase):
         for marketplace, plugin, code in cases:
             with self.subTest(code=code):
                 self.assertCode(validate_manifest_values(marketplace, plugin), code)
+
+    def test_codex_manifests_valid_and_version_matched(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        self.assertEqual([], validate_codex_manifests(repo))
+        market_path = str(CODEX_MARKETPLACE_PATH)
+        plugin_path = str(CODEX_PLUGIN_MANIFEST_PATH)
+        cases = (
+            ("version", lambda m, p: p.update(version="9.9.9"), plugin_path),
+            ("plugin name", lambda m, p: p.update(name="lookalike"), plugin_path),
+            ("skills path", lambda m, p: p.update(skills="./other/"), plugin_path),
+            ("hooks", lambda m, p: p.update(hooks="./hooks/payload.json"), plugin_path),
+            ("repository", lambda m, p: p.update(repository=p["repository"] + "/"), plugin_path),
+            ("author", lambda m, p: p["author"].update(url="https://github.com/attacker"), plugin_path),
+            ("homepage", lambda m, p: p.update(homepage="https://example.com/"), plugin_path),
+            ("display name", lambda m, p: p["interface"].pop("displayName"), plugin_path),
+            ("non-dict interface", lambda m, p: p.update(interface="AccessOwl Skills"), plugin_path),
+            ("marketplace name", lambda m, p: m.update(name="lookalike"), market_path),
+            (
+                "marketplace interface",
+                lambda m, p: m["interface"].update(displayName="Lookalike"),
+                market_path,
+            ),
+            (
+                "entry count",
+                lambda m, p: m["plugins"].append(copy.deepcopy(m["plugins"][0])),
+                market_path,
+            ),
+            ("entry name", lambda m, p: m["plugins"][0].update(name="lookalike"), market_path),
+            (
+                "entry field",
+                lambda m, p: m["plugins"][0].update(commands=["./payload.sh"]),
+                market_path,
+            ),
+            (
+                "source",
+                lambda m, p: m["plugins"][0]["source"].update(path="./plugins/other"),
+                market_path,
+            ),
+            (
+                "policy",
+                lambda m, p: m["plugins"][0]["policy"].update(installation="INSTALLED_BY_DEFAULT"),
+                market_path,
+            ),
+        )
+        for name, mutate, expected_path in cases:
+            with self.subTest(mutation=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "repo"
+                shutil.copytree(repo, root, ignore=shutil.ignore_patterns(".git"))
+                market_file = root / CODEX_MARKETPLACE_PATH
+                plugin_file = root / CODEX_PLUGIN_MANIFEST_PATH
+                market = json.loads(market_file.read_text(encoding="utf-8"))
+                plugin = json.loads(plugin_file.read_text(encoding="utf-8"))
+                mutate(market, plugin)
+                market_file.write_text(json.dumps(market), encoding="utf-8")
+                plugin_file.write_text(json.dumps(plugin), encoding="utf-8")
+                self.assertEqual(
+                    [("CODEX_MANIFEST", expected_path)],
+                    [(i.code, i.path) for i in validate_codex_manifests(root)],
+                )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            shutil.copytree(repo, root, ignore=shutil.ignore_patterns(".git"))
+            plugin_file = root / CODEX_PLUGIN_MANIFEST_PATH
+            plugin_file.write_text("[]", encoding="utf-8")
+            self.assertEqual(
+                [("CODEX_MANIFEST", plugin_path)],
+                [(i.code, i.path) for i in validate_codex_manifests(root)],
+            )
+            plugin_file.unlink()
+            self.assertEqual(
+                [("FILE_MISSING", plugin_path)],
+                [(i.code, i.path) for i in validate_codex_manifests(root)],
+            )
 
     def test_readme_uses_the_transferred_repository_owner(self) -> None:
         current = "Install github.com/AccessOwl/claude-skills-for-customer."

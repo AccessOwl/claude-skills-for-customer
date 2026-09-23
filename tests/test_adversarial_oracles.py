@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+import re
 import shutil
 import tempfile
 import threading
@@ -14,6 +15,7 @@ from typing import List
 
 from .contract_validator import (
     ALLOWED_REPOSITORY_FILES,
+    API_RULES_RELATIVE,
     APPROVED_CONTENT_SHA256,
     APPROVED_HARNESS_SHA256,
     MAX_FILE_BYTES,
@@ -22,6 +24,7 @@ from .contract_validator import (
     MAX_REPOSITORY_BYTES,
     MAX_REPOSITORY_ENTRIES,
     MAX_TREE_DEPTH,
+    SKILL_ROOT,
     Issue,
     VENDOR_CERTIFICATES,
     _validate_access_creation_invariants,
@@ -36,6 +39,7 @@ from .contract_validator import (
     parse_frontmatter,
     parse_json_strict,
     secure_read_bytes,
+    skill_document_text,
     validate_approved_content,
     validate_approved_harness,
     validate_api_reference_text,
@@ -46,7 +50,9 @@ from .contract_validator import (
     validate_repository,
     validate_read_safety,
     validate_resilience_text,
+    validate_shared_api_rules,
     validate_skill_operation_scope,
+    validate_tool_neutral_text,
     validate_write_safety,
 )
 from .run_tests import run_discovered_tests
@@ -221,6 +227,96 @@ class AdversarialOracleTests(unittest.TestCase):
                 validate_repository_inventory(root), "REPOSITORY_INVENTORY"
             )
 
+    def copy_repository(self, root: Path) -> None:
+        repository_root = Path(__file__).resolve().parents[1]
+        for relative in ALLOWED_REPOSITORY_FILES:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repository_root / relative, target)
+
+    def test_api_rules_drift_missing_and_pointer(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            self.assertEqual([], validate_shared_api_rules(root))
+            drift = root / SKILL_ROOT / "access-report" / API_RULES_RELATIVE
+            original = drift.read_text(encoding="utf-8")
+            drift.write_text(original + "\nextra\n", encoding="utf-8")
+            drifted = [
+                issue.path
+                for issue in validate_shared_api_rules(root)
+                if issue.code == "API_RULES_DRIFT"
+            ]
+            self.assertEqual([str(SKILL_ROOT / "access-report" / API_RULES_RELATIVE)], drifted)
+            drift.write_text(original, encoding="utf-8")
+            missing = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            missing.unlink()
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_MISSING")
+            skill = root / SKILL_ROOT / "view-policies" / "SKILL.md"
+            text = skill.read_text(encoding="utf-8")
+            skill.write_text(text.replace("## API rules", "## Rules"), encoding="utf-8")
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+            pointer = (
+                "Before the first API call, read `references/api-rules.md` in this skill\n"
+                "folder and follow it. "
+            )
+            self.assertEqual(1, text.count(pointer))
+            skill.write_text(text.replace(pointer, ""), encoding="utf-8")
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+
+    def test_combined_document_issues_point_at_their_source_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            skill_path = str(SKILL_ROOT / "list-access" / "SKILL.md")
+            rules_path = str(SKILL_ROOT / "list-access" / API_RULES_RELATIVE)
+            rules = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            text = rules.read_text(encoding="utf-8")
+            expected_line = text.count("\n") + 1
+            rules.write_text(
+                text.replace("Reversibly escape Markdown", "Render Markdown", 1)
+                + "Call GET /users directly.\n",
+                encoding="utf-8",
+            )
+            located = [
+                (issue.path, issue.line)
+                for issue in validate_api_contracts(root)
+                if issue.code == "API_REFERENCE_NOT_CODE"
+            ]
+            self.assertEqual([(rules_path, expected_line)], located)
+            escaping = [
+                issue
+                for issue in validate_read_safety(root)
+                if issue.code == "DISPLAY_ESCAPING"
+            ]
+            self.assertEqual([skill_path], [issue.path for issue in escaping])
+            self.assertTrue(
+                escaping[0].message.startswith("SKILL.md + references/api-rules.md: ")
+            )
+
+    def test_tool_names_rejected_in_skill_text(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            self.assertEqual([], validate_tool_neutral_text(root))
+            skill = root / SKILL_ROOT / "request-access" / "SKILL.md"
+            original = skill.read_text(encoding="utf-8")
+            for sentence in ("Requested via Claude.", "Built for ClaudeTag.", "Uses Open AI."):
+                with self.subTest(sentence=sentence):
+                    skill.write_text(original + "\n" + sentence + "\n", encoding="utf-8")
+                    self.assertCode(validate_tool_neutral_text(root), "TOOL_NAME_IN_SKILL")
+            skill.write_text(original, encoding="utf-8")
+            rules = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            rules.write_text(
+                rules.read_text(encoding="utf-8") + "\nWorks with Codex.\n",
+                encoding="utf-8",
+            )
+            codes = [
+                issue for issue in validate_tool_neutral_text(root)
+                if issue.path == str(SKILL_ROOT / "list-access" / API_RULES_RELATIVE)
+            ]
+            self.assertCode(codes, "TOOL_NAME_IN_SKILL")
+
     def test_reviewed_instruction_digest_rejects_arbitrary_paraphrase_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -240,6 +336,16 @@ class AdversarialOracleTests(unittest.TestCase):
             issues = validate_repository(root)
             self.assertCode(issues, "CONTENT_DIGEST")
             self.assertIn(target.relative_to(root), APPROVED_CONTENT_SHA256)
+
+    def test_missing_reviewed_instruction_digest_is_rejected(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        self.assertEqual([], validate_approved_content(root))
+        dropped = SKILL_ROOT / "offboard-user" / "SKILL.md"
+        remaining = {path: digest for path, digest in APPROVED_CONTENT_SHA256.items() if path != dropped}
+        with mock.patch("tests.contract_validator.APPROVED_CONTENT_SHA256", remaining):
+            issues = validate_approved_content(root)
+        self.assertCode(issues, "CONTENT_DIGEST_MISSING")
+        self.assertEqual([str(dropped)], [issue.path for issue in issues])
 
     def test_reviewed_harness_digest_rejects_silent_test_weakening(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -512,6 +618,10 @@ class AdversarialOracleTests(unittest.TestCase):
             ("encoded key delimiter", "`GET /users?status%26admin=all`", "API_QUERY_PARAMETER"),
             ("evil absolute host", "`GET https://evil.example/api/v1/users?status=all`", "API_ABSOLUTE_URL"),
             ("empty value", "`GET /users?status=`", "API_QUERY_EMPTY_VALUE"),
+            ("request status from user enum", "`GET /access_requests?status=active`", "API_STATUS"),
+            ("revocation status all", "`GET /access_revocations?status=all`", "API_STATUS"),
+            ("application status from user enum", "`GET /applications?status=active`", "API_STATUS"),
+            ("user status from request enum", "`GET /users?status=revoked`", "API_STATUS"),
             ("raw slash", "`GET /applications?title_like=R/D`", "API_QUERY_ENCODING"),
             ("raw equals", "`GET /applications?title_like=R=D`", "API_QUERY_ENCODING"),
             ("raw semicolon", "`GET /applications?title_like=R;D`", "API_QUERY_ENCODING"),
@@ -540,6 +650,15 @@ class AdversarialOracleTests(unittest.TestCase):
                 "`GET /applications?title_like=%C3%A9`", "SKILL.md"
             ),
         )
+
+        for value in (
+            "`GET /access_requests?status=pending_approval`",
+            "`GET /access_revocations?status=processing_access`",
+            "`GET /applications?status=requestable`",
+            "`GET /users?status=all`",
+        ):
+            with self.subTest(value=value):
+                self.assertEqual([], validate_api_reference_text(value, "SKILL.md"))
 
         self.assertEqual([], extract_api_references("`GET http://[`"))
 
@@ -579,21 +698,25 @@ class AdversarialOracleTests(unittest.TestCase):
             "IDEMPOTENCY_VERIFY",
         )
         repository_root = Path(__file__).resolve().parents[1]
-        revocation = (
-            repository_root
-            / "plugins/accessowl/skills/request-revocation/SKILL.md"
-        ).read_text(encoding="utf-8")
-        unverifiable_mutant = revocation.replace(
-            "cannot be verified and ask\n  the user to check AccessOwl",
-            "cannot be verified",
-            1,
+        revocation, revocation_issues = skill_document_text(
+            repository_root, "request-revocation"
         )
-        self.assertNotEqual(revocation, unverifiable_mutant)
+        self.assertEqual([], revocation_issues)
+        assert revocation is not None
+        self.assertEqual(
+            [], _validate_idempotency("request-revocation", revocation, "SKILL.md")
+        )
+        # The revocation list endpoint now verifies an uncertain create.
+        self.assertNotIn("cannot list revocation", revocation.casefold())
+        unverified_mutant = re.sub(
+            r"`GET /access_revocations\?[^`]*`", "the revocation list", revocation
+        )
+        self.assertNotEqual(revocation, unverified_mutant)
         self.assertCode(
             _validate_idempotency(
-                "request-revocation", unverifiable_mutant, "SKILL.md"
+                "request-revocation", unverified_mutant, "SKILL.md"
             ),
-            "IDEMPOTENCY_UNVERIFIABLE",
+            "IDEMPOTENCY_VERIFY",
         )
 
         boundaries = (
@@ -806,8 +929,8 @@ and query, page failure, or the cap of
 returned record ID. Reset cursor and record-ID tracking for each fresh query or
 pre-write refetch. The same record ID may reappear across independent traversals;
 a duplicate within one page or a repeat across pages within the same traversal
-is inconsistent. The
-100,000-item budget remains global across the run. Require `meta.limit` to be an
+is inconsistent. The budget of
+100,000 decoded JSON nodes remains global across the run. Require `meta.limit` to be an
 integer equal to the requested `limit=100`, and require the `meta.next_cursor` key
 on every page. It must be either a nonempty string or explicit null. Explicit null
 proves exhaustion. A missing key, empty string, wrong type, repeated cursor,
@@ -875,6 +998,7 @@ A malformed response stops incomplete.
             ("item cap", baseline.replace("100,000", "unlimited"), "PAGINATION_CAP"),
             ("page cap plus one", baseline + "\nPermit 1,001 pages.\n", "PAGINATION_CAP"),
             ("item cap plus one", baseline + "\nPermit 100,001 records.\n", "PAGINATION_CAP"),
+            ("node cap plus one", baseline + "\nPermit 100,001 decoded JSON nodes.\n", "PAGINATION_CAP"),
             ("429 cap", baseline.replace("60 seconds", "600 seconds"), "RETRY_429_BOUNDED"),
             ("429 malformed fallback", baseline.replace("Stop when it is missing", "Use a bounded fallback when it is missing"), "RETRY_429_BOUNDED"),
             ("429 wait cap plus one", baseline + "\nA Retry-After of 61 seconds is valid.\n", "RETRY_429_BOUNDED"),

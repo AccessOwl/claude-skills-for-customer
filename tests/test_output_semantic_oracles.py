@@ -24,7 +24,7 @@ class OutputSemanticOracleTests(unittest.TestCase):
                 "access-report",
                 "discovered-apps",
                 "list-access",
-                "userlist-import-preflight",
+                "import-userlist",
                 "vendor-update",
                 "view-policies",
             )
@@ -119,11 +119,11 @@ class OutputSemanticOracleTests(unittest.TestCase):
         for name, code, old, new, appended in cases:
             with self.subTest(name=name):
                 self.assertMutationRejected(
-                    "userlist-import-preflight", code, old, new, appended
+                    "import-userlist", code, old, new, appended
                 )
 
     def test_local_input_files_are_stable_regular_descriptors(self) -> None:
-        for skill in ("access-report", "userlist-import-preflight"):
+        for skill in ("access-report", "import-userlist"):
             with self.subTest(skill=skill, mutation="follow symlink"):
                 self.assertMutationRejected(
                     skill,
@@ -257,7 +257,7 @@ class OutputSemanticOracleTests(unittest.TestCase):
         for name, old, new, appended in cases:
             with self.subTest(name=name):
                 self.assertMutationRejected(
-                    "userlist-import-preflight",
+                    "import-userlist",
                     "USERLIST_SECURE_ARTIFACT",
                     old,
                     new,

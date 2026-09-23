@@ -1,6 +1,6 @@
 {
   "name": "accessowl-claude-skills",
-  "description": "Official AccessOwl skills for Claude. Manage access requests, grants, reports, and cleanup via the AccessOwl API.",
+  "description": "Official AccessOwl skills for AI assistants. Manage access requests, grants, reports, user lists, and onboarding via the AccessOwl API.",
   "owner": {
     "name": "AccessOwl",
     "url": "https://github.com/AccessOwl"
@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "claudetag-for-accessowl",
-      "description": "AccessOwl skills for Claude Tag (Slack) and Claude Code, built on the AccessOwl REST API.",
-      "version": "0.4.0",
+      "description": "AccessOwl skills for Claude Tag, Claude Code, and Codex, built on the AccessOwl REST API.",
+      "version": "1.0.0",
       "source": "./plugins/accessowl"
     }
   ]

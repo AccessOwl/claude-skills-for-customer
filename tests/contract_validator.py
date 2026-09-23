@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import codecs
+import collections
 import hashlib
 import json
 import math
@@ -15,6 +16,42 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 from urllib.parse import SplitResult, unquote_to_bytes, urlsplit
 
+from .api_contract import (  # re-exported: pinned tables live in api_contract.py
+    SKILL_ROOT, API_RULES_RELATIVE, API_RULES_POINTER_SENTENCE, MARKETPLACE_PATH,
+    PLUGIN_MANIFEST_PATH, CODEX_MARKETPLACE_PATH, CODEX_PLUGIN_MANIFEST_PATH, WORKFLOW_PATH,
+    SYNC_WORKFLOW_PATH, EXPECTED_MARKETPLACE_NAME, EXPECTED_PLUGIN_NAME,
+    EXPECTED_CODEX_PLUGIN_NAME, EXPECTED_DISPLAY_NAME, EXPECTED_CODEX_HOMEPAGE,
+    EXPECTED_CODEX_POLICY, EXPECTED_AUTHOR, EXPECTED_PLUGIN_SOURCE, EXPECTED_PLUGIN_HOMEPAGE,
+    EXPECTED_PLUGIN_REPOSITORY, EXPECTED_README_REPOSITORY, CHECKOUT_ACTION_SHA,
+    SETUP_PYTHON_ACTION_SHA, EXPECTED_WORKFLOW_ACTIVE_LINES, EXPECTED_SYNC_WORKFLOW_ACTIVE_LINES,
+    CORE_HARNESS_FILES, EXPECTED_SKILLS, ALLOWED_REPOSITORY_FILES, APPROVED_CONTENT_SHA256,
+    API_OPERATIONS, CURSOR_ENDPOINTS, EXPAND_VALUES, USER_STATUSES, VENDOR_CERTIFICATES,
+    REQUIRED_OPERATIONS, ALLOWED_OPERATIONS, REFUSED_OPERATIONS, STATUS_ALL_SKILLS,
+    EXPANSION_REQUIREMENTS, WRITE_SKILLS, IDEMPOTENCY_VERIFICATION, CONCURRENCY_READS,
+    REASON_SKILLS, BULK_SKILLS, REQUEST_DEDUPE_SKILLS, ALWAYS_BLOCKING_REQUEST_STATUSES,
+    NONBLOCKING_REQUEST_STATUSES, TARGET_STATUS_SKILLS, TARGET_ELIGIBLE_STATUSES,
+    TARGET_INELIGIBLE_STATUSES, ACCESS_REQUEST_STATUSES, ACCESS_REVOCATION_STATUSES,
+    APPLICATION_STATUS_FILTERS, QUERY_STATUS_VALUES, TITLE_LOOKUP_SKILLS, CODEX_MARKETPLACE_FIELDS,
+    CODEX_MARKETPLACE_ENTRY_FIELDS, CODEX_PLUGIN_FIELDS, STYLE_REQUEST_STATUS_TERMS,
+    STYLE_PRODUCT_PROVENANCE_TERMS, STYLE_422_ERROR_TERMS, PLUGIN_FIELDS,
+    RESILIENCE_CONTRADICTION_PATTERNS, JSON_RESOURCE_TERMS, READ_REDIRECT_TERMS,
+    STATUS_CONTRACT_TERMS, PAGINATION_DUPLICATE_ID_TERMS, PAGINATION_LIVE_CURSOR_SHAPE_TERMS,
+    PAGINATION_OPENAPI_DRIFT_TERMS, REQUEST_DEADLINE_TERMS, LIVE_DETAIL_ENVELOPE_TERMS,
+    LIVE_USER_NAME_NULLABILITY_TERMS, LIVE_RESOURCE_TITLE_NULLABILITY_TERMS,
+    DISPLAY_ESCAPING_TERMS, PAGINATION_STATE_SCOPE_TERMS, API_NESTED_VALUE_CAP_TERMS,
+    WRITE_REDIRECT_TERMS, REVOCATION_DRIFT_TERMS, DISPLAY_IDENTITY_TERMS, REQUEST_VISIBILITY_TERMS,
+    WRITE_422_FAILURE_TERMS, PROVISIONING_TYPE_TERMS, MULTIPLE_PERMISSIONS_TERMS,
+    EFFECTIVE_END_TERMS, USERLIST_RESOURCE_TITLE_TERMS, USERLIST_STRUCTURE_TERMS,
+    USERLIST_DESTRUCTIVE_MESSAGES, POLICY_PROVENANCE_TERMS, OPTIONAL_GRANTEE_TERMS,
+    REVOCATION_201_OPTIONAL_FIELD_TERMS, INPUT_FILE_IDENTITY_TERMS, EFFECTIVE_START_TIMEZONE_TERMS,
+    FLAGGED_STATUS_TERMS, CSV_ARTIFACT_TERMS, REPLACEMENT_LISTS_TERMS, VENDOR_NOTES_TERMS,
+    VENDOR_OWNER_TERMS, DEFAULT_POLICY_TERMS, VENDOR_USER_FIELDS_TERMS, CI_EXPECTED_CONCURRENCY,
+)
+from .skill_semantics import (
+    close_request_findings, grant_access_findings, offboard_user_findings, onboard_user_findings,
+    userlist_import_findings,
+)
+
 
 MAX_FILE_BYTES = 256 * 1024
 MAX_REPOSITORY_BYTES = 4 * 1024 * 1024
@@ -22,91 +59,7 @@ MAX_REPOSITORY_ENTRIES = 4096
 MAX_TREE_DEPTH = 16
 MAX_JSON_DEPTH = 128
 MAX_JSON_NUMBER_CHARS = 1024
-SKILL_ROOT = Path("plugins/accessowl/skills")
-MARKETPLACE_PATH = Path(".claude-plugin/marketplace.json")
-PLUGIN_MANIFEST_PATH = Path("plugins/accessowl/.claude-plugin/plugin.json")
-WORKFLOW_PATH = Path(".github/workflows/adversarial-tests.yml")
-SYNC_WORKFLOW_PATH = Path(".github/workflows/sync-upstream.yml")
-
-EXPECTED_MARKETPLACE_NAME = "accessowl-claude-skills"
-EXPECTED_PLUGIN_NAME = "claudetag-for-accessowl"
-EXPECTED_PLUGIN_SOURCE = "./plugins/accessowl"
-EXPECTED_PLUGIN_HOMEPAGE = "https://docs.accessowl.com/api-reference/introduction"
-EXPECTED_PLUGIN_REPOSITORY = "https://github.com/AccessOwl/claude-skills-for-customer"
-EXPECTED_README_REPOSITORY = "github.com/AccessOwl/claude-skills-for-customer"
-CHECKOUT_ACTION_SHA = "34e114876b0b11c390a56381ad16ebd13914f8d5"
-SETUP_PYTHON_ACTION_SHA = "a26af69be951a213d495a4c3e4e4022e16d87065"
-EXPECTED_WORKFLOW_ACTIVE_LINES: Tuple[str, ...] = (
-    "name: Adversarial contract tests",
-    "on:",
-    "  pull_request:",
-    "  push:",
-    "permissions:",
-    "  contents: read",
-    "concurrency:",
-    "  group: adversarial-contract-${{ github.workflow }}-${{ github.ref }}",
-    "  cancel-in-progress: true",
-    "jobs:",
-    "  test:",
-    "    runs-on: ubuntu-24.04",
-    "    timeout-minutes: 5",
-    "    strategy:",
-    "      fail-fast: false",
-    "      matrix:",
-    "        python-version: ['3.9', '3.12']",
-    "    steps:",
-    "      - name: Check out repository",
-    "        uses: actions/checkout@%s" % CHECKOUT_ACTION_SHA,
-    "        with:",
-    "          persist-credentials: false",
-    "      - name: Set up Python",
-    "        uses: actions/setup-python@%s" % SETUP_PYTHON_ACTION_SHA,
-    "        with:",
-    "          python-version: ${{ matrix.python-version }}",
-    "      - name: Run adversarial contract suite",
-    "        env:",
-    "          PYTHONDONTWRITEBYTECODE: '1'",
-    "          PYTHONHASHSEED: '0'",
-    "          TZ: UTC",
-    "        run: python tests/run_tests.py",
-)
-EXPECTED_SYNC_WORKFLOW_ACTIVE_LINES: Tuple[str, ...] = (
-    "name: Sync from AccessOwl upstream",
-    "on:",
-    "  schedule:",
-    '    - cron: "23 6 * * *"',
-    "  workflow_dispatch:",
-    "jobs:",
-    "  sync:",
-    "    if: github.repository != 'AccessOwl/claude-skills-for-customer'",
-    "    runs-on: ubuntu-24.04",
-    "    timeout-minutes: 5",
-    "    permissions:",
-    "      contents: write",
-    "    steps:",
-    "      - name: Check out fork",
-    "        uses: actions/checkout@%s" % CHECKOUT_ACTION_SHA,
-    "        with:",
-    "          fetch-depth: 0",
-    "          persist-credentials: true",
-    "      - name: Fast-forward main from upstream",
-    "        run: |",
-    "          git remote add upstream https://github.com/AccessOwl/claude-skills-for-customer.git",
-    "          git fetch upstream main",
-    "          git merge --ff-only upstream/main",
-    "          git push origin main",
-)
-CORE_HARNESS_FILES: Tuple[Path, ...] = (
-    Path("tests/__init__.py"),
-    Path("tests/contract_validator.py"),
-    Path("tests/run_tests.py"),
-    Path("tests/test_adversarial_oracles.py"),
-    Path("tests/test_api_semantic_oracles.py"),
-    Path("tests/test_ci_manifest_oracles.py"),
-    Path("tests/test_output_semantic_oracles.py"),
-    Path("tests/test_repository_contract.py"),
-    Path("tests/test_write_semantic_oracles.py"),
-)
+TOOL_NAME_RE = re.compile(r"\b(?:claude\w*|codex|chatgpt|open\s?ai|anthropic)\b", re.IGNORECASE)
 
 _SEMVER = re.compile(
     r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
@@ -115,361 +68,23 @@ _SEMVER = re.compile(
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
 )
 
-EXPECTED_SKILLS: Tuple[str, ...] = (
-    "access-report",
-    "discovered-apps",
-    "grant-access",
-    "list-access",
-    "mirror-access",
-    "request-access",
-    "request-revocation",
-    "userlist-import-preflight",
-    "vendor-update",
-    "view-policies",
-)
-ALLOWED_REPOSITORY_FILES = frozenset(
-    {
-        Path("README.md"),
-        Path("SKILL_STYLE.md"),
-        MARKETPLACE_PATH,
-        PLUGIN_MANIFEST_PATH,
-        WORKFLOW_PATH,
-        SYNC_WORKFLOW_PATH,
-    }
-    | set(CORE_HARNESS_FILES)
-    | {SKILL_ROOT / skill / "SKILL.md" for skill in EXPECTED_SKILLS}
-)
-APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "3771bf362ae75ce5b6cd1e70a3cb38951400af2e3b06a0f71665224a6492ab98",
-    Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
-    SKILL_ROOT / "access-report" / "SKILL.md": "04b0cb7596cbfc47d5bfdd94212cfc47eba37034edd6bb007d5eec0a78a684e2",
-    SKILL_ROOT / "discovered-apps" / "SKILL.md": "5b44042f86381748e2e47867f52d712b4804828367bc1956cacfda2eaf919eaf",
-    SKILL_ROOT / "grant-access" / "SKILL.md": "4526d14bfb164f3c259fcbb53049e48fc593c7cda5a5bdc32ee7c8b894c34118",
-    SKILL_ROOT / "list-access" / "SKILL.md": "27ad420d032595be4b56ab3b3e4878f8675988ed1ed60130aafa4fce5caff230",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "29278059cd301c935872cfd1a84ada9b71a26365285c54cd204ed56de15a4f34",
-    SKILL_ROOT / "request-access" / "SKILL.md": "b0d2279cb572721b4fb5ebdfd1531875dc287908b3aa8cd624f127f04617820e",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "03aa615fcc621693ac5053fecc361db7c2b218b7a2fb6884d5c0f4572a1955f9",
-    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "cf46be52a0ca4c6ab73cbba1638a60423e8f7388f8e603f3c338485b71486f5a",
-    SKILL_ROOT / "vendor-update" / "SKILL.md": "43e09501d5407379b09c6ef0ed3d8a4209cb4b8783b3c270b3f2d193184b0dde",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "5069085ddd93aa5bff3ddc6dc50565c7690d701d0ae19c3bd33ceaccbc48e685",
-}
+# Trust root: this file cannot pin its own digest, so the harness digests stay here.
+# They pin tests/api_contract.py, which in turn pins APPROVED_CONTENT_SHA256.
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
+    Path("tests/api_contract.py"): "56b797c5d30059d29913a8fc59560949348be30342a2be91510fe6b56192a175",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/test_adversarial_oracles.py"): "a9237701bce7c5b0a98a3e0eb712d6426e5f3f4b027a079dcbb8c48c6ac8cf19",
-    Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
-    Path("tests/test_ci_manifest_oracles.py"): "12a4f88b57cb45d53a5efe612d99ac6331d675b53aea5df710155759df58b8f1",
-    Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
+    Path("tests/skill_semantics.py"): "056e4efdcab38aff0b0705cb36d2e379b3043649306c99abd8289f7cfec0dc17",
+    Path("tests/test_adversarial_oracles.py"): "edfb28cf90e62ce1b7fe814ba375bc8c9c0a147efbdfc82695f41d3836543062",
+    Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
+    Path("tests/test_ci_manifest_oracles.py"): "a14a542f70122acee04384055ad774b3b6cc2b006cf372272bf6575c704811dd",
+    Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "283687a797d3610b9b1ba18f72d6a3fd56bfd372a77838e4f85e993850d9e96e",
+    Path("tests/test_write_semantic_oracles.py"): "46518601350e826de4e181a044b8430fba0101976cdf554d3440b39f7cd442ff",
 }
 
-# Curated from https://docs.accessowl.com/api-reference/openapi.json on 2026-07-17. The
-# repository suite is intentionally offline and deterministic, so the facts
-# that skill prose relies on are reviewed and pinned here.
-API_OPERATIONS: Mapping[Tuple[str, str], frozenset[str]] = {
-    ("GET", "/access_requests"): frozenset({"limit", "cursor"}),
-    ("POST", "/access_requests"): frozenset(),
-    ("POST", "/access_requests/bulk"): frozenset(),
-    ("POST", "/access_requests/{}/grant"): frozenset(),
-    ("POST", "/access_revocations"): frozenset(),
-    ("GET", "/access_states"): frozenset(
-        {"limit", "cursor", "application_id", "grantee_user_id", "expand"}
-    ),
-    ("GET", "/applications"): frozenset(
-        {"limit", "cursor", "title_like", "category_contains_word"}
-    ),
-    ("POST", "/applications"): frozenset(),
-    ("GET", "/applications/{}/resources"): frozenset(),
-    ("PUT", "/applications/{}/structure"): frozenset(),
-    ("GET", "/applications/{}"): frozenset(),
-    ("PATCH", "/applications/{}"): frozenset(),
-    ("PUT", "/applications/{}"): frozenset(),
-    ("GET", "/policies"): frozenset({"limit", "cursor"}),
-    ("PUT", "/policies/{}/applications"): frozenset(),
-    ("GET", "/users"): frozenset({"limit", "cursor", "status"}),
-    ("GET", "/users/{}"): frozenset(),
-}
-CURSOR_ENDPOINTS = frozenset(
-    {"/users", "/applications", "/access_states", "/access_requests", "/policies"}
-)
-EXPAND_VALUES = frozenset(
-    {"grantee_user", "application", "resource", "target_permissions"}
-)
-USER_STATUSES = frozenset(
-    {
-        "onboarding_provisioning_planned",
-        "onboarding",
-        "active",
-        "inactive",
-        "offboarding_planned",
-        "offboarding",
-        "offboarded",
-        "all",
-    }
-)
-VENDOR_CERTIFICATES = frozenset(
-    {
-        "iso_22301",
-        "iso_27001",
-        "iso_27017",
-        "iso_27701",
-        "iso_31000",
-        "iso_42001",
-        "soc1",
-        "soc2_t1",
-        "soc2_t2",
-        "soc3",
-        "pci_dss",
-        "nist_csf",
-        "fed_ramp",
-        "hipaa",
-        "hitrust_csf",
-        "gdpr",
-        "csa_star",
-        "fsd_safe",
-    }
-)
 
-REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
-    "access-report": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/users/{}"),
-            ("GET", "/access_states"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_requests"),
-            ("POST", "/access_requests/bulk"),
-        }
-    ),
-    "discovered-apps": frozenset(
-        {("GET", "/users"), ("GET", "/applications"), ("GET", "/access_states")}
-    ),
-    "grant-access": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/users/{}"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_requests"),
-            ("GET", "/access_states"),
-            ("POST", "/access_requests/{}/grant"),
-        }
-    ),
-    "list-access": frozenset(
-        {("GET", "/users"), ("GET", "/access_states"), ("GET", "/applications")}
-    ),
-    "mirror-access": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/users/{}"),
-            ("GET", "/access_states"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_requests"),
-            ("POST", "/access_requests/bulk"),
-        }
-    ),
-    "request-access": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/users/{}"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-            ("GET", "/access_requests"),
-            ("POST", "/access_requests"),
-            ("POST", "/access_requests/bulk"),
-        }
-    ),
-    "request-revocation": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}"),
-            ("GET", "/access_states"),
-            ("POST", "/access_revocations"),
-        }
-    ),
-    "userlist-import-preflight": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-        }
-    ),
-    "vendor-update": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}"),
-            ("PATCH", "/applications/{}"),
-        }
-    ),
-    "view-policies": frozenset(
-        {("GET", "/policies"), ("GET", "/applications")}
-    ),
-}
-ALLOWED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
-    "access-report": REQUIRED_OPERATIONS["access-report"],
-    "discovered-apps": REQUIRED_OPERATIONS["discovered-apps"],
-    "grant-access": REQUIRED_OPERATIONS["grant-access"],
-    "list-access": REQUIRED_OPERATIONS["list-access"],
-    "mirror-access": REQUIRED_OPERATIONS["mirror-access"],
-    "request-access": REQUIRED_OPERATIONS["request-access"],
-    "request-revocation": REQUIRED_OPERATIONS["request-revocation"],
-    "userlist-import-preflight": REQUIRED_OPERATIONS["userlist-import-preflight"]
-    | frozenset({("PUT", "/applications/{}/structure")}),
-    "vendor-update": REQUIRED_OPERATIONS["vendor-update"],
-    "view-policies": REQUIRED_OPERATIONS["view-policies"]
-    | frozenset({("PUT", "/policies/{}/applications")}),
-}
-REFUSED_OPERATIONS: Mapping[str, Tuple[str, str]] = {
-    "userlist-import-preflight": ("PUT", "/applications/{}/structure"),
-    "view-policies": ("PUT", "/policies/{}/applications"),
-}
-
-STATUS_ALL_SKILLS = frozenset(
-    {
-        "access-report",
-        "discovered-apps",
-        "grant-access",
-        "list-access",
-        "mirror-access",
-        "request-access",
-        "request-revocation",
-        "userlist-import-preflight",
-        "vendor-update",
-    }
-)
-EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {
-    "access-report": frozenset(
-        {"grantee_user", "application", "resource", "target_permissions"}
-    ),
-    "discovered-apps": frozenset({"grantee_user", "application"}),
-    "grant-access": frozenset({"application", "resource", "target_permissions"}),
-    "list-access": frozenset({"application", "resource", "target_permissions"}),
-    "mirror-access": frozenset({"application", "resource", "target_permissions"}),
-    "request-access": frozenset({"application", "resource", "target_permissions"}),
-    "request-revocation": frozenset(
-        {"grantee_user", "application", "resource", "target_permissions"}
-    ),
-    "userlist-import-preflight": frozenset(
-        {"grantee_user", "application", "resource", "target_permissions"}
-    ),
-}
-
-WRITE_SKILLS = frozenset(
-    {
-        "access-report",
-        "grant-access",
-        "mirror-access",
-        "request-access",
-        "request-revocation",
-        "vendor-update",
-    }
-)
-IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
-    "access-report": ("GET", "/access_requests"),
-    "grant-access": ("GET", "/access_requests"),
-    "mirror-access": ("GET", "/access_requests"),
-    "request-access": ("GET", "/access_requests"),
-    "vendor-update": ("GET", "/applications/{}"),
-}
-CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
-    "access-report": frozenset(
-        {
-            ("GET", "/users/{}"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-            ("GET", "/access_requests"),
-        }
-    ),
-    "grant-access": frozenset(
-        {
-            ("GET", "/users/{}"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-            ("GET", "/access_requests"),
-        }
-    ),
-    "mirror-access": frozenset(
-        {
-            ("GET", "/users/{}"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-            ("GET", "/access_requests"),
-        }
-    ),
-    "request-access": frozenset(
-        {
-            ("GET", "/users/{}"),
-            ("GET", "/applications/{}"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-            ("GET", "/access_requests"),
-        }
-    ),
-    "request-revocation": frozenset({("GET", "/access_states")}),
-    "vendor-update": frozenset({("GET", "/applications/{}")}),
-}
-REASON_SKILLS: Mapping[str, str] = {
-    "access-report": "request_reason",
-    "mirror-access": "request_reason",
-    "request-access": "request_reason",
-    "request-revocation": "reason",
-}
-BULK_SKILLS = frozenset({"access-report", "mirror-access", "request-access"})
-REQUEST_DEDUPE_SKILLS = BULK_SKILLS
-ALWAYS_BLOCKING_REQUEST_STATUSES = frozenset(
-    {
-        "pending_approval",
-        "pending_permissions_assignment",
-        "processing_access",
-        "scheduled",
-        "pending_dependency",
-    }
-)
-NONBLOCKING_REQUEST_STATUSES = frozenset({"denied", "rejected"})
-TARGET_STATUS_SKILLS = frozenset({"access-report", "mirror-access", "request-access"})
-TARGET_ELIGIBLE_STATUSES = frozenset(
-    {"active", "onboarding", "onboarding_provisioning_planned"}
-)
-TARGET_INELIGIBLE_STATUSES = frozenset({"inactive", "offboarding", "offboarded"})
-ACCESS_REQUEST_STATUSES = frozenset(
-    {
-        "pending_approval",
-        "pending_permissions_assignment",
-        "access_granted",
-        "denied",
-        "rejected",
-        "processing_access",
-        "scheduled",
-        "pending_dependency",
-    }
-)
-ACCESS_REVOCATION_STATUSES = frozenset({"processing_access", "rejected", "revoked"})
-TITLE_LOOKUP_SKILLS = frozenset(
-    {
-        "access-report",
-        "discovered-apps",
-        "grant-access",
-        "list-access",
-        "request-access",
-        "request-revocation",
-        "userlist-import-preflight",
-        "vendor-update",
-        "view-policies",
-    }
-)
+assert set(QUERY_STATUS_VALUES) == {p for (_, p), q in API_OPERATIONS.items() if "status" in q}, "every endpoint that accepts status needs a QUERY_STATUS_VALUES entry"
 
 
 @dataclass(frozen=True, order=True)
@@ -912,7 +527,14 @@ def validate_repository_inventory(root: Path) -> List[Issue]:
 
 
 def validate_approved_content(root: Path) -> List[Issue]:
-    issues: List[Issue] = []
+    required = [Path("README.md"), Path("SKILL_STYLE.md")] + [
+        SKILL_ROOT / skill / name for skill in EXPECTED_SKILLS for name in (Path("SKILL.md"), API_RULES_RELATIVE)
+    ]
+    issues: List[Issue] = [
+        _issue("CONTENT_DIGEST_MISSING", relative, "reviewed instruction file has no approved digest")
+        for relative in required
+        if relative not in APPROVED_CONTENT_SHA256
+    ]
     for relative, expected_digest in APPROVED_CONTENT_SHA256.items():
         data, read_issues = secure_read_bytes(root / relative, relative)
         issues.extend(read_issues)
@@ -1340,20 +962,11 @@ def validate_style_guide_text(text: str) -> List[Issue]:
         )
     request_status_safe = all(
         term in normalized
-        for term in (
-            "only `pending_approval` can be described as awaiting approval",
-            "for every other status",
-            "do not claim that approval did or did not happen",
-            'say "after approval" only when the returned status is `pending_approval`',
-        )
+        for term in STYLE_REQUEST_STATUS_TERMS
     )
     product_provenance_safe = all(
         term in normalized
-        for term in (
-            "accessowl product behavior encoded by the skills",
-            "not semantics supplied by the openapi enum description",
-            "never describe them as openapi-verified behavior",
-        )
+        for term in STYLE_PRODUCT_PROVENANCE_TERMS
     )
     product_provenance_contradiction = bool(
         re.search(
@@ -1396,15 +1009,7 @@ def validate_style_guide_text(text: str) -> List[Issue]:
         )
     error_safe = all(
         term in normalized
-        for term in (
-            "on `422`",
-            "openapi error fields are free-form",
-            "do not define a mandatory-resource code",
-            "never infer a mandatory resource",
-            "synthesize a changed request body from error text",
-            "user-specified correction starts a new workflow",
-            "fresh reads, confirmation, and idempotency key",
-        )
+        for term in STYLE_422_ERROR_TERMS
     )
     error_contradiction = bool(
         re.search(
@@ -1550,15 +1155,7 @@ def validate_manifest_values(marketplace: object, plugin: object) -> List[Issue]
                     )
                 )
     if isinstance(plugin, dict):
-        expected_plugin_fields = {
-            "name",
-            "displayName",
-            "description",
-            "version",
-            "author",
-            "homepage",
-            "repository",
-        }
+        expected_plugin_fields = PLUGIN_FIELDS
         if set(plugin) != expected_plugin_fields:
             issues.append(
                 _issue(
@@ -1597,6 +1194,14 @@ def validate_manifest_values(marketplace: object, plugin: object) -> List[Issue]
                     "PLUGIN_IDENTITY",
                     PLUGIN_MANIFEST_PATH,
                     "name must be exactly %s" % EXPECTED_PLUGIN_NAME,
+                )
+            )
+        if plugin.get("displayName") != EXPECTED_DISPLAY_NAME:
+            issues.append(
+                _issue(
+                    "PLUGIN_DISPLAY_NAME",
+                    PLUGIN_MANIFEST_PATH,
+                    "displayName must be exactly %s" % EXPECTED_DISPLAY_NAME,
                 )
             )
         version = plugin.get("version")
@@ -1715,6 +1320,57 @@ def validate_manifests_and_readme(root: Path) -> List[Issue]:
                     "README must distinguish the structure version-token limit from unsafe full-set policy replacement",
                 )
             )
+    return issues
+
+
+def validate_codex_manifests(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    market, market_issues = _load_json_file(root, CODEX_MARKETPLACE_PATH)
+    plugin, plugin_issues = _load_json_file(root, CODEX_PLUGIN_MANIFEST_PATH)
+    claude_plugin, claude_issues = _load_json_file(root, PLUGIN_MANIFEST_PATH)
+    loaded = (
+        (market, market_issues, CODEX_MARKETPLACE_PATH),
+        (plugin, plugin_issues, CODEX_PLUGIN_MANIFEST_PATH),
+        (claude_plugin, claude_issues, PLUGIN_MANIFEST_PATH),
+    )
+    for value, load_issues, relative in loaded:
+        issues.extend(load_issues)
+        # A failed load already reported why; only flag JSON that parsed to a non-object.
+        if not load_issues and not isinstance(value, dict):
+            issues.append(_issue("CODEX_MANIFEST", relative, "Codex manifests must be JSON objects"))
+    if not isinstance(market, dict) or not isinstance(plugin, dict) or not isinstance(claude_plugin, dict):
+        return issues
+    entries = market.get("plugins")
+    ok_entry = (
+        isinstance(entries, list)
+        and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and set(entries[0]) == CODEX_MARKETPLACE_ENTRY_FIELDS
+        and entries[0].get("name") == EXPECTED_CODEX_PLUGIN_NAME
+        and entries[0].get("source") == {"source": "local", "path": EXPECTED_PLUGIN_SOURCE}
+        and entries[0].get("policy") == EXPECTED_CODEX_POLICY
+    )
+    if (
+        set(market) != CODEX_MARKETPLACE_FIELDS
+        or market.get("name") != EXPECTED_CODEX_PLUGIN_NAME
+        or market.get("interface") != {"displayName": EXPECTED_DISPLAY_NAME}
+        or not ok_entry
+    ):
+        issues.append(_issue("CODEX_MANIFEST", CODEX_MARKETPLACE_PATH, "Codex marketplace must list exactly accessowl-skills from ./plugins/accessowl"))
+    interface = plugin.get("interface")
+    # Version is only compared to the Claude plugin; strict semver is enforced there.
+    if (
+        set(plugin) != CODEX_PLUGIN_FIELDS
+        or plugin.get("name") != EXPECTED_CODEX_PLUGIN_NAME
+        or plugin.get("skills") != "./skills/"
+        or plugin.get("version") != claude_plugin.get("version")
+        or plugin.get("repository") != EXPECTED_PLUGIN_REPOSITORY
+        or plugin.get("author") != EXPECTED_AUTHOR
+        or plugin.get("homepage") != EXPECTED_CODEX_HOMEPAGE
+        or not isinstance(interface, dict)
+        or interface.get("displayName") != EXPECTED_DISPLAY_NAME
+    ):
+        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex plugin needs exact keys, name, ./skills/, provenance, display name, and the Claude plugin version"))
     return issues
 
 
@@ -2099,9 +1755,19 @@ def validate_api_reference_text(
                     issues.append(
                         _issue("API_LIMIT", relative, "limit must be an integer from 1 through 100", line)
                     )
-                if key == "status" and value and not value.startswith("<") and value not in USER_STATUSES:
+                if (
+                    key == "status"
+                    and value
+                    and not value.startswith("<")
+                    and value not in QUERY_STATUS_VALUES.get(normalized, frozenset())
+                ):
                     issues.append(
-                        _issue("API_STATUS", relative, "unknown user status %s" % value, line)
+                        _issue(
+                            "API_STATUS",
+                            relative,
+                            "unknown status %s for %s %s" % (value, method, normalized),
+                            line,
+                        )
                     )
                 if key == "expand" and value:
                     expanded = set(value.split(","))
@@ -2118,13 +1784,54 @@ def validate_api_reference_text(
     return issues
 
 
+def _skill_document_parts(root: Path, skill: str) -> Tuple[Optional[str], List[Issue], int]:
+    """Combined document plus the number of lines before its api-rules.md part."""
+    relative = SKILL_ROOT / skill / "SKILL.md"
+    text, issues = read_text(root / relative, relative)
+    rules_relative = SKILL_ROOT / skill / API_RULES_RELATIVE
+    rules, rule_issues = read_text(root / rules_relative, rules_relative)
+    issues = list(issues) + list(rule_issues)
+    if text is None or rules is None:
+        return None, issues, 0
+    head = text + "\n\n"
+    return head + rules, issues, head.count("\n")
+
+
+def skill_document_text(root: Path, skill: str) -> Tuple[Optional[str], List[Issue]]:
+    """SKILL.md plus its bundled references/api-rules.md, validated as one document."""
+    text, issues, _ = _skill_document_parts(root, skill)
+    return text, issues
+
+
+def _attribute_rules_issues(
+    issues: Iterable[Issue], skill: str, rules_offset: int
+) -> List[Issue]:
+    """Point combined-document issues back at the file that holds the text."""
+    skill_path = str(SKILL_ROOT / skill / "SKILL.md")
+    rules_path = str(SKILL_ROOT / skill / API_RULES_RELATIVE)
+    attributed: List[Issue] = []
+    for issue in issues:
+        if issue.path != skill_path:
+            attributed.append(issue)
+        elif not issue.line:
+            attributed.append(
+                Issue(issue.code, issue.path, 0, "SKILL.md + references/api-rules.md: " + issue.message)
+            )
+        elif issue.line > rules_offset:
+            attributed.append(
+                Issue(issue.code, rules_path, issue.line - rules_offset, issue.message)
+            )
+        else:
+            attributed.append(issue)
+    return attributed
+
+
 def _skill_documents(
     root: Path,
-) -> Iterable[Tuple[str, Path, Optional[str], List[Issue]]]:
+) -> Iterable[Tuple[str, Path, Optional[str], List[Issue], int]]:
     for skill in EXPECTED_SKILLS:
-        relative = SKILL_ROOT / skill / "SKILL.md"
-        text, issues = read_text(root / relative, relative)
-        yield skill, relative, text, issues
+        text, issues, rules_offset = _skill_document_parts(root, skill)
+        yield skill, SKILL_ROOT / skill / "SKILL.md", text, issues, rules_offset
 
 
 def validate_api_contract_text(
@@ -2239,11 +1946,15 @@ def validate_api_contract_text(
 
 def validate_api_contracts(root: Path) -> List[Issue]:
     issues: List[Issue] = []
-    for skill, relative, text, read_issues in _skill_documents(root):
+    for skill, relative, text, read_issues, rules_offset in _skill_documents(root):
         issues.extend(read_issues)
         if text is None:
             continue
-        issues.extend(validate_api_contract_text(skill, text, relative))
+        issues.extend(
+            _attribute_rules_issues(
+                validate_api_contract_text(skill, text, relative), skill, rules_offset
+            )
+        )
     return issues
 
 
@@ -2469,7 +2180,8 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 folded, 1000, r"pages?\b", r"\bpages?\b"
             )
             or _allows_numeric_value_over_cap(
-                folded, 100000, r"(?:items?|records?)\b", r"\b(?:items?|records?)\b"
+                folded, 100000, r"(?:items?|records?|(?:decoded\s+json\s+)?nodes?)\b",
+                r"\b(?:items?|records?|nodes?)\b"
             )
         ):
             issues.append(
@@ -2495,10 +2207,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "PAGINATION_DUPLICATE_ID",
                 all(
                     term in normalized
-                    for term in (
-                        "track every cursor and returned record id",
-                        "a duplicate within one page or a repeat across pages within the same traversal is inconsistent",
-                    )
+                    for term in PAGINATION_DUPLICATE_ID_TERMS
                 ),
                 "duplicate record IDs within one page or across pages of one traversal must stop as incomplete",
             ),
@@ -2506,13 +2215,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "PAGINATION_STATE_SCOPE",
                 all(
                     term in normalized
-                    for term in (
-                        "one logical pagination traversal of one endpoint and query",
-                        "reset cursor and record-id tracking for each fresh query or pre-write refetch",
-                        "same record id may reappear across independent traversals",
-                        "a duplicate within one page or a repeat across pages within the same traversal is inconsistent",
-                        "100,000-item budget remains global across the run",
-                    )
+                    for term in PAGINATION_STATE_SCOPE_TERMS
                 )
                 and not re.search(
                     r"same\s+record\s+id.{0,60}independent\s+traversals"
@@ -2531,14 +2234,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "PAGINATION_LIVE_CURSOR_SHAPE",
                 all(
                     term in normalized
-                    for term in (
-                        "`meta.limit`",
-                        "integer equal to the requested",
-                        "`meta.next_cursor` key on every page",
-                        "either a nonempty string or explicit null",
-                        "missing key",
-                        "wrong type",
-                    )
+                    for term in PAGINATION_LIVE_CURSOR_SHAPE_TERMS
                 ),
                 "require the live meta.limit and next_cursor response shape",
             ),
@@ -2546,14 +2242,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "PAGINATION_OPENAPI_DRIFT",
                 all(
                     term in normalized
-                    for term in (
-                        "do not require or use",
-                        "page_size",
-                        "total_pages",
-                        "total_count",
-                        "live api cursor shape was verified on 2026-07-19",
-                        "openapi",
-                    )
+                    for term in PAGINATION_OPENAPI_DRIFT_TERMS
                 ),
                 "record the verified cursor schema drift and do not rely on stale page fields",
             ),
@@ -2562,7 +2251,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 ("1,000 pages" in normalized or "1000 pages" in normalized)
                 and bool(
                     re.search(
-                        r"100,?000(?:\s+|-)(?:items?|records?)", normalized
+                        r"100,?000(?:\s+|-)(?:items?|records?|decoded\s+json\s+nodes)", normalized
                     )
                 ),
                 "pagination must cap at 1,000 pages and 100,000 items",
@@ -2680,15 +2369,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
         )
     json_resource_safe = all(
         term in normalized
-        for term in (
-            "json nesting deeper than 128",
-            "depth exactly 128 is allowed",
-            "depth 129 is rejected",
-            "numeric token to at most 1,024 ascii characters before conversion",
-            "1,024 is allowed and 1,025 is rejected",
-            "conversion that yields a non-finite value",
-            "`1e400`",
-        )
+        for term in JSON_RESOURCE_TERMS
     )
     json_resource_contradiction = bool(
         re.search(
@@ -2764,21 +2445,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
         "enforced 30-second deadline" in normalized
         and all(
             term in normalized
-            for term in (
-                "dns resolution",
-                "tcp connection",
-                "tls",
-                "redirects",
-                "response headers",
-                "streamed and decompressed body",
-                "counts toward the same retry cap",
-                "cannot enforce it, stop before making the request",
-                "track monotonic elapsed time",
-                "overall 15-minute run deadline",
-                "before every attempt",
-                "no time remains",
-                "remaining budget",
-            )
+            for term in REQUEST_DEADLINE_TERMS
         )
         and bool(re.search(r"deadline\s+expiry is a network error", folded))
     ) or deadline_contradiction:
@@ -2811,15 +2478,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
 
     redirect_safe = all(
         term in normalized
-        for term in (
-            "at most three redirects",
-            "every hop stays on the configured api origin",
-            "never follow any cross-origin redirect",
-            "possible billing redirect is still cross-origin",
-            "without visiting its destination",
-            "never downgrade https to http",
-            "redirect loop",
-        )
+        for term in READ_REDIRECT_TERMS
     ) and bool(authorization_forward_claims) and all(
         redirect_claim_is_negated(match)
         for match in authorization_forward_claims
@@ -2866,19 +2525,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
     )
     status_contract_safe = status_contract_provenance and all(
         term in normalized
-        for term in (
-            "reads, every other status",
-            "`204`",
-            "`206`",
-            "unexpected `2xx`",
-            "unhandled `4xx` such as `404`",
-            "stops as incomplete",
-            "mutations, any undocumented status",
-            "unknown outcome",
-            "stop remaining writes",
-            "never claim success",
-            "verify with a documented read when possible",
-        )
+        for term in STATUS_CONTRACT_TERMS
     )
     status_contract_contradiction = bool(
         re.search(
@@ -2972,11 +2619,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "LIVE_DETAIL_ENVELOPE",
                 all(
                     term in normalized
-                    for term in (
-                        "user-detail and application-detail responses",
-                        "top-level `data` object",
-                        "require that envelope",
-                    )
+                    for term in LIVE_DETAIL_ENVELOPE_TERMS
                 ),
                 "require the live detail response data envelope",
             ),
@@ -2984,13 +2627,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "LIVE_USER_NAME_NULLABILITY",
                 all(
                     term in normalized
-                    for term in (
-                        "`first_name` or `last_name` may be null",
-                        "trimmed nonblank `full_name`",
-                        "validated nonblank email address",
-                        "stop if neither exists",
-                        "never invent a name",
-                    )
+                    for term in LIVE_USER_NAME_NULLABILITY_TERMS
                 ),
                 "handle live nullable user names without inventing a label",
             ),
@@ -2998,21 +2635,15 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
                 all(
                     term in normalized
-                    for term in (
-                        "resource `title` may be null",
-                        "treat it as unavailable",
-                        "never invent or display a fallback title",
-                        "display, selection, csv output, or disambiguation",
-                        "otherwise stop incomplete",
-                    )
+                    for term in LIVE_RESOURCE_TITLE_NULLABILITY_TERMS
                 ),
-                "handle live nullable resource titles only where a title is not needed",
+                "show an only untitled resource as the application; otherwise stop on null resource titles",
             ),
             (
                 "LIVE_OPENAPI_EXCEPTIONS",
                 "sandbox-verified exceptions" in folded
                 and "2026-07-19" in folded
-                and "every other documented" in folded
+                and "every other documented" in normalized
                 and "specific stale openapi claims" in folded,
                 "scope the live OpenAPI exceptions narrowly and keep other validation strict",
             ),
@@ -3021,13 +2652,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 bool(re.search(r"100,?000\s+decoded\s+json\s+nodes", normalized))
                 and all(
                     term in normalized
-                    for term in (
-                        "every object",
-                        "object key",
-                        "array",
-                        "scalar value",
-                        "across the run",
-                    )
+                    for term in API_NESTED_VALUE_CAP_TERMS
                 )
                 and not re.search(
                     r"(?:object\s+keys?|scalar\s+(?:property\s+)?values?)"
@@ -3040,7 +2665,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
             (
                 "API_FORMAT_VALIDATION",
                 all(term in folded for term in ("uuid", "email", "date", "date-time"))
-                and "validate every documented" in folded,
+                and "validate every documented" in normalized,
                 "validate documented UUID, email, date, and date-time formats before use",
             ),
             (
@@ -3067,14 +2692,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "DISPLAY_ESCAPING",
                 all(
                     term in folded
-                    for term in (
-                        "escape markdown",
-                        "table",
-                        "link",
-                        "html",
-                        "backtick",
-                        "line-break",
-                    )
+                    for term in DISPLAY_ESCAPING_TERMS
                 ),
                 "escape Markdown, table, link, HTML, backtick, and line-break delimiters",
             ),
@@ -3090,16 +2708,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
         for code, passed, message in common_requirements:
             if not passed:
                 issues.append(_issue(code, relative, message))
-    contradiction_patterns = (
-        r"repeated\s+cursor.{0,100}(?:safe\s+to\s+ignore|may\s+be\s+ignored|"
-        r"only\s+a\s+warning|continue|proceed|keep\s+(?:fetching|paginating|going))",
-        r"(?:ignore|continue\s+(?:past|after))\s+(?:a\s+)?repeated\s+cursor",
-        r"(?:retry|retries).{0,30}429.{0,50}(?:forever|indefinitely|unbounded|without\s+(?:a\s+)?limit)",
-        r"(?:do not|never|skip)\s+(?:percent|url)-encode",
-        r"(?:continue|proceed)\s+(?:with|after|despite).{0,70}(?:malformed|incomplete|partial)",
-        r"(?:disable|omit|skip|use\s+no)\s+(?:the\s+)?(?:request\s+)?deadline",
-        r"(?:buffer|parse).{0,40}(?:before|then).{0,40}(?:enforc|check).{0,30}10\s+mib",
-    )
+    contradiction_patterns = RESILIENCE_CONTRADICTION_PATTERNS
     if any(re.search(pattern, folded, re.S) for pattern in contradiction_patterns):
         issues.append(
             _issue(
@@ -3113,11 +2722,11 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
 
 def validate_read_safety(root: Path) -> List[Issue]:
     issues: List[Issue] = []
-    for skill, relative, text, read_issues in _skill_documents(root):
+    for skill, relative, text, read_issues, rules_offset in _skill_documents(root):
         issues.extend(read_issues)
         if text is None:
             continue
-        issues.extend(validate_resilience_text(skill, text, relative))
+        skill_issues = validate_resilience_text(skill, text, relative)
         folded = text.casefold()
         references = extract_api_references(text)
         if skill in TITLE_LOOKUP_SKILLS and any(
@@ -3131,13 +2740,14 @@ def validate_read_safety(root: Path) -> List[Issue]:
                 and "unique case-insensitively" in folded
                 and "stop" in folded
             ):
-                issues.append(
+                skill_issues.append(
                     _issue(
                         "APPLICATION_TITLE_UNIQUENESS",
                         relative,
                         "title-based selection requires nonblank, casefold-unique application titles or it stops",
                     )
                 )
+        issues.extend(_attribute_rules_issues(skill_issues, skill, rules_offset))
     return issues
 
 
@@ -3147,7 +2757,7 @@ def _has_operation_in_paragraph(paragraph: str, operation: Tuple[str, str]) -> b
 
 def _validate_idempotency(skill: str, text: str, relative: Path | str) -> List[Issue]:
     issues: List[Issue] = []
-    folded = text.casefold()
+    folded = " ".join(text.casefold().split())  # phrases may wrap across lines
     if not (
         "idempotency-key" in folded
         and "fresh" in folded
@@ -3256,11 +2866,12 @@ def _validate_idempotency(skill: str, text: str, relative: Path | str) -> List[I
                 "transport and retryable HTTP failures must reuse the exact key and body",
             )
         )
-    if re.search(
-        r"(?m)^\s*(?:generate|create|use)\b.{0,40}"
-        r"(?:another|new|fresh)\b.{0,20}(?:idempotency-?\s*)?key"
-        r".{0,80}(?:timeout|times?\s+out|network\s+(?:error|failure))",
-        folded,
+    fresh_key_tail = (
+        r"(?:generate|create|use)\b.{0,40}(?:another|new|fresh)\b.{0,20}(?:idempotency-?\s*)?key"
+        r".{0,80}(?:timeout|times?\s+out|network\s+(?:error|failure))"
+    )
+    if re.search(r"(?:^|(?<=[.!?;:])\s|-\s)" + fresh_key_tail, folded) or re.search(
+        r"(?m)^\s*" + fresh_key_tail, text.casefold()
     ):
         issues.append(
             _issue(
@@ -3276,15 +2887,7 @@ def _validate_write_redirects(
     skill: str, text: str, relative: Path | str
 ) -> List[Issue]:
     normalized = re.sub(r"\s+", " ", text.casefold())
-    required = (
-        "for a `post`, `patch`, or `put` mutation",
-        "never follow a redirect of any status",
-        "`301`, `302`, `303`, `307`, or `308`",
-        "even on the same origin",
-        "write redirect leaves the outcome uncertain",
-        "stop remaining writes",
-        "never repeat it with a different method, body, or `idempotency-key`",
-    )
+    required = WRITE_REDIRECT_TERMS
     unsafe_redirect_action = False
     for match in re.finditer(r"\b(?:follow|allow|permit)\b", normalized):
         sentence_start = max(
@@ -3455,16 +3058,7 @@ def _validate_concurrency(skill: str, text: str, relative: Path | str) -> List[I
         display_identity_safe = any(
             all(
                 term in re.sub(r"\s+", " ", paragraph.casefold())
-                for term in (
-                    "displayed name or email",
-                    "selected application",
-                    "resource",
-                    "permission title or id",
-                    "requestability",
-                    "effective change",
-                    "differs",
-                    "reconfirm before",
-                )
+                for term in DISPLAY_IDENTITY_TERMS
             )
             for paragraph in paragraphs
         )
@@ -3499,17 +3093,7 @@ def _validate_concurrency(skill: str, text: str, relative: Path | str) -> List[I
     revocation_drift_safe = any(
         all(
             term in re.sub(r"\s+", " ", paragraph.casefold())
-            for term in (
-                "entire confirmed entry",
-                "access-state id",
-                "user and application ids and titles",
-                "resource id or null and title",
-                "complete permission ids and titles",
-                "customer-visible title",
-                "whole-entry impact",
-                "confirm again",
-                "refetch that same state id",
-            )
+            for term in REVOCATION_DRIFT_TERMS
         )
         for paragraph in paragraphs
     )
@@ -3834,15 +3418,7 @@ def _validate_request_visibility(
     normalized = re.sub(r"\s+", " ", text.casefold())
     safe = all(
         term in normalized
-        for term in (
-            "requests visible to the authenticated caller",
-            "returned blocking request is definitive",
-            "absence is not proof",
-            "independently documented guarantee",
-            "organization-wide request visibility",
-            "guarantee is unavailable, stop before writing",
-            "duplicate check may be incomplete",
-        )
+        for term in REQUEST_VISIBILITY_TERMS
     )
     contradiction = bool(
         re.search(
@@ -3973,17 +3549,7 @@ def _validate_422_failure_semantics(
     normalized = re.sub(r"\s+", " ", text.casefold())
     safe = all(
         term in normalized
-        for term in (
-            "on `422`",
-            "validate the documented error response",
-            "report a validation failure",
-            "openapi error fields are free-form",
-            "do not define a mandatory-resource code",
-            "never infer a mandatory resource",
-            "synthesize a changed request body from error text",
-            "user-specified changed request starts a new workflow",
-            "fresh reads, confirmation, and idempotency key",
-        )
+        for term in WRITE_422_FAILURE_TERMS
     )
     contradiction = bool(
         re.search(
@@ -4025,19 +3591,7 @@ def _validate_openapi_field_semantics(
     }:
         provisioning_safe = all(
             term in normalized
-            for term in (
-                "provisioning_type",
-                "missing",
-                "present but null",
-                "wrong type",
-                "outside those two documented values",
-                "inconsistent application data",
-                "no next-step inference",
-                "malformed data as allowed absence",
-                "product behavior encoded by this skill",
-                "not semantics supplied by the openapi enum description",
-                "never describe them as openapi-verified behavior",
-            )
+            for term in PROVISIONING_TYPE_TERMS
         )
         provisioning_contradiction = bool(
             re.search(
@@ -4088,12 +3642,7 @@ def _validate_openapi_field_semantics(
     if skill in {"access-report", "mirror-access", "request-access"}:
         multiple_permission_safe = all(
             term in normalized
-            for term in (
-                "`multiple_permissions_selectable` is present",
-                "correctly typed as a boolean",
-                "and `true`",
-                "missing, null, wrong-type, or `false` blocks that multi-permission selection",
-            )
+            for term in MULTIPLE_PERMISSIONS_TERMS
         )
         multiple_permission_contradiction = bool(
             re.search(
@@ -4117,14 +3666,10 @@ def _validate_openapi_field_semantics(
                     "multi-permission requests require a present boolean-true multiple_permissions_selectable field",
                 )
             )
-    if skill in {"request-access", "userlist-import-preflight"}:
+    if skill in {"request-access", "import-userlist"}:
         effective_end_safe = all(
             term in normalized
-            for term in (
-                "`effective_end` field is present and explicitly null",
-                "missing, malformed, or non-null `effective_end`",
-                "not current-access evidence",
-            )
+            for term in EFFECTIVE_END_TERMS
         )
         effective_end_contradiction = bool(
             re.search(
@@ -4151,37 +3696,26 @@ def _validate_openapi_field_semantics(
                     "only a present explicit-null effective_end proves current access",
                 )
             )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         resource_title_safe = all(
             term in normalized
-            for term in (
-                "live api can return a null resource title",
-                "despite the current openapi string requirement",
-                "reject a missing, null, empty",
-                "never invent a fallback column title",
-            )
+            for term in USERLIST_RESOURCE_TITLE_TERMS
         )
         if not resource_title_safe or re.search(
             r"(?:null|missing)\s+resource\s+title.{0,60}"
-            r"(?:use|name|fallback).{0,30}(?:permissions|column)",
+            r"(?:use|name|fallback).{0,30}(?:permissions|column)|\bempty[\s-]+header",
             normalized,
         ):
             issues.append(
                 _issue(
                     "RESOURCE_TITLE_REQUIRED",
                     relative,
-                    "a nullable resource title cannot be used or replaced as a CSV header",
+                    "a null resource title is never replaced; an only untitled resource sends no resource field and gets no CSV",
                 )
             )
         structure_safe = all(
             term in normalized
-            for term in (
-                "partial upsert",
-                "omitted resources and permissions remain untouched",
-                "deletion requires an existing id plus `delete: true`",
-                "updating the existing resource requires resending its title",
-                "without a usable version token",
-            )
+            for term in USERLIST_STRUCTURE_TERMS
         )
         structure_contradiction = bool(
             re.search(
@@ -4249,7 +3783,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
                 "confirm every permission because a revocation covers the whole access state",
             )
         )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         userlist_write_offer = bool(
             re.search(
                 r"\b(?:i|we)\s+(?:can|will|could)\s+add.{0,60}"
@@ -4308,15 +3842,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
                 and ("before delivery" in folded or "otherwise deliver" in folded),
             ),
         )
-        messages = {
-            "USERLIST_NEW_USERS": "unmatched emails remain unchanged and import as new users",
-            "USERLIST_REPLACEMENT": "the replacement import must warn that absent current access is removed",
-            "USERLIST_READ_ONLY": "the preflight is read-only, refuses structure PUT, and directs UI changes followed by rerun",
-            "USERLIST_PERMISSION_AMBIGUITY": "duplicate permission titles and semicolons in titles must stop as ambiguous",
-            "USERLIST_RESOURCE_CAPS": "CSV processing must enforce file, row, column, and decoded-field caps with no partial output",
-            "USERLIST_WITHHOLD_OUTPUT": "withhold CSV and import instructions until every decision and destructive removal is resolved",
-            "USERLIST_FINAL_REFRESH": "refresh structure, users, and access states immediately before final delivery",
-        }
+        messages = USERLIST_DESTRUCTIVE_MESSAGES
         for code, passed in required:
             if not passed:
                 issues.append(_issue(code, relative, messages[code]))
@@ -4325,7 +3851,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
                 _issue(
                     "USERLIST_READ_ONLY",
                     relative,
-                    "the preflight must tell the user to make structure changes in AccessOwl, never offer to make them",
+                    "the import must tell the user to make structure changes in AccessOwl, never offer to make them",
                 )
             )
     if skill == "vendor-update":
@@ -4382,12 +3908,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
     if skill == "view-policies":
         policy_provenance_safe = all(
             term in normalized
-            for term in (
-                "accessowl product behavior outside the openapi schema",
-                "not api-verified configuration",
-                "for any exact current configuration",
-                "settings, then policies",
-            )
+            for term in POLICY_PROVENANCE_TERMS
         )
         policy_provenance_contradiction = bool(
             re.search(
@@ -4630,14 +4151,7 @@ def _validate_write_response_correlation(
             )
         optional_grantee_safe = all(
             term in normalized
-            for term in (
-                "`grantee_user_id` is optional",
-                "exactly one confirmed grantee as context",
-                "absence alone does not make the response unknown",
-                "if `grantee_user_id` is present",
-                "validate it as a uuid",
-                "require an exact match",
-            )
+            for term in OPTIONAL_GRANTEE_TERMS
         )
         optional_grantee_contradiction = bool(
             re.search(
@@ -4739,20 +4253,7 @@ def _validate_write_response_correlation(
             and "`status`" in normalized
             and all(
                 term in normalized
-                for term in (
-                    "`grantee_user_id`",
-                    "`resource_id`",
-                    "`permission_ids`",
-                    "are optional",
-                    "a missing optional field is unavailable correlation evidence",
-                    "alone does not make the result unknown",
-                    "validate it as a uuid or null",
-                    "null matches only app-wide intent",
-                    "validate it as a unique uuid array or null",
-                    "interpret null as no permissions",
-                    "matches only an empty intended permission set",
-                    "nonempty array must match the complete intended set",
-                )
+                for term in REVOCATION_201_OPTIONAL_FIELD_TERMS
             )
             and "missing required fields" in normalized
             and "any type error or mismatch" in normalized
@@ -4964,15 +4465,7 @@ def _validate_reporting_and_csv_invariants(
         )
         effective_start_timezone_safe = all(
             term in normalized
-            for term in (
-                "rfc3339 instant",
-                "convert it to utc",
-                "utc calendar date",
-                "never use the machine's local timezone",
-                "raw pre-offset date",
-                "2026-01-01t00:30:00+02:00",
-                "2025-12-31",
-            )
+            for term in EFFECTIVE_START_TIMEZONE_TERMS
         ) and bool(
             re.search(r"earliest(?:\s+valid)?\s+`effective_start`\s+instant", normalized)
         )
@@ -4997,23 +4490,10 @@ def _validate_reporting_and_csv_invariants(
             "effective_start must be compared as an instant and rendered with a deterministic UTC date",
         )
 
-    if skill in {"access-report", "userlist-import-preflight"}:
+    if skill in {"access-report", "import-userlist"}:
         input_file_identity_safe = all(
             term in normalized
-            for term in (
-                "local file path",
-                "open it without following symlinks",
-                "opened object to be a regular file",
-                "reject a symlink, fifo, socket, or device",
-                "opened file descriptor",
-                "device, inode, size, modification time, and change time",
-                "stream from that same descriptor with the inclusive 10 mib input cap",
-                "again after the read",
-                "compare every recorded identity and metadata value",
-                "if any value changed, stop as an unstable read",
-                "never reopen the path between those checks",
-                "uploaded attachment supplied as a stable byte snapshot",
-            )
+            for term in INPUT_FILE_IDENTITY_TERMS
         )
         input_file_identity_contradiction = bool(
             re.search(
@@ -5147,7 +4627,7 @@ def _validate_reporting_and_csv_invariants(
                     "reconciliation files and pasted input need inclusive 10 MiB, 100,000-record, 1,000-column, and 64 KiB-field caps",
                 )
             )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         malformed_csv_safe = has_paragraph(
             "parse quoted csv fields correctly",
             "never split rows on commas by hand",
@@ -5215,16 +4695,7 @@ def _validate_reporting_and_csv_invariants(
         flagged_status_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "separately flag every match",
-                    "`inactive`",
-                    "`offboarding_planned`",
-                    "`offboarding`",
-                    "`offboarded`",
-                    "explicitly keeps or removes every flagged row",
-                    "unknown user status",
-                    "stop",
-                )
+                for term in FLAGGED_STATUS_TERMS
             )
             for paragraph in paragraphs
         )
@@ -5254,28 +4725,7 @@ def _validate_reporting_and_csv_invariants(
         artifact_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "final csv as a stream",
-                    "not as one in-memory string",
-                    "random uuid",
-                    "never derive a path",
-                    "new regular file exclusively",
-                    "owner-only mode `0600`",
-                    "regardless of the process umask",
-                    "do not follow symlinks",
-                    "overwrite an existing path",
-                    "at most 10 mib",
-                    "byte 10 mib plus 1",
-                    "close and remove the incomplete artifact",
-                    "write or close failure",
-                    "reopen without following symlinks",
-                    "confirm it is the created regular file",
-                    "verify its mode is exactly `0600`",
-                    "parse it strictly again",
-                    "verify the exact header",
-                    "logical row count",
-                    "expected entitlement values",
-                )
+                for term in CSV_ARTIFACT_TERMS
             )
             for paragraph in paragraphs
         )
@@ -5386,23 +4836,14 @@ def _validate_reporting_and_csv_invariants(
         replacement_lists_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "certificates, data types, and tags replace",
-                    "fetch the application's current values first",
-                    "send the combined list",
-                    "nothing already recorded is dropped",
-                )
+                for term in REPLACEMENT_LISTS_TERMS
             )
             for paragraph in paragraphs
         )
         notes_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "refetch the latest notes",
-                    "append the new statement",
-                    "without replacing or rewriting any existing note content",
-                )
+                for term in VENDOR_NOTES_TERMS
             )
             for paragraph in paragraphs
         )
@@ -5447,16 +4888,7 @@ def _validate_reporting_and_csv_invariants(
         owner_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "owner",
-                    "application admins",
-                    "`get /users?status=all&limit=100`",
-                    "do not assign an `inactive`, `offboarding`, or `offboarded` person",
-                    "`offboarding_planned`",
-                    "explicit confirmation",
-                    "unknown status",
-                    "stop",
-                )
+                for term in VENDOR_OWNER_TERMS
             )
             for paragraph in paragraphs
         )
@@ -5481,14 +4913,7 @@ def _validate_reporting_and_csv_invariants(
         user_fields_safe = any(
             all(
                 term in re.sub(r"\s+", " ", paragraph)
-                for term in (
-                    "`owner_user_id`",
-                    "one resolved uuid string or `null`",
-                    "`admin_user_ids`",
-                    "internally unique array of resolved uuid strings",
-                    "`[]` clears all application admins",
-                    "never send names, email addresses, user objects",
-                )
+                for term in VENDOR_USER_FIELDS_TERMS
             )
             for paragraph in paragraphs
         ) and any(
@@ -5539,11 +4964,7 @@ def _validate_reporting_and_csv_invariants(
         default_safe = any(
             all(
                 term in paragraph
-                for term in (
-                    "exactly one policy with `default_policy: true`",
-                    "zero or several is inconsistent data",
-                    "stops that claim",
-                )
+                for term in DEFAULT_POLICY_TERMS
             )
             for paragraph in paragraphs
         )
@@ -5799,124 +5220,28 @@ def _validate_reporting_and_csv_invariants(
     return issues
 
 
-def _validate_grant_access_semantics(
-    skill: str, text: str, relative: Path | str
-) -> List[Issue]:
-    if skill != "grant-access":
-        return []
-    normalized = re.sub(r"\s+", " ", text.casefold())
-    paragraphs = [
-        re.sub(r"\s+", " ", paragraph.casefold())
-        for paragraph in text.split("\n\n")
-    ]
-    issues: List[Issue] = []
-    requirements: Sequence[Tuple[str, bool, str]] = (
-        (
-            "GRANT_SCOPE",
-            "this is a direct write. it is not approval and it is not a new request" in normalized
-            and "never approves requests" in normalized,
-            "grant-access records completed provisioning but never approves or creates a request",
-        ),
-        (
-            "GRANT_MANUAL_ELIGIBILITY",
-            all(
-                term in normalized
-                for term in (
-                    "`provisioning_type` is `application_admin`",
-                    "exact request status is `processing_access`",
-                    "only `processing_access` is eligible for granting",
-                    "`pending_approval`",
-                    "ineligible",
-                    "never call the grant endpoint for an ineligible request",
-                )
-            ),
-            "only a processing_access request for application_admin provisioning is grant-eligible",
-        ),
-        (
-            "GRANT_EXACT_SELECTION",
-            all(
-                term in normalized
-                for term in (
-                    "require exactly one case-insensitive match",
-                    "complete permission ids",
-                    "never choose by a hidden id",
-                )
-            ),
-            "resolve one exact person, application, request, resource, and permission set",
-        ),
-        (
-            "GRANT_DUPLICATE_ACCESS",
-            all(
-                term in normalized
-                for term in (
-                    "exact application, resource, and complete permission set",
-                    "different resource or permission",
-                    "does not block this grant",
-                    "exact requested access is already current",
-                    "stop",
-                    "duplicate state",
-                )
-            ),
-            "block an exact current duplicate without blocking different access in the same app",
-        ),
-        (
-            "GRANT_CONFIRMATION",
-            "person, application, resource, and complete permission set" in normalized
-            and "clearly confirms that provisioning is complete" in normalized
-            and "earlier request to create or approve access" in normalized,
-            "confirm the exact completed provisioning immediately before granting",
-        ),
-        (
-            "GRANT_RESPONSE_CORRELATION",
-            all(
-                term in normalized
-                for term in (
-                    "exact documented success status is `200`",
-                    "same request id, grantee, application, resource, and complete permission set",
-                    "status exactly `access_granted`",
-                    "exactly one current access state",
-                    "zero or multiple exact matches",
-                    "outcome as unknown",
-                )
-            ),
-            "correlate the 200 response and verify exactly one matching current state",
-        ),
-        (
-            "GRANT_422_FAIL_CLOSED",
-            any(
-                all(
-                    term in paragraph
-                    for term in (
-                        "on `422`",
-                        "did not consider the request grant-eligible",
-                        "never infer approval",
-                        "retry with a new body or key",
-                    )
-                )
-                for paragraph in paragraphs
-            ),
-            "422 must stop without inferring approval or synthesizing another grant",
-        ),
-    )
-    for code, passed, message in requirements:
-        if not passed:
-            issues.append(_issue(code, relative, message))
-    contradictions = (
-        r"pending_approval.{0,80}(?:is|counts?\s+as|treat.{0,20}as).{0,30}grant-eligible",
-        r"(?:grant|mark).{0,80}pending_approval",
-        r"(?:different|other).{0,30}(?:resource|permission).{0,50}(?<!not )(?:blocks?|prevents?).{0,30}grant",
-        r"(?:response\s+status|http\s+200).{0,60}(?:alone|by itself).{0,40}(?:proves?|confirms?).{0,30}grant",
-        r"(?<!never )(?<!not )(?:skip|omit).{0,40}(?:confirmation|current\s+access|read-back|verification)",
-    )
-    if any(re.search(pattern, normalized, re.S) for pattern in contradictions):
-        issues.append(
-            _issue(
-                "GRANT_CONTRADICTION",
-                relative,
-                "unsafe prose must not bypass approval, duplicate, confirmation, or read-back checks",
-            )
-        )
-    return issues
+def _findings_as_issues(findings: Iterable[Tuple[str, str]], relative: Path | str) -> List[Issue]:
+    return [_issue(code, relative, message) for code, message in findings]
+
+
+def _validate_grant_access_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(grant_access_findings(skill, text), relative)
+
+
+def _validate_close_request_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(close_request_findings(skill, text), relative)
+
+
+def _validate_onboard_user_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(onboard_user_findings(skill, text), relative)
+
+
+def _validate_offboard_user_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(offboard_user_findings(skill, text), relative)
+
+
+def _validate_userlist_import_write(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(userlist_import_findings(skill, text), relative)
 
 
 def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> List[Issue]:
@@ -5939,17 +5264,25 @@ def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> L
     issues.extend(_validate_openapi_field_semantics(skill, text, relative))
     issues.extend(_validate_reporting_and_csv_invariants(skill, text, relative))
     issues.extend(_validate_destructive_invariants(skill, text, relative))
+    issues.extend(_validate_userlist_import_write(skill, text, relative))
     issues.extend(_validate_grant_access_semantics(skill, text, relative))
+    issues.extend(_validate_close_request_semantics(skill, text, relative))
+    issues.extend(_validate_onboard_user_semantics(skill, text, relative))
+    issues.extend(_validate_offboard_user_semantics(skill, text, relative))
     return issues
 
 
 def validate_write_safety(root: Path) -> List[Issue]:
     issues: List[Issue] = []
-    for skill, relative, text, read_issues in _skill_documents(root):
+    for skill, relative, text, read_issues, rules_offset in _skill_documents(root):
         issues.extend(read_issues)
         if text is None:
             continue
-        issues.extend(validate_write_safety_text(skill, text, relative))
+        issues.extend(
+            _attribute_rules_issues(
+                validate_write_safety_text(skill, text, relative), skill, rules_offset
+            )
+        )
     return issues
 
 
@@ -6108,11 +5441,7 @@ def validate_ci(root: Path) -> List[Issue]:
         issues.append(
             _issue("CI_WRITE_PERMISSION", WORKFLOW_PATH, "workflow must not request write permissions")
         )
-    expected_concurrency = [
-        "concurrency:",
-        "  group: adversarial-contract-${{ github.workflow }}-${{ github.ref }}",
-        "  cancel-in-progress: true",
-    ]
+    expected_concurrency = CI_EXPECTED_CONCURRENCY
     if (
         _yaml_blocks(active, "concurrency", 0) != [expected_concurrency]
         or _yaml_scalar_lines(active, "timeout-minutes") != ["    timeout-minutes: 5"]
@@ -6243,6 +5572,74 @@ def validate_ci(root: Path) -> List[Issue]:
     return issues
 
 
+def validate_shared_api_rules(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    copies: Dict[str, bytes] = {}
+    for skill in EXPECTED_SKILLS:
+        relative = SKILL_ROOT / skill / API_RULES_RELATIVE
+        data, read_issues = secure_read_bytes(root / relative, relative)
+        issues.extend(read_issues)
+        if data is None:
+            issues.append(
+                _issue("API_RULES_MISSING", relative, "every skill bundles references/api-rules.md")
+            )
+        else:
+            copies[skill] = data
+        skill_relative = SKILL_ROOT / skill / "SKILL.md"
+        text, text_issues = read_text(root / skill_relative, skill_relative)
+        issues.extend(text_issues)
+        if text is None:
+            continue
+        section = ""
+        heading = "\n## API rules\n"
+        start = text.find(heading)
+        if start != -1:
+            body_start = start + len(heading)
+            end = text.find("\n## ", body_start)
+            section = text[body_start : end if end != -1 else len(text)]
+        if API_RULES_POINTER_SENTENCE not in " ".join(section.split()):
+            issues.append(
+                _issue(
+                    "API_RULES_POINTER",
+                    skill_relative,
+                    "SKILL.md needs an API rules section pointing to references/api-rules.md",
+                )
+            )
+    if copies:
+        # The majority copy is the reference, so only the odd copy is blamed.
+        reference = collections.Counter(copies.values()).most_common(1)[0][0]
+        for skill, data in copies.items():
+            if data != reference:
+                issues.append(
+                    _issue(
+                        "API_RULES_DRIFT",
+                        SKILL_ROOT / skill / API_RULES_RELATIVE,
+                        "references/api-rules.md must be identical in every skill",
+                    )
+                )
+    return issues
+
+
+def validate_tool_neutral_text(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    for skill in EXPECTED_SKILLS:
+        for relative in (SKILL_ROOT / skill / "SKILL.md", SKILL_ROOT / skill / API_RULES_RELATIVE):
+            text, read_issues = read_text(root / relative, relative)
+            issues.extend(read_issues)
+            if text is None:
+                continue
+            for match in TOOL_NAME_RE.finditer(text):
+                issues.append(
+                    _issue(
+                        "TOOL_NAME_IN_SKILL",
+                        relative,
+                        "skill text must not name an AI tool: %s" % match.group(0),
+                        _line_number(text, match.start()),
+                    )
+                )
+    return issues
+
+
 def validate_repository(root: Path) -> List[Issue]:
     issues = validate_repository_files(root)
     fatal_filesystem_codes = {
@@ -6264,10 +5661,13 @@ def validate_repository(root: Path) -> List[Issue]:
         validate_approved_harness,
         validate_skill_inventory,
         validate_manifests_and_readme,
+        validate_codex_manifests,
         validate_style_guide,
         validate_api_contracts,
         validate_read_safety,
         validate_write_safety,
+        validate_shared_api_rules,
+        validate_tool_neutral_text,
         validate_ci,
     )
     for validator in validators:
