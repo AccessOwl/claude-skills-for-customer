@@ -132,6 +132,7 @@ _SEMVER = re.compile(
 
 EXPECTED_SKILLS: Tuple[str, ...] = (
     "access-report",
+    "close-request",
     "discovered-apps",
     "grant-access",
     "import-userlist",
@@ -158,9 +159,10 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "e732f09c5f79cf373f51e5b862ae70407bb27046aafee4ae3efff827140b255a",
+    Path("README.md"): "4e26b8834a412e161b07a2f968f7e6f73b32528e292490c5a26143a6995683c3",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
+    SKILL_ROOT / "close-request" / "SKILL.md": "a4a82c7264ac3c8717bbd34f5857df5bd1feeed8923301cb3c158ba002a2f6b2",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
@@ -171,6 +173,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
     SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
     SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
+    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
@@ -302,6 +305,17 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("POST", "/access_requests/bulk"),
         }
     ),
+    "close-request": frozenset(
+        {
+            ("GET", "/users"),
+            ("GET", "/applications"),
+            ("GET", "/applications/{}/resources"),
+            ("GET", "/access_requests"),
+            ("GET", "/access_requests/{}"),
+            ("POST", "/access_requests/{}/deny"),
+            ("POST", "/access_requests/{}/reject"),
+        }
+    ),
     "discovered-apps": frozenset(
         {("GET", "/users"), ("GET", "/applications"), ("GET", "/access_states")}
     ),
@@ -381,6 +395,7 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
 }
 ALLOWED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
     "access-report": REQUIRED_OPERATIONS["access-report"],
+    "close-request": REQUIRED_OPERATIONS["close-request"],
     "discovered-apps": REQUIRED_OPERATIONS["discovered-apps"],
     "grant-access": REQUIRED_OPERATIONS["grant-access"],
     "import-userlist": REQUIRED_OPERATIONS["import-userlist"]
@@ -401,6 +416,7 @@ REFUSED_OPERATIONS: Mapping[str, Tuple[str, str]] = {
 STATUS_ALL_SKILLS = frozenset(
     {
         "access-report",
+        "close-request",
         "discovered-apps",
         "grant-access",
         "import-userlist",
@@ -432,6 +448,7 @@ EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {
 WRITE_SKILLS = frozenset(
     {
         "access-report",
+        "close-request",
         "grant-access",
         "import-userlist",
         "mirror-access",
@@ -442,6 +459,7 @@ WRITE_SKILLS = frozenset(
 )
 IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
     "access-report": ("GET", "/access_requests"),
+    "close-request": ("GET", "/access_requests/{}"),
     "grant-access": ("GET", "/access_requests"),
     "import-userlist": ("GET", "/access_states"),
     "mirror-access": ("GET", "/access_requests"),
@@ -459,6 +477,7 @@ CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("GET", "/access_requests"),
         }
     ),
+    "close-request": frozenset({("GET", "/access_requests/{}")}),
     "grant-access": frozenset(
         {
             ("GET", "/users/{}"),
@@ -496,6 +515,7 @@ CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
 }
 REASON_SKILLS: Mapping[str, str] = {
     "access-report": "request_reason",
+    "close-request": "reason",
     "mirror-access": "request_reason",
     "request-access": "request_reason",
     "request-revocation": "reason",
@@ -542,6 +562,7 @@ assert set(QUERY_STATUS_VALUES) == {p for (_, p), q in API_OPERATIONS.items() if
 TITLE_LOOKUP_SKILLS = frozenset(
     {
         "access-report",
+        "close-request",
         "discovered-apps",
         "grant-access",
         "import-userlist",

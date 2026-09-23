@@ -23,6 +23,7 @@ a request.
 |---|---|
 | `request-access` | "Request a HubSpot Marketing seat for Tom." |
 | `grant-access` | "Mixpanel is set up for Dwight, mark the approved request granted." |
+| `close-request` | "Deny Tom's Figma request, he no longer needs it." |
 | `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
