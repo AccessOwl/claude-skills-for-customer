@@ -168,7 +168,7 @@ ALLOWED_REPOSITORY_FILES = frozenset(
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "bc247b1de23895d9eef45f6739784bb8d7c0252753abddc388405a069142a90d",
-    Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
+    Path("SKILL_STYLE.md"): "ad5529b990e7238c61cb101131df498bd5d9e3012f0536e1e35f5d97521283ad",
     SKILL_ROOT / "access-report" / "SKILL.md": "940e3fc3c006f68818982194334cfdc3c79b8bfb7acf9e696c904f9dd2c0bc63",
     SKILL_ROOT / "close-request" / "SKILL.md": "807efe7bf9430eaa7120a5c920bac42c25eca77e96b7ec6890a88e5f2e7c6f69",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "887aa2bb96272e6151e1cc86cebdacdc5a3fc4b14c633520ad32fa40abd23c63",
