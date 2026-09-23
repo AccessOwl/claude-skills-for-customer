@@ -169,7 +169,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "request-revocation" / "SKILL.md": "e3defef14fa8dd0624bd30e85654ca2725af55d6bd525bc6433fc25121ced521",
     SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "0121a8f60eddd8670e80a163dc3fdd7d77aff00c91abfa512ce2821f4c8b0743",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "c2d8e7fca241ed931b2038cd7a006cbbeec1667c2d5476dca6efb24c9c2e4275",
+    SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
     SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
@@ -403,6 +403,7 @@ STATUS_ALL_SKILLS = frozenset(
         "request-revocation",
         "userlist-import-preflight",
         "vendor-update",
+        "view-policies",
     }
 )
 EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {

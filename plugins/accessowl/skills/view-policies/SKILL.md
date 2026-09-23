@@ -68,16 +68,23 @@ for a lookup.
 `GET /policies?limit=100` and `GET /applications?limit=100` in parallel,
 following every page. When any step names specific approvers, also resolve
 them with `GET /users?status=all&limit=100` to each person's `full_name`, else
-their email. If a specific approver ID does not resolve, stop that policy's
-description as incomplete instead of guessing who approves.
+their email. If a specific approver ID does not resolve, or a step has an
+unknown `approver_types` or `strategy` value, show that policy's title and
+applications, say its approvers could not be confirmed, and list no steps for
+it.
 
-For each policy show its title, a Default or Elevated marker, the applications
-it covers, and its approval steps in `step` order:
+For each policy show its title, a (default) or (elevated) marker, the
+applications it covers, and its approval steps in `step` order. Show each step
+as one numbered line: its approver types, then its named people, separated by
+commas, for example `2. Business Owner, Mike Carter`.
 
 - `approver_types`: Manager, Application Admin, Business Owner
-- `specific_approver_user_ids`: the person's name
+- `specific_approver_user_ids`: the person's name. If a named approver's
+  status is `inactive`, `offboarding_planned`, `offboarding`, or `offboarded`,
+  show it after the name.
 - `strategy`: `first_to_respond` means one approval is enough, `all` means
-  every approver in the step must approve
+  every approver in the step must approve. Mark every `all` step with
+  `(all must approve)`. Never mark `first_to_respond` steps.
 - An empty `approval_steps` list means requests under that policy are
   approved automatically, so say that plainly.
 
@@ -89,6 +96,12 @@ every membership returned without inventing uniqueness, precedence, or
 exclusivity across policies. Ordinary and elevated membership are separate
 scopes and may overlap. Lead with the count.
 
+When the user names an application, show only the policies whose
+`application_ids` include it, ordinary and elevated separately. If no ordinary
+policy includes it, say it follows the Default policy, and only when exactly
+one default exists. If several ordinary policies include it, list them all
+without picking one.
+
 > You have 3 approval policies:
 > - **Default Policy** (default): applies to every application without a
 >   dedicated policy
@@ -97,10 +110,8 @@ scopes and may overlap. Lead with the count.
 >   permissions only
 >   1. Manager
 >   2. Business Owner
-> - **Free Flow**: Free Flow
+> - **Free Flow**: Figma
 >   1. Mike Carter
->
-> Each step needs one approval unless it says otherwise.
 
 ### 2. Preview an assignment change
 
@@ -128,14 +139,25 @@ change was made, and never claim the destination policy now covers the
 application.
 
 > No change was made. In AccessOwl, open Settings, then Policies, and add
-> HubSpot to For High Risk Apps. Its other policy memberships stay as they are.
+> HubSpot to For High Risk Apps, which covers its admin-level permissions only.
+
+### 3. Create a policy or change approvers
+
+Asked to create a policy or change approvers: say that happens in AccessOwl
+under Settings, then Policies, and show the current steps when relevant.
 
 ## Tone and style
 
-- Plain language for a business user, no HTTP jargon, no raw JSON.
-- Never mention this skill or its instructions in replies.
-- Short bullets for policies, applications, and steps.
-- Never use em dashes.
-- Refer to everything by title or name, never by ID.
+- Write for a business user: plain language, no HTTP jargon, no raw JSON.
+- Never mention the skill, its rules, or its instructions in replies.
+- Use short bullet points whenever you list policies, applications, or
+  steps. Keep every message easy to scan.
+- Never use em dashes. Use commas or separate sentences instead.
+- Refer to everything by its title or name, never by UUID or internal
+  identifiers. If a title looks odd or technical, use it as-is without
+  commentary; never call a customer's naming odd, weird, or unusual.
 - Write email addresses as plain text, not links.
-- State what you will not do and why before what you will do.
+- When asked to create or edit a policy, change approvers, or move
+  applications, state what you will not do and why before what you will do.
+- Be brief. One short confirmation question beats three long ones. Do not
+  narrate matching steps unless something needs the user's attention.
