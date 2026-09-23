@@ -111,9 +111,12 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "provisions whatever access their access template matches", "cannot be undone through the api",
       "does not change their details", "this is its own question, not the confirmation",
       "never combine the warning and the confirmation")),
-    ("ONBOARD_ADDED_THIS_RUN", "a person added in this run is active but gets no active-person warning", False,
-     ("who is `active` until onboarded", "a person added in this run is `active` too, but gets no warning",
-      "confirms this is the new hire just added")),
+    ("ONBOARD_IDENTITY", "several records for one email are ambiguous and stop", False,
+     ("several matches are ambiguous: say so and stop, and never guess",)),
+    ("ONBOARD_ADDED_THIS_RUN", "only the person this run added, by user id, skips the active-person warning", False,
+     ("who is `active` until onboarded",
+      "a person whose add returned `201` (or was verified) in this run, same user id, is `active` too, but gets no warning",
+      "a person added in an earlier conversation goes through the normal active warning")),
     ("ONBOARD_STATUS_GATES", "scheduled onboarding only reschedules; started, offboarding, and inactive stop", False,
      ("`onboarding_provisioning_planned` (onboarding scheduled): offer only a reschedule",
       "details are ignored on a reschedule",
@@ -127,9 +130,9 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "otherwise say so and ask for another manager",
       "has no manager in accessowl, and onboarding needs one", "then ask again",
       "if the manager is not active or onboarding, say so the same way and stop")),
-    ("ONBOARD_EXISTING_NO_DETAILS", "an existing person's onboard call carries only scheduled_at", False,
-     ("onboarding an existing person never sends their details, only `scheduled_at`",
-      "an existing person gets only `scheduled_at`", "never send details for an existing person")),
+    ("ONBOARD_EXISTING_NO_DETAILS", "every onboard call carries only scheduled_at; the add carries the details", False,
+     ("every onboard call sends only `scheduled_at`", "the add carries every confirmed detail",
+      "never send details on any onboard call")),
     ("ONBOARD_DATES", "start dates need a timezone, past dates are refused", False,
      ("interpret every start date", "otherwise ask for the timezone", "always show the absolute date in the confirmation",
       "a start date in the past is not allowed", "offer to onboard now instead", "the utc offset in effect on that date")),
@@ -154,6 +157,7 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "never list or promise specific applications")),
 )
 _EDITABLE = r"(?:manager|department|team|job\s+title|location|city|employment\s+type|details)"
+_E = r"(?:manager|department|team|job\s+title|location|city|employment\s+type|details|`?manager_user_id`?)"
 _KEY = r"`?idempotency-key`?"
 ONBOARD_CONTRADICTIONS = (
     r"\b(?:use|call|run|send)\s+(?:the\s+)?onboard\w*[^.]{0,40}\bto\s+(?:update|change|edit|set)\b[^.]{0,40}" + _EDITABLE,
@@ -163,7 +167,8 @@ ONBOARD_CONTRADICTIONS = (
     r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
     r"(?:warning|continue)[^.]{0,60}(?:counts?\s+as|doubles?\s+as|serves?\s+as)\s+(?:the\s+)?confirmation",
     r"(?<!never )(?<!not )\b(?:combine|merge|skip)\w*\b[^.]{0,40}\b(?:warning|re-?check|confirmation)",
-    r"\b(?:pick|choose|use|take)\s+(?:the\s+)?(?:first|newest|latest|most\s+recent)\s+(?:match\w*|one|person|user|record)",
+    r"\b(?:pick|choose|use|take)\s+(?:the\s+)?(?:first|newest|latest|most\s+recent\w*(?:\s+\w+)?)\s+"
+    r"(?:match\w*|one|person|user|record)",
     r"\b(?:status|state)\b[^.]{0,40}\bchanged?\b[^.]{0,60}\banyway\b",
     r"\b(?:onboard|write|send|continue|proceed|go\s+ahead)\w*\s+(?:it\s+|them\s+)?anyway\b",
     r"past\s+(?:start\s+)?dates?[^.]{0,40}\b(?:is|are)\s+(?:allowed|accepted|fine|ok)",
@@ -173,9 +178,19 @@ ONBOARD_CONTRADICTIONS = (
     r"\b(?:offboarding|offboarded|inactive)[^.]{0,60}\b(?:can|may)\s+(?:still\s+)?be\s+onboarded",
     r"\bmanager[^.]{0,20}\bis\s+optional",
     r"\b(?:without|with\s+no)\s+(?:a\s+)?manager[^.]{0,30}\b(?:is\s+fine|works|is\s+allowed)",
-    r"\bonboard\w*[^.]{0,40}\bwithout\s+(?:an?\s+)?(?:new\s+|fresh\s+|its\s+own\s+)?" + _KEY,
+    r"\bonboard\w*[^.]{0,40}\bwithout\s+(?:(?:an?\s+)?(?:new\s+|fresh\s+|its\s+own\s+)?" + _KEY + r"|one\b)",
     _KEY + r"[^.]{0,40}\b(?:optional|not\s+needed|unnecessary)\b[^.]{0,40}\bonboard",
     r"\b(?:skip|omit|drop)\w*\s+(?:the\s+)?" + _KEY + r"[^.]{0,40}\bonboard",
+    r"\b(?:active|existing)\s+person\b[^.]{0,40}(?<!never )\b(?:also\s+)?(?:send|include|pass)\b[^.]{0,60}" + _E,
+    r"\bonboard\w*\s+(?:call|request|body)s?\b[^.]{0,40}(?<!never )(?<!not )\b(?:also\s+)?"
+    r"(?:sends?|includes?|pass(?:es)?|carr(?:y|ies))\b(?!\s+only)[^.]{0,60}" + _E,
+    r"(?<!never )(?<!not )\b(?:send|include|pass)\b[^.]{0,40}" + _E
+    + r"[^.]{0,40}\b(?:on|in|with)\s+(?:the\s+|every\s+|each\s+|any\s+)?onboard",
+    r"(?<!never )\b(?:send|include|pass|add)\w*\s+(?:the\s+)?`?manager_user_id`?[^.]{0,30}\bonboard",
+    r"\bno\s+manager\b[^.]{0,40}(?<!never )\b(?:send|include|pass)\b[^.]{0,40}\bmanager",
+    r"\bnew\s+hire\b[^.]{0,80}\b(?:no|skip\w*|without)\s+(?:the\s+)?warning",
+    r"\b(?:created|added|inserted)\b[^.]{0,40}\b(?:this|last|past)\s+(?:week|day|month|few)\b[^.]{0,40}\bno\s+warning",
+    r"\b(?:already\s+)?started\b[^.]{0,40}\bcan\s+(?:still\s+)?be\s+rescheduled",
 )
 
 

@@ -72,8 +72,9 @@ That's it. Mention `@Claude` in your access channel and ask.
 - Request skills create **requests**. The grant skill records that a fully
   approved manual request was set up, then verifies the resulting access. The
   close skill denies or rejects only the open requests you confirm; it never
-  grants them. The onboarding skill adds the new person you confirm and
-  starts or schedules their onboarding, which provisions what their access
+  grants them. The onboarding skill adds the new person you confirm, or
+  onboards an existing person after a separate warning, and starts,
+  schedules, or reschedules onboarding, which provisions what their access
   template matches; details of existing people are edited on their profile
   in AccessOwl. The vendor skill makes only the direct metadata updates you
   confirm. Structure and policy changes are previewed, then completed in

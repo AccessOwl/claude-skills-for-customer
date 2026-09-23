@@ -119,8 +119,8 @@ type, in one message.
 ### 3. Existing person: check the status
 
 Read the person with `GET /users/{user_id}` and act on the exact `status`.
-Onboarding an existing person never sends their details, only
-`scheduled_at`. Always show the person's email in the warning and the
+Every onboard call sends only `scheduled_at`, so onboarding never changes an
+existing person's details. Always show the person's email in the warning and the
 confirmation.
 
 - `active`: first check the manager (see below). Then warn plainly that
@@ -158,11 +158,10 @@ example: "Mike Carter has no manager in AccessOwl, and onboarding needs one.
 Set it on Mike Carter's profile in AccessOwl, then ask again." If the manager
 is not active or onboarding, say so the same way and stop.
 
-A person added in this run is `active` too, but gets no warning: the
-confirmation already covered adding and onboarding them, so go straight to
-the onboard call. In a later request, a person who was added but not
-onboarded gets no warning either once the user confirms this is the new
-hire just added; onboarding them still needs its own confirmation.
+A person whose add returned `201` (or was verified) in this run, same user
+ID, is `active` too, but gets no warning: the confirmation already covered
+adding and onboarding them, so go straight to the onboard call. A person
+added in an earlier conversation goes through the normal active warning.
 
 If the user asked to change an existing person's manager, department, team,
 job title, location, or employment type, say that is done on the person's
@@ -237,19 +236,19 @@ For a new person, send two calls in order, each with its own fresh
 
 1. `POST /users` with body `{"email": "<email>", "first_name": "<first_name>", "last_name": "<last_name>"}`
    plus the confirmed `departments`, `teams`, `job_title`, `location_city`,
-   `employment_type`, and `manager_user_id`. The documented success status is
-   `201` with the person, who is `active` until onboarded. Require the
-   confirmed email, first name, and last name. Adding a person does not
-   onboard them.
-2. `POST /users/{user_id}/onboard` for that person, with the confirmed
-   `manager_user_id` and details, plus `scheduled_at` when a start date was
-   confirmed. The documented success status is `200` with the person.
-   Require the same person ID and email.
+   `employment_type`, and `manager_user_id`. The add carries every confirmed
+   detail. The documented success status is `201` with the person, who is
+   `active` until onboarded. Require the confirmed email, first name, and
+   last name. Adding a person does not onboard them.
+2. `POST /users/{user_id}/onboard` for that person. The documented success
+   status is `200` with the person. Require the same person ID and email.
 
 For an existing person, send only `POST /users/{user_id}/onboard`, with its
-own fresh `Idempotency-Key`. An existing person gets only `scheduled_at`: the
-body is `{"scheduled_at": "<scheduled_at>"}` for a date and `{}` for now.
-Never send details for an existing person.
+own fresh `Idempotency-Key`.
+
+Every onboard call sends only `scheduled_at`: the body is
+`{"scheduled_at": "<scheduled_at>"}` for a confirmed date and `{}` for now.
+Never send details on any onboard call.
 
 After a `201` or `200`, re-read the person with `GET /users/{user_id}`. A
 missing, malformed, or mismatched response is an uncertain outcome, handled
@@ -257,9 +256,7 @@ as described below.
 
 If the add succeeded but the onboarding failed, say plainly that the person
 was added to AccessOwl but not onboarded, and that people cannot be deleted,
-only offboarded. Onboarding them later needs a new confirmation, but no
-active-person warning once the user confirms this is the new hire just
-added.
+only offboarded. Onboarding them later needs a new confirmation.
 
 A `400` or `422` means AccessOwl did not accept the change. On one from the
 add, for example "a user with this email already exists", never retry the
@@ -279,12 +276,13 @@ the attempt was received. For the add, re-read
 `GET /users?email=<email>&status=all&limit=100`: one person with the
 confirmed email, first name, and last name means the add is verified and the
 confirmed onboarding may follow. For the onboarding, re-read
-`GET /users/{user_id}`: onboarding scheduled after a confirmed date, or
-onboarding started after a confirmed now, means it is verified. For a
-reschedule, the re-read cannot show the date: after an uncertain outcome,
-report the new date as unverified and suggest checking the person's profile
-in AccessOwl. Otherwise report the outcome as unknown and stop remaining
-writes. Sending it again with a fresh key needs a new confirmation.
+`GET /users/{user_id}`. For a reschedule to a new date, the re-read cannot
+show the date: after an uncertain outcome, report the new date as unverified
+and suggest checking the person's profile in AccessOwl. In every other case,
+onboarding scheduled after a confirmed date, or onboarding started after a
+confirmed now, means it is verified. If nothing is verified, report the
+outcome as unknown and stop remaining writes. Sending it again with a fresh
+key needs a new confirmation.
 
 ### 8. Report the verified result
 
