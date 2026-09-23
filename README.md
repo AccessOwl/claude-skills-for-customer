@@ -18,7 +18,9 @@ request as granted after you confirm the access was set up. The close skill
 denies or rejects open requests you confirm, and it never grants them. The
 onboarding skill adds a new person or onboards an existing one, now or on a
 start date, and reschedules a planned onboarding, after you confirm; it never
-edits a person's details. The assistant never approves a request.
+edits a person's details. The offboarding skill offboards a person, now or on
+a date, and reschedules a planned offboarding, after you confirm; it never
+deletes anyone. The assistant never approves a request.
 
 ## The skills
 
@@ -29,6 +31,7 @@ edits a person's details. The assistant never approves a request.
 | `close-request` | "Deny Tom's Figma request, he no longer needs it." |
 | `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
 | `onboard-user` | "Onboard Sarah Lee, sarah@company.com, starts Monday, manager Mike Carter." |
+| `offboard-user` | "Tom Smith is leaving, schedule the offboarding for Friday." |
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
 | `access-report` | "Everyone in Marketing without HubSpot." |
@@ -76,9 +79,12 @@ That's it. Mention `@Claude` in your access channel and ask.
   onboards an existing person after a separate warning, and starts,
   schedules, or reschedules onboarding, which provisions what their access
   template matches; details of existing people are edited on their profile
-  in AccessOwl. The vendor skill makes only the direct metadata updates you
-  confirm. Structure and policy changes are previewed, then completed in
-  AccessOwl. Structure reads expose no usable version token, and policy
+  in AccessOwl. The offboarding skill offboards the person you confirm, now
+  or on a date, which sends the offboarding notice and revokes the access
+  AccessOwl tracks; a planned offboarding is cancelled on the person's
+  profile in AccessOwl. The vendor skill makes only the direct metadata
+  updates you confirm. Structure and policy changes are previewed, then
+  completed in AccessOwl. Structure reads expose no usable version token, and policy
   assignment is an unprotected full-set replacement.
 - Nothing is written to AccessOwl before you confirm it in the conversation.
 - Read-only questions (listings, reports) are answered directly, no confirmation needed.

@@ -10,6 +10,7 @@ from .contract_validator import (
     Issue,
     _validate_close_request_semantics,
     _validate_grant_access_semantics,
+    _validate_offboard_user_semantics,
     _validate_onboard_user_semantics,
     skill_document_text,
     validate_resilience_text,
@@ -258,6 +259,90 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 self.assertCode(
                     _validate_onboard_user_semantics("onboard-user", text + "\n\n" + unsafe, "SKILL.md"),
                     "ONBOARD_CONTRADICTION",
+                )
+
+    def test_offboard_user_gates_confirmation_and_verification_are_indivisible(self) -> None:
+        text = self.skill_text("offboard-user")
+        self.assertEqual([], validate_write_safety_text("offboard-user", text, "SKILL.md"))
+        cases = (
+            ("does not support deleting people", "supports deleting people", "OFFBOARD_SCOPE"),
+            ("never revokes access to a single application", "also revokes single apps", "OFFBOARD_SCOPE"),
+            ("say so and stop, and never guess.", "pick the newest one.", "OFFBOARD_IDENTITY"),
+            ("ask which one is meant; never guess", "pick one", "OFFBOARD_IDENTITY"),
+            ("offer only a reschedule", "offer a new offboarding", "OFFBOARD_STATUS_GATES"),
+            ("already underway, so", "already underway, so resend it and", "OFFBOARD_STATUS_GATES"),
+            ("is already offboarded, so nothing changes", "is already offboarded, so continue", "OFFBOARD_STATUS_GATES"),
+            ("say the person is inactive in AccessOwl and ask", "offboard the inactive person and ask", "OFFBOARD_STATUS_GATES"),
+            ("warn plainly that this person", "note that this person", "OFFBOARD_ONBOARDING_WARNING"),
+            ("never combine the warning", "you may combine the warning", "OFFBOARD_ONBOARDING_WARNING"),
+            ("cancelled on the person's profile in AccessOwl, and stop", "cancelled by offboarding now", "OFFBOARD_NO_CANCEL"),
+            ("happens only when the user explicitly asks for now", "is fine to fix a date", "OFFBOARD_NO_CANCEL"),
+            ("otherwise ask for the timezone", "otherwise assume UTC", "OFFBOARD_DATES"),
+            ("UTC offset in effect on", "current UTC offset on", "OFFBOARD_DATES"),
+            ("offer to offboard now instead", "use it as given", "OFFBOARD_DATES"),
+            ("Never switch to now on your own.", "Switch to now when needed.", "OFFBOARD_DATES"),
+            ("Never offboard several people under", "You may offboard several people under", "OFFBOARD_ONE_PERSON"),
+            ("partial yes means no write", "partial yes still counts", "OFFBOARD_CONFIRMATION"),
+            ("tracks for <Name>. It", "tracks for <Name>. It usually", "OFFBOARD_CONFIRMATION"),
+            ("Never ask another question", "You may ask another question", "OFFBOARD_CONFIRMATION"),
+            ("A reschedule to now carries", "A reschedule to now skips", "OFFBOARD_CONFIRMATION"),
+            ("Always show the person's", "Optionally show the person's", "OFFBOARD_CONFIRMATION"),
+            ("go back to step 2", "continue from step 6", "OFFBOARD_PREWRITE_RECHECK"),
+            ("Never write from the older snapshot.", "Write from the older snapshot.", "OFFBOARD_PREWRITE_RECHECK"),
+            ("with a fresh `Idempotency-Key`. The", "with the previous `Idempotency-Key`. The", "OFFBOARD_CALL"),
+            ("for a confirmed date and `{}`", "for a confirmed date and the person's details", "OFFBOARD_CALL"),
+            ("Never resend it or switch to now on your own.", "Resend it once.", "OFFBOARD_422"),
+            ("is offboarded, say so plainly and that nothing changed", "is offboarded, try again", "OFFBOARD_422"),
+            ("report the outcome as unknown", "report the outcome as fine", "OFFBOARD_UNCERTAIN"),
+            ("unverified and suggest", "confirmed and suggest", "OFFBOARD_UNCERTAIN"),
+            ("as accepted by AccessOwl", "as verified", "OFFBOARD_VERIFIED_REPORT"),
+            ("Never list or promise", "List", "OFFBOARD_VERIFIED_REPORT"),
+        )
+        for old, new, code in cases:
+            with self.subTest(code=code, old=old):
+                mutant = text.replace(old, new, 1)
+                self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
+                self.assertCode(_validate_offboard_user_semantics("offboard-user", mutant, "SKILL.md"), code)
+
+        contradictions = (
+            "Delete the user instead of offboarding.",
+            "People can be deleted.",
+            "Offboard them now to fix a planned offboarding.",
+            "To cancel a planned offboarding, offboard now.",
+            "If the planned date is wrong, offboard them now.",
+            "Cancel the planned offboarding through the API.",
+            "The API can cancel a planned offboarding.",
+            "An earlier go ahead counts as the confirmation.",
+            "A yes to the warning counts as the confirmation.",
+            "Combine the warning and the confirmation in one message.",
+            "Skip the re-check for an active person.",
+            "Merge the warning into the confirmation.",
+            "If several people match, pick the most recent one.",
+            "Use the newest matching record.",
+            "If the status changed, offboard anyway.",
+            "Proceed anyway.",
+            "After a `422`, send the offboarding again anyway.",
+            "If the person is already being offboarded, offboard them again.",
+            "An offboarded person can still be offboarded.",
+            "Send the offboard call without an Idempotency-Key.",
+            "Every write needs an Idempotency-Key, but send the offboard call without one.",
+            "The `Idempotency-Key` is optional for the offboard call.",
+            "Omit the Idempotency-Key on the offboard call.",
+            "If the date was rejected, switch to now.",
+            "After a `422`, offboard now.",
+            "If the date is in the past, offboard now.",
+            "Past dates are fine.",
+            "Offboard all five people in one confirmation.",
+            "One confirmation can cover several people.",
+            "Bulk offboarding is fine.",
+            "The re-read shows the new date.",
+            "Report that all access was removed.",
+        )
+        for unsafe in contradictions:
+            with self.subTest(unsafe=unsafe):
+                self.assertCode(
+                    _validate_offboard_user_semantics("offboard-user", text + "\n\n" + unsafe, "SKILL.md"),
+                    "OFFBOARD_CONTRADICTION",
                 )
 
     def test_idempotency_retry_tuple_is_indivisible(self) -> None:

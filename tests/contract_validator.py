@@ -17,7 +17,8 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 from urllib.parse import SplitResult, unquote_to_bytes, urlsplit
 
 from .skill_semantics import (
-    close_request_findings, grant_access_findings, onboard_user_findings, userlist_import_findings,
+    close_request_findings, grant_access_findings, offboard_user_findings, onboard_user_findings,
+    userlist_import_findings,
 )
 
 
@@ -143,6 +144,7 @@ EXPECTED_SKILLS: Tuple[str, ...] = (
     "import-userlist",
     "list-access",
     "mirror-access",
+    "offboard-user",
     "onboard-user",
     "request-access",
     "request-revocation",
@@ -165,7 +167,7 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "d74a668ce185c5b97ec7ecf412ec28a7b72209efc2f9cb58a94ee2c1421cc93a",
+    Path("README.md"): "e0a420232c1ced15e38108aa47e45bcef52cbc4565d789a63bbc30cf0431d4ea",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
     SKILL_ROOT / "close-request" / "SKILL.md": "9e1b92b2079eb36a1b6f5feabc8430b5a3258a6e545a5a9b9c1f180f9f250c86",
@@ -174,6 +176,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
+    SKILL_ROOT / "offboard-user" / "SKILL.md": "5db56bd99bf81ef278940592e5281ea8e0ea8f6ea312c20b194efb20ee9619c8",
     SKILL_ROOT / "onboard-user" / "SKILL.md": "7d0aa6723d6fb92622d13def13c9a955a769c284b68c2530d9d6f4496f255346",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "453c777baa2f3b23167738d02dca24157ec4e662531bb345104618bce7b5aa2f",
@@ -186,6 +189,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
+    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
@@ -195,13 +199,13 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "543b6c148da4eae06012f57e4d31d0ae2e4d935ccfaf4302d6dc768e2c005f4e",
+    Path("tests/skill_semantics.py"): "c186b2fa6926e46d7d7753ed234f700980bfd2172de05f27c0622fb931467439",
     Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "d125d5cb78ba5d8cf1b72f5807777a65b9f289540563892f70dde7b3d33cc252",
+    Path("tests/test_write_semantic_oracles.py"): "fad87882cbf3a5f3f244d1e5b029d4d69dcd4887fcb300305a2c2f6c077f15e7",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -358,6 +362,7 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("POST", "/access_requests/bulk"),
         }
     ),
+    "offboard-user": frozenset({("GET", "/users"), ("GET", "/users/{}"), ("POST", "/users/{}/offboard")}),
     "onboard-user": frozenset(
         {("GET", "/users"), ("GET", "/users/{}"), ("POST", "/users"), ("POST", "/users/{}/onboard")}
     ),
@@ -408,6 +413,7 @@ ALLOWED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
     | frozenset({("PUT", "/applications/{}/structure")}),
     "list-access": REQUIRED_OPERATIONS["list-access"],
     "mirror-access": REQUIRED_OPERATIONS["mirror-access"],
+    "offboard-user": frozenset({("GET", "/users"), ("GET", "/users/{}"), ("POST", "/users/{}/offboard")}),
     "onboard-user": REQUIRED_OPERATIONS["onboard-user"],
     "request-access": REQUIRED_OPERATIONS["request-access"],
     "request-revocation": REQUIRED_OPERATIONS["request-revocation"],
@@ -429,6 +435,7 @@ STATUS_ALL_SKILLS = frozenset(
         "import-userlist",
         "list-access",
         "mirror-access",
+        "offboard-user",
         "onboard-user",
         "request-access",
         "request-revocation",
@@ -460,6 +467,7 @@ WRITE_SKILLS = frozenset(
         "grant-access",
         "import-userlist",
         "mirror-access",
+        "offboard-user",
         "onboard-user",
         "request-access",
         "request-revocation",
@@ -472,6 +480,7 @@ IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
     "grant-access": ("GET", "/access_requests"),
     "import-userlist": ("GET", "/access_states"),
     "mirror-access": ("GET", "/access_requests"),
+    "offboard-user": ("GET", "/users/{}"),
     "onboard-user": ("GET", "/users/{}"),
     "request-access": ("GET", "/access_requests"),
     "request-revocation": ("GET", "/access_revocations"),
@@ -509,6 +518,7 @@ CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("GET", "/access_requests"),
         }
     ),
+    "offboard-user": frozenset({("GET", "/users/{}")}),
     "onboard-user": frozenset({("GET", "/users/{}")}),
     "request-access": frozenset(
         {
@@ -6063,6 +6073,10 @@ def _validate_onboard_user_semantics(skill: str, text: str, relative: Path | str
     return _findings_as_issues(onboard_user_findings(skill, text), relative)
 
 
+def _validate_offboard_user_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    return _findings_as_issues(offboard_user_findings(skill, text), relative)
+
+
 def _validate_userlist_import_write(skill: str, text: str, relative: Path | str) -> List[Issue]:
     return _findings_as_issues(userlist_import_findings(skill, text), relative)
 
@@ -6091,6 +6105,7 @@ def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> L
     issues.extend(_validate_grant_access_semantics(skill, text, relative))
     issues.extend(_validate_close_request_semantics(skill, text, relative))
     issues.extend(_validate_onboard_user_semantics(skill, text, relative))
+    issues.extend(_validate_offboard_user_semantics(skill, text, relative))
     return issues
 
 

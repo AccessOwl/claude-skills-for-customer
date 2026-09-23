@@ -201,6 +201,114 @@ def onboard_user_findings(skill: str, text: str) -> List[Finding]:
         text, ONBOARD_REQUIREMENTS, ONBOARD_CONTRADICTIONS, ("ONBOARD_CONTRADICTION", "unsafe onboarding prose"))
 
 
+OFFBOARD_REQUIREMENTS: PhraseRules = (
+    ("OFFBOARD_SCOPE", "offboard-user only offboards or reschedules; no delete, no cancel, no single-app revoke", False,
+     ("it never deletes people: accessowl does not support deleting people",
+      "so \"delete this user\" means offboarding them", "it never cancels a planned offboarding: there is no api for that",
+      "point the user to the person's profile in accessowl", "never revokes access to a single application",
+      "never onboards anyone", "if the user asks to delete a person, say that accessowl does not delete people")),
+    ("OFFBOARD_IDENTITY", "one exact person by email or unique full name; several matches never guess", False,
+     ("several matches are ambiguous: say so and stop, and never guess",
+      "by a full name that matches exactly one user case-insensitively", "ask which one is meant; never guess")),
+    ("OFFBOARD_STATUS_GATES", "planned only reschedules; underway, offboarded, and unknown stop; inactive asks", False,
+     ("`active`: offboard, now or on a date",
+      "`offboarding_planned` (offboarding planned): offer only a reschedule, to a new date, "
+      "or to now when the user explicitly asks for now",
+      "`offboarding` (being offboarded): say offboarding is already underway, so nothing changes, and stop",
+      "`offboarded`: say the person is already offboarded, so nothing changes, and stop",
+      "`inactive`: say the person is inactive in accessowl and ask whether to continue with offboarding. "
+      "this is its own question, not the confirmation",
+      "any other status: stop")),
+    ("OFFBOARD_ONBOARDING_WARNING", "warn before offboarding someone still onboarding, as its own question", True,
+     ("`onboarding_provisioning_planned` (onboarding scheduled) or `onboarding` (onboarding started): "
+      "warn plainly that this person has not finished onboarding yet",
+      "ask whether to continue with offboarding", "this is its own question, not the confirmation",
+      "never combine the warning and the confirmation")),
+    ("OFFBOARD_NO_CANCEL", "cancelling is on the profile; never offboard now to cancel or fix a planned date", False,
+     ("if the user asks to cancel a planned offboarding, say that a planned offboarding is cancelled on the "
+      "person's profile in accessowl, and stop", "never offboard now to cancel or fix a planned offboarding",
+      "offboarding now happens only when the user explicitly asks for now")),
+    ("OFFBOARD_DATES", "dates need a timezone, past dates are refused, never switch to now alone", False,
+     ("interpret every date", "otherwise ask for the timezone", "always show the absolute date in the confirmation",
+      "a date or time in the past is not allowed", "offer to offboard now instead", "never switch to now on your own",
+      "send `scheduled_at` as the start of that day (00:00) in that timezone",
+      "the utc offset in effect on that date", "for now, leave `scheduled_at` out")),
+    ("OFFBOARD_ONE_PERSON", "one person per confirmation, never bulk", False,
+     ("handle one person per confirmation", "never offboard several people under one confirmation")),
+    ("OFFBOARD_CONFIRMATION", "one confirmation with the consequence sentence; only a later clear yes counts", False,
+     ("only a clear yes given after this confirmation counts", "is not the confirmation",
+      "ask nothing else in that message", "never ask another question in the same message as the confirmation",
+      "a question, a change, or a partial yes means no write",
+      "always show the person's email in the warning and the confirmation",
+      "\"this sends the offboarding notice and revokes the access accessowl tracks for <name>. "
+      "it cannot be undone through the api.\"",
+      "a reschedule to now carries the offboarding consequence sentence")),
+    ("OFFBOARD_PREWRITE_RECHECK", "re-fetch the person right before the write and re-gate on drift", False,
+     ("immediately before the write, re-fetch `get /users/{user_id}`", "the same email and the same status as confirmed",
+      "go back to step 2 for the current status", "gets the warning again", "never write from the older snapshot")),
+    ("OFFBOARD_CALL", "one offboard call with a fresh key and only scheduled_at or an empty body", False,
+     ("send `post /users/{user_id}/offboard` with a fresh `idempotency-key`",
+      "`{\"scheduled_at\": \"<scheduled_at>\"}` for a confirmed date and `{}` for now",
+      "the documented success status is `200` with the person", "require the same person id and email",
+      "after a `200`, re-read the person with `get /users/{user_id}`")),
+    ("OFFBOARD_422", "a 400 or 422 re-reads, changes nothing, and never resends or switches to now", True,
+     ("a `400` or `422` means accessowl did not accept the change", "re-read the person with `get /users/{user_id}`",
+      "if the person is now being offboarded or is offboarded, say so plainly and that nothing changed",
+      "if the date was rejected", "with a new confirmation", "never resend it or switch to now on your own")),
+    ("OFFBOARD_UNCERTAIN", "an uncertain outcome stops all writes; a rescheduled date stays unverified", False,
+     ("a `409` proves only that the attempt was received", "report the new date as unverified",
+      "report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation")),
+    ("OFFBOARD_VERIFIED_REPORT", "report the re-read status in plain words, never specific apps or removed access", False,
+     ("`offboarding_planned`: offboarding planned for the confirmed date",
+      "`offboarding` or `offboarded`: offboarding started now",
+      "the status stays offboarding planned and the person's record does not show the date",
+      "report the new date as accepted by accessowl", "if the status is not the one that was confirmed",
+      "never list or promise specific applications, and never claim access was removed")),
+)
+_NOW = r"(?:switch\w*\s+to\s+now|offboard\w*\s+(?:them\s+|it\s+|the\s+person\s+)?now|send\w*\s+(?:it\s+)?(?:as\s+)?now)"
+OFFBOARD_CONTRADICTIONS = (
+    r"(?:^|[.!?:,]\s)(?:then\s+|instead,?\s+)?delete\s+(?:the|this|that)\s+(?:user|person|employee|record)",
+    r"\b(?:people|users?|persons?|employees?)\s+(?:can|may)\s+(?:also\s+|still\s+)?be\s+deleted",
+    r"(?<!never )(?<!not )\boffboard\w*\s+(?:(?:them|it|the\s+person)\s+)?now\s+(?:instead\s+)?to\s+"
+    r"(?:cancel|fix|correct|undo|replace)",
+    r"\bto\s+(?:cancel|fix|correct|undo)\b[^.]{0,40}\bplanned\s+(?:offboarding|date)\b[^.]{0,20},\s*" + _NOW,
+    r"\bplanned\s+(?:date|offboarding)\b[^.]{0,40}\b(?:wrong|incorrect|a\s+mistake)\b[^.]{0,40}" + _NOW,
+    r"(?<!never )(?<!not )\bcancel\w*\s+(?:the\s+|a\s+)?planned\s+offboarding\s+(?:through|via|with)\s+(?:the\s+)?api",
+    r"\bapi\b[^.]{0,30}\bcan\s+cancel",
+    r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
+    r"(?:warning|continue)[^.]{0,60}(?:counts?\s+as|doubles?\s+as|serves?\s+as)\s+(?:the\s+)?confirmation",
+    r"(?<!never )(?<!not )\b(?:combine|merge|skip)\w*\b[^.]{0,40}\b(?:warning|re-?check|confirmation)",
+    r"\b(?:pick|choose|use|take)\s+(?:the\s+)?(?:first|newest|latest|most\s+recent\w*(?:\s+\w+)?)\s+"
+    r"(?:match\w*|one|person|user|record)",
+    r"\b(?:status|state)\b[^.]{0,40}\bchanged?\b[^.]{0,60}\banyway\b",
+    r"\b(?:offboard|write|send|continue|proceed|go\s+ahead)\w*\s+(?:it\s+|them\s+)?anyway\b",
+    r"\b(?:422|400)\b[^.]{0,80}\banyway\b",
+    r"\b(?:being\s+offboarded|offboarded|offboarding)\b[^.]{0,60}\b(?:offboard\w*\s+(?:them\s+|it\s+|the\s+person\s+)?again"
+    r"|can\s+(?:still\s+|also\s+)?be\s+offboarded)",
+    r"\boffboard\w*[^.]{0,40}\bwithout\s+(?:(?:an?\s+)?(?:new\s+|fresh\s+|its\s+own\s+)?" + _KEY + r"|one\b)",
+    _KEY + r"[^.]{0,40}\b(?:optional|not\s+needed|unnecessary)\b[^.]{0,40}\boffboard",
+    r"\b(?:skip|omit|drop)\w*\s+(?:the\s+)?" + _KEY + r"[^.]{0,40}\boffboard",
+    r"\b(?:date|scheduled_at)\b[^.]{0,40}\b(?:rejected|refused|not\s+accepted|fails?)\b[^.]{0,60}(?<!never )(?<!not )\b" + _NOW,
+    r"\b(?:422|400)\b[^.]{0,60}(?<!never )(?<!not )\b" + _NOW,
+    r"\bpast\b[^.]{0,40},\s*(?:just\s+)?" + _NOW,
+    r"past\s+(?:dates?|times?)[^.]{0,40}\b(?:is|are)\s+(?:allowed|accepted|fine|ok)",
+    r"(?<!never )\boffboard\w*\s+(?:\w+\s+){0,2}(?:people|persons|users|employees)[^.]{0,30}\b(?:under|in|with)\s+"
+    r"(?:one|a\s+single|the\s+same)\s+confirmation",
+    r"\b(?:one|a\s+single)\s+confirmation\s+(?:can\s+|may\s+)?(?:covers?|for)\s+(?:several|multiple|all|many)",
+    r"\bbulk\b[^.]{0,20}\boffboard",
+    r"\bre-?read\b[^.]{0,40}(?<!cannot )(?<!not )\bshows?\s+the\s+(?:new\s+)?(?:planned\s+)?date",
+    r"(?<!never )(?<!not )\b(?:report|say|claim)\w*\s+(?:that\s+)?(?:all\s+)?(?:the\s+)?access\s+(?:was|is|has\s+been)\s+"
+    r"(?:removed|revoked)",
+)
+
+
+def offboard_user_findings(skill: str, text: str) -> List[Finding]:
+    if skill != "offboard-user":
+        return []
+    return _phrase_contract(
+        text, OFFBOARD_REQUIREMENTS, OFFBOARD_CONTRADICTIONS, ("OFFBOARD_CONTRADICTION", "unsafe offboarding prose"))
+
+
 def userlist_import_findings(skill: str, text: str) -> List[Finding]:
     """The import is one full-replace PUT; pin its preview and write-path safety."""
     if skill != "import-userlist":
