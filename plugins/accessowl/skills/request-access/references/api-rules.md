@@ -111,14 +111,14 @@ writes apply only when the skill performs a write.
 - Require a top-level JSON object with correctly typed `data` where the
   endpoint schema defines it and `meta` on cursor-paginated list responses,
   every AccessOwl API-required field, and every optional field the workflow
-  uses, all with the documented type and enum value. Keep
-  every other documented required field, type, format, and enum strict; the
-  only exceptions are the sandbox-verified ones in the next bullet.
-  Validate every documented UUID, email, date, and date-time format before
-  use, especially any ID inserted into a path. Require nonempty unique record
-  IDs. Requested expansions must be present. Returned records must match the
-  requested filters; expanded IDs, foreign keys, resources, and permissions
-  must agree with their parent records.
+  uses, all with the documented type and enum value. Keep every other
+  documented required field, type, format, and enum strict; the only
+  exceptions are the sandbox-verified ones in the next bullet. Validate every
+  documented UUID, email, date, and date-time format before use, especially
+  any ID inserted into a path. Require nonempty unique record IDs. Requested
+  expansions must be present. Returned records must match the requested
+  filters; expanded IDs, foreign keys, resources, and permissions must agree
+  with their parent records.
 - These sandbox-verified exceptions to the current OpenAPI were observed on
   2026-07-19. User-detail and application-detail responses return their record
   inside a top-level `data` object; require that envelope. A user's

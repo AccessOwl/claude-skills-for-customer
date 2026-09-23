@@ -6,7 +6,8 @@ description: >
   person needs an application, e.g. "request Figma for jane@company.com",
   "Maria needs HubSpot with a Marketing seat", "Tom needs access to Notion".
   Users may also phrase this as "give Tom Notion", "grant Maria HubSpot",
-  "add Jan to Figma", or "set up Slack for the new hire" - all of these mean
+  "add Jan to Figma", or "set up Slack for the new hire" (onboarding the
+  whole access template uses the onboard-user skill) - all of these mean
   creating an access request. Use `grant-access` separately after a fully
   approved manual request has actually been provisioned.
 ---
@@ -20,7 +21,7 @@ Only a returned `pending_approval` status means the request is awaiting
 approval. Classify every returned status exactly instead of promising one
 approval path. Never call the grant endpoint here; use `grant-access` as a
 separate confirmed workflow for eligible approved manual requests. Onboarding
-a new hire uses the `onboard-user` skill.
+a new hire with their whole access template uses the `onboard-user` skill.
 
 ## API rules
 
@@ -71,9 +72,9 @@ Ask which person is meant. Never guess between similar names or invent an
 email address.
 
 Do not submit new access for a user whose status is `inactive`, `offboarding`,
-or `offboarded`; explain the status and stop. For `offboarding_planned`, show
-it as Offboarding scheduled in the confirmation and proceed only after
-explicit confirmation.
+or `offboarded`; explain the status by its label (Inactive, Offboarding, or
+Offboarded) and stop. For `offboarding_planned`, show it as Offboarding
+scheduled in the confirmation and proceed only after explicit confirmation.
 `active`, `onboarding`, and `onboarding_provisioning_planned` are eligible.
 Stop on any unknown status rather than assuming eligibility.
 

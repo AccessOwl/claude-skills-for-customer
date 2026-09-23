@@ -122,13 +122,14 @@ Always show the person's email in the warning and the confirmation.
   nothing changes, and stop. If the person returns, they are reactivated
   with the Reactivate button on their profile in AccessOwl.
 - `inactive` (Inactive): say the person is inactive in AccessOwl, meaning
-  their account is suspended (for example extended leave) and their
-  assigned access stays in place, and ask whether to continue with
+  their account is suspended in your directory (for example extended leave)
+  and their assigned access stays in place, and ask whether to continue with
   offboarding. This is its own question, not the confirmation.
   Only after a yes, go on to step 3. For example:
 
-  > Sarah Lee, sarah@company.com, is inactive in AccessOwl, for example on
-  > extended leave, and Sarah Lee's assigned access stays in place.
+  > Sarah Lee, sarah@company.com, is Inactive in AccessOwl (suspended in
+  > your directory, for example on extended leave). Sarah Lee's assigned
+  > access is still in place.
   >
   > Continue with offboarding?
 

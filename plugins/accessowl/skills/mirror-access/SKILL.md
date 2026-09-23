@@ -74,12 +74,13 @@ one matching user. Multiple records with the same email are ambiguous too.
 Ask which person is meant as one short question. Never guess.
 
 Do not submit new access for a target whose status is `inactive`, `offboarding`,
-or `offboarded`; explain the status and stop. For an `offboarding_planned`
-target, show it as Offboarding scheduled in the confirmation and proceed only
-after explicit confirmation. `active`, `onboarding`, and
-`onboarding_provisioning_planned` targets are eligible. Stop on any unknown target status. If the source is
-inactive or in any offboarding status, warn that their access may be stale and
-ask whether to continue before using it as the template.
+or `offboarded`; explain the status by its label (Inactive, Offboarding, or
+Offboarded) and stop. For an `offboarding_planned` target, show it as
+Offboarding scheduled in the confirmation and proceed only after explicit
+confirmation. `active`, `onboarding`, and `onboarding_provisioning_planned`
+targets are eligible. Stop on any unknown target status. If the source is
+inactive or in any offboarding status, warn that their access may be stale
+and ask whether to continue before using it as the template.
 
 ### 2. Show what the source currently has
 

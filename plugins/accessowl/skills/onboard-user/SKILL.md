@@ -125,15 +125,17 @@ existing person's details. Always show the person's email in the warning and
 the confirmation.
 
 - `active`: first check the manager (see below). Then warn plainly that
-  onboarding switches the person to Onboarding, provisions whatever access
-  their access template matches, cannot be undone through the API, and does
-  not change their details, since none are sent. Ask whether to continue.
+  onboarding switches the person to Onboarding (Provisioning planned until a
+  future start date), provisions whatever access their access template
+  matches, cannot be undone through the API, and does not change their
+  details, since none are sent. Ask whether to continue.
   This is its own question, not the confirmation; never combine the warning
   and the confirmation in one message. For example:
 
   > Mike Carter, mike@company.com, is already active in AccessOwl.
-  > Onboarding switches Mike Carter to Onboarding and provisions whatever
-  > access Mike Carter's access template matches. It cannot be undone
+  > Onboarding switches Mike Carter to Onboarding (Provisioning planned
+  > until a future start date) and provisions whatever access Mike Carter's
+  > access template matches. It cannot be undone
   > through the API, and it does not change Mike Carter's details. To edit
   > the manager, department, or other details, use Mike Carter's profile in
   > AccessOwl.
@@ -253,11 +255,14 @@ Every onboard call sends only `scheduled_at`: the body is
 Never send details on any onboard call.
 
 Before the onboard call for a person added in this run, require the add's
-`201` response (or the verification re-read) to show the confirmed manager
-and every confirmed detail. If any is missing or different, stop: say
+`201` response (or, after an uncertain add, the
+`GET /users?email=<email>&status=all&limit=100` re-read) to show the
+confirmed manager and every confirmed detail, comparing departments and
+teams as sets in any order. If any is missing or different, stop: say
 plainly that the person was added to AccessOwl but not onboarded, name each
 detail that did not stick, and never send details on the onboard call to
-fix it.
+fix it. Point the user to the person's profile in AccessOwl to fix it;
+onboarding them later needs a new confirmation.
 
 After a `201` or `200`, re-read the person with `GET /users/{user_id}`. A
 missing, malformed, or mismatched response is an uncertain outcome, handled
@@ -274,9 +279,9 @@ say plainly that nothing was added, and continue only through step 3 with a
 fresh confirmation. On one from the onboarding, re-read the person with
 `GET /users/{user_id}` and say plainly why (for example the start date must
 be in the future, or the person has an onboarding or access request still
-being provisioned) and that nothing changed. For a start date that has passed,
-offer now or a new date, with a new confirmation. Never resend it or switch
-to another action on your own.
+being provisioned) and that nothing changed. For a start date that has
+passed, offer now or a new date, with a new confirmation. Never resend it or
+switch to another action on your own.
 
 After a timeout, network error, `5xx`, exhausted retries, a missing,
 malformed, or mismatched response, or a same-key replay returning `409`,
@@ -285,14 +290,13 @@ the attempt was received. For the add, re-read
 `GET /users?email=<email>&status=all&limit=100`: one person with the
 confirmed email, first name, and last name means the add is verified; the
 confirmed onboarding may follow only after the same manager and detail
-check. For the onboarding, re-read
-`GET /users/{user_id}`. For a reschedule to a new date, the re-read cannot
-show the date: after an uncertain outcome, report the new date as unverified
-and suggest checking the person's profile in AccessOwl. In every other case,
-Provisioning planned after a confirmed date, or Onboarding after a confirmed
-now, means it is verified. If nothing is verified, report the
-outcome as unknown and stop remaining writes. Sending it again with a fresh
-key needs a new confirmation.
+check. For the onboarding, re-read `GET /users/{user_id}`. For a reschedule
+to a new date, the re-read cannot show the date: after an uncertain outcome,
+report the new date as unverified and suggest checking the person's profile
+in AccessOwl. In every other case, Provisioning planned after a confirmed
+date, or Onboarding after a confirmed now, means it is verified. If nothing
+is verified, report the outcome as unknown and stop remaining writes.
+Sending it again with a fresh key needs a new confirmation.
 
 ### 8. Report the verified result
 

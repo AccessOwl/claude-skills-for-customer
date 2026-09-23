@@ -170,42 +170,42 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "e0a420232c1ced15e38108aa47e45bcef52cbc4565d789a63bbc30cf0431d4ea",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "940e3fc3c006f68818982194334cfdc3c79b8bfb7acf9e696c904f9dd2c0bc63",
-    SKILL_ROOT / "close-request" / "SKILL.md": "2e3ff666827c37595a2faca471cd746fc4f42e0c66557b7880b3f99e77f1f020",
+    SKILL_ROOT / "close-request" / "SKILL.md": "807efe7bf9430eaa7120a5c920bac42c25eca77e96b7ec6890a88e5f2e7c6f69",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "887aa2bb96272e6151e1cc86cebdacdc5a3fc4b14c633520ad32fa40abd23c63",
     SKILL_ROOT / "grant-access" / "SKILL.md": "8c358557d1e04330c89d152b0db89d424678afba024ddf610f07078ed7dce265",
     SKILL_ROOT / "import-userlist" / "SKILL.md": "3f45c6937d980fb29ba299a66bdc764b7bc3863926984271622c955dc19ca8c3",
     SKILL_ROOT / "list-access" / "SKILL.md": "f8ca8880d4790b8253bb9ee0ce8764ce082e536634692ee3a4a56aa9497110eb",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "b380e589f02729ae12278abff167f51bfd2149885266382d6828c761abd4edca",
-    SKILL_ROOT / "offboard-user" / "SKILL.md": "7ab6dabdac8b1f549ee738d977a6bab8af494bcb8f7a3f09e546f0aa5f9e81d2",
-    SKILL_ROOT / "onboard-user" / "SKILL.md": "e27cda71a57937e161a40d98a8261f1d31706bbad118de352d9dbb0966b6efab",
-    SKILL_ROOT / "request-access" / "SKILL.md": "b3c21841417c35ae62effb1c98e1da8aff51ab5a50614d0b82248cf243a22bca",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "77dce7b32425b6c1403beb800ff1078ad33a1f2f5692156e13b5ccf1a873ded1",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "df4f5be9b2781f5fe271210b2e26a6e0eb4ab4f3902feae672b47b2c23ad5f51",
+    SKILL_ROOT / "offboard-user" / "SKILL.md": "875823020a7adb20328227d9f0d307981f9fa9830819cfea345fb0361da07205",
+    SKILL_ROOT / "onboard-user" / "SKILL.md": "d96b65a68a213462d03d184c49c4532d3bebf16ab033d540b79673d00995e06b",
+    SKILL_ROOT / "request-access" / "SKILL.md": "faa60f2d5582b4b769c22f339a4b6f1cd4b1fa56a409157622cc098abf560957",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "5f52d03398da9a5ccec6033e3543023895179759e476585e33c301fd97c29749",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "4cb354177a901aefa5ae7b4fcb13710b35e872233aec734f95eb260b86ebc459",
     SKILL_ROOT / "view-policies" / "SKILL.md": "7eaf6b5295ff052167f8415b2d222a6f3adc1a75d5100a28528d38e18cddfb8c",
-    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
-    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "841ee573258df31b87b4d5bac3da41f9310c0c2bae75c5fb549311eb0744b880",
+    Path("tests/skill_semantics.py"): "6628ef35dbf119adcfa8a1cac278cd062c2c0fc0ca4b5067c213f3db76b67a10",
     Path("tests/test_adversarial_oracles.py"): "edfb28cf90e62ce1b7fe814ba375bc8c9c0a147efbdfc82695f41d3836543062",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "8ff7ce48fccbf6baae661a68557eb974d3e09b546bacf6722517050ca3ef242d",
+    Path("tests/test_write_semantic_oracles.py"): "b6de0f63b87223de36719cbedc938b8849dd1c1c0b471b01e7dbb04d1cbe8ba7",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -3277,7 +3277,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 "LIVE_OPENAPI_EXCEPTIONS",
                 "sandbox-verified exceptions" in folded
                 and "2026-07-19" in folded
-                and "every other documented" in folded
+                and "every other documented" in normalized
                 and "specific stale openapi claims" in folded,
                 "scope the live OpenAPI exceptions narrowly and keep other validation strict",
             ),
@@ -3305,7 +3305,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
             (
                 "API_FORMAT_VALIDATION",
                 all(term in folded for term in ("uuid", "email", "date", "date-time"))
-                and "validate every documented" in folded,
+                and "validate every documented" in normalized,
                 "validate documented UUID, email, date, and date-time formats before use",
             ),
             (
@@ -3522,11 +3522,12 @@ def _validate_idempotency(skill: str, text: str, relative: Path | str) -> List[I
                 "transport and retryable HTTP failures must reuse the exact key and body",
             )
         )
-    if re.search(
-        r"(?m)^\s*(?:generate|create|use)\b.{0,40}"
-        r"(?:another|new|fresh)\b.{0,20}(?:idempotency-?\s*)?key"
-        r".{0,80}(?:timeout|times?\s+out|network\s+(?:error|failure))",
-        folded,
+    fresh_key_tail = (
+        r"(?:generate|create|use)\b.{0,40}(?:another|new|fresh)\b.{0,20}(?:idempotency-?\s*)?key"
+        r".{0,80}(?:timeout|times?\s+out|network\s+(?:error|failure))"
+    )
+    if re.search(r"(?:^|(?<=[.!?;:])\s|-\s)" + fresh_key_tail, folded) or re.search(
+        r"(?m)^\s*" + fresh_key_tail, text.casefold()
     ):
         issues.append(
             _issue(

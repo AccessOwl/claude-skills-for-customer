@@ -221,7 +221,9 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("name each\ndetail that did not stick", "skip the\ndetail that did not stick", "ONBOARD_ADD_VERIFIED"),
             ("never send details on the onboard call to\nfix it", "send the missing details on the onboard call to\nfix it",
              "ONBOARD_ADD_VERIFIED"),
-            ("(or the verification re-read)", "(or any later read)", "ONBOARD_ADD_VERIFIED"),
+            ("(or, after an uncertain add, the", "(or any later read, the", "ONBOARD_ADD_VERIFIED"),
+            ("as sets in any order", "in the order given", "ONBOARD_ADD_VERIFIED"),
+            ("Point the user to the person's profile in AccessOwl to fix it;", "Fix it later;", "ONBOARD_ADD_VERIFIED"),
             ("never retry the", "retry the", "ONBOARD_CREATE_ONCE"),
             ("that people cannot be deleted,", "that the person can be deleted,", "ONBOARD_PARTIAL_ADD"),
             ("outcome as unknown and stop remaining writes.", "outcome as fine and keep going.", "ONBOARD_UNCERTAIN"),
@@ -470,6 +472,14 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ),
             (
                 "After a timeout, generate a replacement Idempotency-Key and repeat the write.",
+                "IDEMPOTENCY_RETRY_CONTRADICTION",
+            ),
+            (
+                "Generate a fresh key\n  after a timeout or network error.",
+                "IDEMPOTENCY_RETRY_CONTRADICTION",
+            ),
+            (
+                "If the write fails,\nuse a new key after a timeout.",
                 "IDEMPOTENCY_RETRY_CONTRADICTION",
             ),
             (
@@ -839,7 +849,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
         )
         for old, new, code in cases:
             with self.subTest(code=code):
-                mutant = text.replace(old, new, 1)
+                mutant = _replace_wrapped(text, old, new)
                 self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
                 self.assertCode(
                     validate_resilience_text("list-access", mutant, "SKILL.md"),

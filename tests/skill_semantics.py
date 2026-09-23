@@ -103,7 +103,7 @@ def close_request_findings(skill: str, text: str) -> List[Finding]:
 
 ONBOARD_REQUIREMENTS: PhraseRules = (
     ("ONBOARD_SCOPE", "onboard-user adds and onboards only; existing details are edited on the profile", False,
-     ("it never edits an existing person's details", "point the user to the person's profile in accessowl",
+     ("it never edits an existing person's details", "point the user to the person's profile in accessowl for those edits",
       "onboarding is never used for it, because onboarding an active person sets any details sent with it",
       "never grants individual app access", "never offboards anyone", "onboarding is not a way to edit those details")),
     ("ONBOARD_ACTIVE_WARNING", "warn before onboarding an active person, as its own question", True,
@@ -147,9 +147,13 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "never write from the older snapshot")),
     ("ONBOARD_ADD_VERIFIED", "the add must show the confirmed manager and details before the onboard call", True,
      ("before the onboard call for a person added in this run, require the add's `201` response "
-      "(or the verification re-read) to show the confirmed manager and every confirmed detail",
+      "(or, after an uncertain add, the `get /users?email=<email>&status=all&limit=100` re-read) "
+      "to show the confirmed manager and every confirmed detail",
+      "comparing departments and teams as sets in any order",
       "if any is missing or different, stop", "added to accessowl but not onboarded",
-      "name each detail that did not stick", "never send details on the onboard call to fix it")),
+      "name each detail that did not stick", "never send details on the onboard call to fix it",
+      "point the user to the person's profile in accessowl to fix it",
+      "onboarding them later needs a new confirmation")),
     ("ONBOARD_CREATE_ONCE", "a 400 or 422 on the add is never retried", True,
      ("a `400` or `422` means accessowl did not accept the change", "never retry the add", "re-read the email",
       "nothing was added", "fresh confirmation")),
@@ -233,7 +237,8 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "`offboarded` (offboarded): say the person is already offboarded, so nothing changes, and stop",
       "reactivated with the reactivate button on their profile in accessowl",
       "`inactive` (inactive): say the person is inactive in accessowl, meaning their account is suspended "
-      "(for example extended leave) and their assigned access stays in place, and ask whether to continue "
+      "in your directory (for example extended leave) and their assigned access stays in place, and ask "
+      "whether to continue "
       "with offboarding. this is its own question, not the confirmation. only after a yes, go on to step 3",
       "any other status: stop")),
     ("OFFBOARD_ONBOARDING_WARNING", "warn before offboarding someone still onboarding, as its own question", True,

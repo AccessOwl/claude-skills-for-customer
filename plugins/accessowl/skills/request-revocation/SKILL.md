@@ -69,8 +69,9 @@ result.
 If the user says the removal already happened in the application, or refers
 to an existing pending revocation or task ("close the task", "mark it done",
 "mark the revocation as done", "cancel the revocation", "keep the access"),
-follow **Close a pending revocation**. If the user wants access to end,
-create a revocation. If unclear, ask.
+follow **Close a pending revocation**. If the user means a pending access
+request (not a revocation), say the `close-request` skill handles it and
+stop. If the user wants access to end, create a revocation. If unclear, ask.
 
 ### 1. Establish who and which application
 

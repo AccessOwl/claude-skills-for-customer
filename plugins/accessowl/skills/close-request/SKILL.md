@@ -258,8 +258,8 @@ example the request was approved in the meantime, say so; it needs a new
 confirmation. Never resend it, switch to the other action, or pick another
 approver on your own.
 
-After a timeout, network error, `5xx`, exhausted retries, a malformed
-response, or a same-key replay returning `409`, re-read the request with
+After a timeout, network error, `5xx`, exhausted retries, or a same-key
+replay returning `409`, re-read the request with
 `GET /access_requests/{access_request_id}` and report only its verified
 status. A `409` proves only that the attempt was received. If the re-read
 shows the intended closed status with the confirmed reason, report it as
