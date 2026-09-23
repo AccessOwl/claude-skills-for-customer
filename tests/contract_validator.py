@@ -176,7 +176,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
-    SKILL_ROOT / "offboard-user" / "SKILL.md": "5db56bd99bf81ef278940592e5281ea8e0ea8f6ea312c20b194efb20ee9619c8",
+    SKILL_ROOT / "offboard-user" / "SKILL.md": "10ed18ebdb9d187629bd9e318e22c9d4fa20fcd2f853eff9800974dd871625db",
     SKILL_ROOT / "onboard-user" / "SKILL.md": "7d0aa6723d6fb92622d13def13c9a955a769c284b68c2530d9d6f4496f255346",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "453c777baa2f3b23167738d02dca24157ec4e662531bb345104618bce7b5aa2f",
@@ -199,13 +199,13 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "c186b2fa6926e46d7d7753ed234f700980bfd2172de05f27c0622fb931467439",
-    Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
+    Path("tests/skill_semantics.py"): "dc6ff24d3254fa69fc141a4633f0d7b051cb6b0b4366110647da4d1ba11fb6d7",
+    Path("tests/test_adversarial_oracles.py"): "d160aaa870e2f5e8b46e0796128b8cd52ac2030e276100489b937e6b281cbeb3",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "fad87882cbf3a5f3f244d1e5b029d4d69dcd4887fcb300305a2c2f6c077f15e7",
+    Path("tests/test_write_semantic_oracles.py"): "7939452d13628078f7c5a7b2188cd6fc6d13d8b0554b70353dd24e3dd6dc7a71",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -1036,7 +1036,14 @@ def validate_repository_inventory(root: Path) -> List[Issue]:
 
 
 def validate_approved_content(root: Path) -> List[Issue]:
-    issues: List[Issue] = []
+    required = [Path("README.md"), Path("SKILL_STYLE.md")] + [
+        SKILL_ROOT / skill / name for skill in EXPECTED_SKILLS for name in (Path("SKILL.md"), API_RULES_RELATIVE)
+    ]
+    issues: List[Issue] = [
+        _issue("CONTENT_DIGEST_MISSING", relative, "reviewed instruction file has no approved digest")
+        for relative in required
+        if relative not in APPROVED_CONTENT_SHA256
+    ]
     for relative, expected_digest in APPROVED_CONTENT_SHA256.items():
         data, read_issues = secure_read_bytes(root / relative, relative)
         issues.extend(read_issues)

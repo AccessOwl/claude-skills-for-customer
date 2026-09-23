@@ -337,6 +337,16 @@ class AdversarialOracleTests(unittest.TestCase):
             self.assertCode(issues, "CONTENT_DIGEST")
             self.assertIn(target.relative_to(root), APPROVED_CONTENT_SHA256)
 
+    def test_missing_reviewed_instruction_digest_is_rejected(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        self.assertEqual([], validate_approved_content(root))
+        dropped = SKILL_ROOT / "offboard-user" / "SKILL.md"
+        remaining = {path: digest for path, digest in APPROVED_CONTENT_SHA256.items() if path != dropped}
+        with mock.patch("tests.contract_validator.APPROVED_CONTENT_SHA256", remaining):
+            issues = validate_approved_content(root)
+        self.assertCode(issues, "CONTENT_DIGEST_MISSING")
+        self.assertEqual([str(dropped)], [issue.path for issue in issues])
+
     def test_reviewed_harness_digest_rejects_silent_test_weakening(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

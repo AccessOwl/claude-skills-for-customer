@@ -28,6 +28,10 @@ profile in AccessOwl. It never revokes access to a single application (that
 is a revocation made with the revocation skill) and never onboards anyone
 (that belongs to the onboarding skill).
 
+If the request names an application ("remove Tom Smith from Figma"), it is
+a revocation, not an offboarding: say so, suggest a revocation request for
+that access instead, and stop.
+
 ## API rules
 
 Before the first API call, read `references/api-rules.md` in this skill
@@ -60,7 +64,7 @@ folder and follow it. The essentials:
 Be fast. Fetch only what you need and do not narrate lookup steps. The user
 should see at most two messages: the confirmation question and the result,
 plus the separate warning when the person has not finished onboarding or is
-inactive. If something is missing (who, or an unclear date or timezone),
+inactive. If something is missing (who, now or a date, or the timezone),
 first run every lookup you can, then ask for all of it in one message.
 
 ## Workflow
@@ -77,11 +81,15 @@ Look up the email with
 returned record must have that email. One match is the person. No match
 means no one in AccessOwl has that email: say so and ask for the right
 email. Several matches are ambiguous: say so and stop, and never guess. When
-the user gives only a name ("Tom is leaving"), look for them in
+the user gives a name and an email, the found person's name must match;
+otherwise say so and ask.
+
+When the user gives only a name ("Tom Smith is leaving"), look for them in
 `GET /users?status=all&limit=100` by a full name that matches exactly one
-user case-insensitively. If several match, list each one with their email
-and status and ask which one is meant; never guess. If no one matches, ask
-for the email.
+user case-insensitively. A first name alone is not enough: ask for the full
+name or email. If several match, list each one with their email and status
+and ask which one is meant; never guess. If no one matches, ask for the
+email.
 
 ### 2. Check the status
 
@@ -93,7 +101,8 @@ Always show the person's email in the warning and the confirmation.
   (onboarding started): warn plainly that this person has not finished
   onboarding yet, and ask whether to continue with offboarding. This is its
   own question, not the confirmation; never combine the warning and the
-  confirmation in one message. For example:
+  confirmation in one message. Only after a yes, go on to step 3. For
+  example:
 
   > Sarah Lee, sarah@company.com, has not finished onboarding yet
   > (onboarding scheduled). Offboarding sends the offboarding notice and
@@ -101,7 +110,6 @@ Always show the person's email in the warning and the confirmation.
   >
   > Continue with offboarding?
 
-  Only after a yes, go on to step 3.
 - `offboarding_planned` (offboarding planned): offer only a reschedule, to a
   new date, or to now when the user explicitly asks for now.
 - `offboarding` (being offboarded): say offboarding is already underway, so
@@ -110,7 +118,13 @@ Always show the person's email in the warning and the confirmation.
   and stop.
 - `inactive`: say the person is inactive in AccessOwl and ask whether to
   continue with offboarding. This is its own question, not the confirmation.
-  Only after a yes, go on to step 3.
+  Only after a yes, go on to step 3. For example:
+
+  > Sarah Lee, sarah@company.com, is inactive in AccessOwl, for example on
+  > extended leave.
+  >
+  > Continue with offboarding?
+
 - Any other status: stop and say the person's state could not be
   classified.
 
@@ -119,34 +133,42 @@ offboarding is cancelled on the person's profile in AccessOwl, and stop.
 Never offboard now to cancel or fix a planned offboarding; offboarding now
 happens only when the user explicitly asks for now.
 
-If the user asks to delete a person, say that AccessOwl does not delete
-people, and that offboarding is how a person is removed. Continue only if
-the user wants the person offboarded.
+If the user asks to delete a person, go on with offboarding, and make the
+first line of the confirmation "AccessOwl does not delete people, so this
+offboards <Name> instead."
 
 ### 3. Settle the date
 
-The offboarding is either now or on a date. Interpret every date, relative
-("Friday", "the 15th") or absolute, in the user's timezone when you know it
-from the conversation or workspace; otherwise ask for the timezone. Always
-show the absolute date in the confirmation, and the time when the user gave
-one. Today with no time given means now. A date or time in the past is not
-allowed: say so and offer to offboard now instead, or ask for a new date.
-Never switch to now on your own.
+The offboarding is either now or on a date. If the user gave no date, ask
+whether the offboarding is now or on a date. For "today" with no time, ask
+whether the offboarding is now or today at 20:00 while 20:00 is still ahead;
+otherwise ask for a time. Never assume now: offboarding now happens only
+when the user explicitly says now.
 
-For a date without a time, send `scheduled_at` as the start of that day
-(00:00) in that timezone and describe it as "on <date>". For a date with a
-time, send that time. Send it in ISO 8601 with the UTC offset in effect on
-that date, for example `2026-12-31T00:00:00-05:00`. For now, leave
-`scheduled_at` out.
+Interpret every date, relative ("Friday", "the 15th") or absolute, in the
+user's timezone when you know it from the conversation or workspace;
+otherwise ask for the timezone. A date without a time uses 20:00 in that
+timezone, AccessOwl's default offboarding time (8 PM local time on the last
+workday). Never use 00:00 or the start of the day unless the user gave that
+time. A date with a time uses the time the user gave. Always show the date,
+time, and timezone in the confirmation, for example
+`When: 2026-10-02 at 20:00, America/Toronto`, so the user can change the
+time. A date or time in the past is not allowed: say so and offer to
+offboard now instead, or ask for a new date. Never switch to now on your
+own.
+
+Send `scheduled_at` in ISO 8601 with the UTC offset in effect on that date,
+for example `2026-10-02T20:00:00-04:00`. For now, leave `scheduled_at` out.
 
 ### 4. Confirm once
 
 Show one short message with the person and their email, and now or the
-absolute date. End with one question and ask nothing else in that message.
-Never ask another question in the same message as the confirmation. For
-offboarding, it carries this consequence sentence: "This sends the
-offboarding notice and revokes the access AccessOwl tracks for <Name>. It
-cannot be undone through the API." For example:
+date, time, and timezone. End with one question and ask nothing else in that
+message. Never ask another question in the same message as the
+confirmation. For offboarding, it carries this consequence sentence: "This
+sends the offboarding notice and revokes the access AccessOwl tracks for
+<Name>. It cannot be undone through the API." For a date, put the date and
+time first ("On 2026-10-02 at 20:00, this sends ..."). For example:
 
 > Ready to offboard:
 > - Tom Smith, tom@company.com
@@ -159,21 +181,28 @@ For a date:
 
 > Ready to offboard:
 > - Jan Novak, jan@company.com
-> - When: on 2026-10-02
+> - When: 2026-10-02 at 20:00, America/Toronto
 >
-> This sends the offboarding notice and revokes the access AccessOwl tracks
-> for Jan Novak on 2026-10-02. It cannot be undone through the API. OK to
-> offboard?
+> On 2026-10-02 at 20:00, this sends the offboarding notice and revokes the
+> access AccessOwl tracks for Jan Novak. It cannot be undone through the
+> API. OK to offboard?
 
 For a reschedule to a new date:
 
 > Ready to reschedule offboarding for Jan Novak, jan@company.com:
-> - Offboarding planned, new date: 2026-10-15
+> - Offboarding planned, new date: 2026-10-15 at 20:00, America/Toronto
 >
-> This moves Jan Novak's planned offboarding to 2026-10-15. OK to
+> This moves Jan Novak's planned offboarding to 2026-10-15 at 20:00. OK to
 > reschedule?
 
-A reschedule to now carries the offboarding consequence sentence.
+A reschedule to now carries the offboarding consequence sentence:
+
+> Ready to offboard now instead of the planned date:
+> - Jan Novak, jan@company.com, offboarding planned
+> - When: now
+>
+> This sends the offboarding notice and revokes the access AccessOwl tracks
+> for Jan Novak. It cannot be undone through the API. OK to offboard now?
 
 Only a clear yes given after this confirmation counts. An earlier "just do
 it" or "go ahead" sent before the confirmation is not the confirmation. A
@@ -222,8 +251,15 @@ writes. Sending it again with a fresh key needs a new confirmation.
 
 Report the status from the re-read in plain words:
 
-- `offboarding_planned`: offboarding planned for the confirmed date.
-- `offboarding` or `offboarded`: offboarding started now.
+- `offboarding_planned`: offboarding planned for the confirmed date and
+  time.
+- `offboarding` or `offboarded`: offboarding has started.
+
+After the status line, add: "AccessOwl removes the access it can
+automatically, and Application Admins get a task for the rest." For a
+planned offboarding, add instead: "On that date, AccessOwl removes the
+access it can automatically, and Application Admins get a task for the
+rest."
 
 For a reschedule to a new date, the status stays offboarding planned and
 the person's record does not show the date: after a `200`, report the new
@@ -231,14 +267,18 @@ date as accepted by AccessOwl.
 
 For example:
 
-> Offboarding for Tom Smith, tom@company.com, started now.
+> Offboarding for Tom Smith, tom@company.com, has started. AccessOwl
+> removes the access it can automatically, and Application Admins get a
+> task for the rest.
 
-> Offboarding for Jan Novak, jan@company.com, is planned for 2026-10-02.
+> Offboarding for Jan Novak, jan@company.com, is planned for 2026-10-02 at
+> 20:00, America/Toronto. On that date, AccessOwl removes the access it
+> can automatically, and Application Admins get a task for the rest.
 
 If the status is not the one that was confirmed, for example offboarding
-started now when a date was confirmed, say so plainly. Never list or promise
-specific applications, and never claim access was removed: the person's
-record does not show which access was revoked.
+has started when a date was confirmed, say so plainly. Never list or
+promise specific applications, and never claim access was removed: the
+person's record does not show which access was revoked.
 
 ## Tone and style
 
