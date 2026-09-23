@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+import re
 import shutil
 import tempfile
 import threading
@@ -695,17 +696,17 @@ class AdversarialOracleTests(unittest.TestCase):
         self.assertEqual(
             [], _validate_idempotency("request-revocation", revocation, "SKILL.md")
         )
-        unverifiable_mutant = revocation.replace(
-            "cannot be verified and ask the user to\ncheck AccessOwl",
-            "cannot be verified",
-            1,
+        # The revocation list endpoint now verifies an uncertain create.
+        self.assertNotIn("cannot list revocation", revocation.casefold())
+        unverified_mutant = re.sub(
+            r"`GET /access_revocations\?[^`]*`", "the revocation list", revocation
         )
-        self.assertNotEqual(revocation, unverifiable_mutant)
+        self.assertNotEqual(revocation, unverified_mutant)
         self.assertCode(
             _validate_idempotency(
-                "request-revocation", unverifiable_mutant, "SKILL.md"
+                "request-revocation", unverified_mutant, "SKILL.md"
             ),
-            "IDEMPOTENCY_UNVERIFIABLE",
+            "IDEMPOTENCY_VERIFY",
         )
 
         boundaries = (

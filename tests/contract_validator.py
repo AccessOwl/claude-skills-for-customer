@@ -166,7 +166,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "e3defef14fa8dd0624bd30e85654ca2725af55d6bd525bc6433fc25121ced521",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "309b845404475b6f68f54d7c06c639dab37a79fe7e0e1af1055496841e37da39",
     SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "0121a8f60eddd8670e80a163dc3fdd7d77aff00c91abfa512ce2821f4c8b0743",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
     SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
@@ -184,7 +184,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/test_adversarial_oracles.py"): "8a31d71ea4cc6c9b0490c4325f57ead2588313446b6315f3f19ba8ecc138a41e",
+    Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
     Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
@@ -350,7 +350,11 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("GET", "/applications"),
             ("GET", "/applications/{}"),
             ("GET", "/access_states"),
+            ("GET", "/access_revocations"),
+            ("GET", "/access_revocations/{}"),
             ("POST", "/access_revocations"),
+            ("POST", "/access_revocations/{}/revoke"),
+            ("POST", "/access_revocations/{}/reject"),
         }
     ),
     "userlist-import-preflight": frozenset(
@@ -438,6 +442,7 @@ IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
     "grant-access": ("GET", "/access_requests"),
     "mirror-access": ("GET", "/access_requests"),
     "request-access": ("GET", "/access_requests"),
+    "request-revocation": ("GET", "/access_revocations"),
     "vendor-update": ("GET", "/applications/{}"),
 }
 CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
@@ -477,7 +482,9 @@ CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("GET", "/access_requests"),
         }
     ),
-    "request-revocation": frozenset({("GET", "/access_states")}),
+    "request-revocation": frozenset(
+        {("GET", "/access_states"), ("GET", "/access_revocations/{}")}
+    ),
     "vendor-update": frozenset({("GET", "/applications/{}")}),
 }
 REASON_SKILLS: Mapping[str, str] = {
