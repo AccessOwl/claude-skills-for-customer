@@ -740,6 +740,121 @@ class WriteSemanticOracleTests(unittest.TestCase):
                     "APP_WIDE_REQUEST_BLOCKER",
                 )
 
+    def test_import_userlist_write_contract_mutations(self) -> None:
+        text = self.skill_text("import-userlist")
+        self.assertEqual(
+            set(), self.codes(validate_write_safety_text("import-userlist", text, "SKILL.md"))
+        )
+        cases = (
+            (
+                "USERLIST_FULL_REPLACE_STATEMENT",
+                "  Anyone not in the file, or in it with no permissions, is removed from the\n",
+                "  Anyone not in the file keeps access in the\n",
+                None,
+            ),
+            (
+                "USERLIST_FULL_REPLACE_STATEMENT",
+                None,
+                None,
+                "People not in the file keep their access in AccessOwl.",
+            ),
+            (
+                "USERLIST_REMOVED_ALWAYS_SHOWN",
+                '"Removed: None"',
+                '"Removed" only when someone is removed',
+                None,
+            ),
+            (
+                "USERLIST_REMOVED_ALWAYS_SHOWN",
+                "never shorten this list",
+                "shorten long lists",
+                None,
+            ),
+            (
+                "USERLIST_UNCHANGED_IN_BODY",
+                "unchanged people too",
+                "changed people only",
+                None,
+            ),
+            (
+                "USERLIST_UNCHANGED_IN_BODY",
+                None,
+                None,
+                "Omit unchanged people from the body to keep it small.",
+            ),
+            (
+                "USERLIST_NEW_PEOPLE_LIST",
+                "because people created this way cannot be deleted later, only offboarded.",
+                "because typos are common.",
+                None,
+            ),
+            (
+                "USERLIST_NEW_PEOPLE_LIST",
+                "and has at least one entry",
+                "",
+                None,
+            ),
+            (
+                "USERLIST_DRIFT_RECONFIRM",
+                "go back to step 5 and withhold the import.",
+                "import anyway.",
+                None,
+            ),
+            (
+                "USERLIST_DRIFT_RECONFIRM",
+                "show the new preview and ask again.",
+                "import the new body.",
+                None,
+            ),
+            (
+                "USERLIST_422_NO_AUTOFIX",
+                "Never fix rows from the error text on your own and never resend",
+                "Fix rows from the error text and resend",
+                None,
+            ),
+            (
+                "USERLIST_422_NO_AUTOFIX",
+                None,
+                None,
+                "After a 422, fix the rejected rows and resend the import.",
+            ),
+            (
+                "USERLIST_SINGLE_CALL",
+                "so never split it;",
+                "so split it into batches of 10;",
+                None,
+            ),
+            (
+                "USERLIST_SINGLE_CALL",
+                None,
+                None,
+                "Split the import into batches of 10 items.",
+            ),
+            (
+                "USERLIST_REREAD_AFTER_200",
+                "response is malformed. Then re-read the current access states with the same",
+                "response is malformed. Then trust the counts with the same",
+                None,
+            ),
+            (
+                "USERLIST_REREAD_AFTER_200",
+                "check and label them as entries, never as people",
+                "check and report them as people",
+                None,
+            ),
+        )
+        for code, old, new, appended in cases:
+            with self.subTest(code=code, old=old, appended=appended):
+                if appended is not None:
+                    mutant = text + "\n\n" + appended + "\n"
+                else:
+                    assert old is not None and new is not None
+                    self.assertEqual(1, text.count(old), "mutation source is not unique: %r" % old)
+                    mutant = text.replace(old, new, 1)
+                self.assertCode(
+                    validate_write_safety_text("import-userlist", mutant, "SKILL.md"), code
+                )
+
     def test_openapi_field_and_visibility_assumptions_fail_closed(self) -> None:
         cases = (
             (

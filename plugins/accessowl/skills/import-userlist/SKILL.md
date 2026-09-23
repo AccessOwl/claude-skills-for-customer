@@ -6,9 +6,11 @@ description: >
   access after one confirmation. Use whenever someone wants to load a list of
   users and their permissions into an AccessOwl application, e.g. "import this
   CSV into Notion", "upload the user list for Figma", "sync this export into
-  AccessOwl". It never changes the application's structure (resources or
-  permissions), never approves or grants requests, and writes only after the
-  preview and a clear yes.
+  AccessOwl". Users may also phrase this as "replace the user list", "load
+  this export", or "bring AccessOwl in line with this spreadsheet". It never
+  changes the application's structure (resources or permissions), never
+  approves or grants requests, and writes only after the preview and a clear
+  yes.
 ---
 
 # Import User List
@@ -56,14 +58,17 @@ folder and follow it. The essentials:
 
 Be fast. Never ask permission before a read-only lookup. Fetch the
 application's structure, the user directory, and its current access in
-parallel. Besides the import confirmation, ask for at most two things across
-the whole flow, and only what is actually missing: the application (skip if
-already given) and the CSV (skip if already shared).
+parallel. Besides the import confirmation, ask for at most two inputs
+(application, CSV), and only when they are missing. When nothing blocks, send
+the corrections and the preview in one message.
 
 ## Workflow
 
 Stop as incomplete and never answer, preview, import, or produce a file from
 missing, malformed, or inconsistent API data.
+
+If the user wants only a corrected file, do steps 1 to 5, then step 8, and
+never ask to import.
 
 ### 1. Establish the application
 
@@ -112,17 +117,14 @@ identity checks do not apply to the snapshot.
 Build the import from the validated rows: one entry per person and resource,
 carrying the person's email, the exact resource title, and the exact
 permission titles. Merge rows for the same person and resource into one entry.
-A person with no permission in any resource gets no entry, so any current
-access they have shows under Removed. The same rows define the cleaned CSV in
-the importer's format, delivered only on request (step 8):
+A person whose rows have no permissions gets no entry; if they are on the
+current user list, they are listed under Removed.
 
 - Parse quoted CSV fields correctly; never split rows on commas by hand.
   Reject invalid UTF-8, NUL bytes, an empty file, duplicate headers, a missing
   or duplicate **Email** header, and rows with the wrong number of fields.
   Explain the structural error and do not produce a partial output file.
-- **Email** is always the first column.
-- One column per resource, using the exact resource titles. Child resources
-  get their own column, without the parent name as a prefix. The live API can
+- Map each source column to one resource by its exact title. The live API can
   return a null resource title despite the current OpenAPI string requirement.
   Reject a missing, null, empty, whitespace-only, or control-character title
   because it cannot form a safe, identifiable CSV header or import entry.
@@ -134,6 +136,7 @@ the importer's format, delivered only on request (step 8):
   in AccessOwl and rerun the check. Never choose one, drop one, or rename a
   resource in the import.
 - Cell values are permission titles, rewritten to the exact AccessOwl titles.
+  A cell may list several permissions separated by semicolons.
   Before building the import, validate every resource's permission catalog.
   Stop without importing or producing a file if a permission title is empty or
   whitespace-only, contains an ASCII control character or semicolon, or
@@ -150,11 +153,6 @@ the importer's format, delivered only on request (step 8):
   has no plausible match or two possible matches; then offer the available
   titles, or ask the user to add the missing permission in AccessOwl and rerun
   the check.
-- Multiple permissions for the same resource go in one cell separated by
-  semicolons with no spaces (Admin;Editor).
-- When a user has several combinations across separate resources, duplicate
-  the user's email with one row per combination.
-- Leave a cell empty when the user has no permission for that resource.
 - Drop every column that does not map to a resource.
   If multiple source columns would map to the same canonical resource, stop as
   ambiguous rather than merging or choosing one.
@@ -181,7 +179,7 @@ hyphen. Reject malformed values without
 correcting them; do not reinterpret them as new users. Check the remaining values against `GET /users?status=all&limit=100`
 (all pages) only to classify each row: emails that match an AccessOwl user
 import onto that user; emails that match nobody become new users, because the
-import creates an AccessOwl user for every unknown email. If one
+import creates an AccessOwl user for every unknown email with an entry. If one
 email matches multiple AccessOwl records, stop as ambiguous rather than
 choosing one. Report both valid groups. Separately flag every match whose status is `inactive`,
 `offboarding_planned`, `offboarding`, or `offboarded`; importing that row can
@@ -194,42 +192,64 @@ mandatory resource empty.
 
 **The import replaces the application's complete user list.** After the
 import, the file is the complete truth for that application; existing access
-that is not in the file is removed. Compare the complete proposed entitlement
-set for every linked account against the application's current active
-access states
+that is not in the file is removed from the user list in AccessOwl. Compare the
+complete proposed entitlement set for every linked account against the
+application's current active access states
 (`GET /access_states?application_id=<application_id>&expand=grantee_user,application,resource,target_permissions&limit=100`)
 using only states whose `effective_end` field is present and explicitly null.
 A missing, malformed, or non-null `effective_end` is not current-access
-evidence and cannot drive the destructive replacement comparison. Report every
+evidence and cannot drive the destructive replacement comparison. A missing or
+malformed `effective_end` stops the run as incomplete. Report every
 current resource or permission missing from that account's rows, including
 users who are absent entirely, and every changed permission for people who
 stay. If removing an entitlement is not intended, offer to restore it to the
 proposed rows. If an
 active state has no linked `grantee_user`, count it as an unresolved current
 account, call it **Unlinked account**, do not expose its internal ID, and block
-the import until the user verifies it in AccessOwl.
+the import until a fresh read links it to a person (step 5).
 An active state with `resource_id: null` is application-wide access that the
 resource-based rows cannot represent. Treat it as an unresolved blocker and
-withhold the preview and the import until the user resolves or verifies it in
-AccessOwl; never silently drop or invent a column for it.
+withhold the preview and the import until a fresh read no longer shows it
+(step 5); never silently drop or invent a column for it.
 
-### 5. Report blockers first
+### 5. Report open items
 
-Send one concise report with these short bullet groups:
+Two kinds of open items stop the flow:
+
+- **Decisions** the user answers: a value with no plausible match, a flagged
+  user status, or a row that leaves a mandatory resource empty.
+- **Blockers** in AccessOwl data: an unlinked account, application-wide
+  access, an unusable or ambiguous title, or a missing permission. A blocker
+  clears only when a fresh read no longer shows the problem, never because
+  the user says it is fine. If the user explicitly wants that access gone,
+  list it under Removed instead, for example "Unlinked account (Admin)" or
+  "Priya Patel: access to all of Notion".
+
+**Missing permissions.** If the CSV contains permissions that genuinely do not
+exist in the application, name each missing permission and tell the user to
+add it to the named resource in AccessOwl, then rerun the check. Do not call
+`PUT /applications/{id}/structure`. The documented operation is a partial
+upsert: omitted resources and permissions remain untouched, and deletion
+requires an existing ID plus `delete: true`. The resource read does not expose
+the optional `lock_version` accepted by the write, and updating the existing
+resource requires resending its title. Without a usable version token, an API
+write could overwrite a concurrent title change. Do not preview or import
+until a fresh read confirms every permission.
+
+While anything is open, send one concise report with these short bullet
+groups:
 
 - Which rows match existing AccessOwl users, and which emails match nobody.
 - Corrections applied automatically (value renames, merged duplicate rows,
   dropped columns).
-- Values that still need one decision (no plausible match).
+- Decisions and blockers, each with its fix.
 - The replacement warning: every current resource or permission missing from
   the proposed rows, including users absent entirely, which the import would
   remove.
 
 Withhold the preview confirmation, the import, any cleaned CSV, and any import
-instructions while any decision, flagged user status, mandatory-resource gap,
-missing permission, ambiguous title, unlinked account, or application-wide
-access remains. State plainly that nothing was imported yet. Never ask to
-import while a blocker remains.
+instructions while any decision or blocker remains. State plainly that nothing
+was imported yet. Never ask to import while anything is open.
 
 > **Nothing was imported yet.** 4 rows match existing AccessOwl users; 1
 > (levinson@dundermufflins.com) matches nobody, so the import would create a
@@ -248,55 +268,74 @@ import while a blocker remains.
 > user, resource, or permission is missing from the proposed rows.
 
 When the user answers a decision ("all Members should be Users"), apply it,
-then run the blocker checks again. If other blockers remain, name only those
-and keep withholding the import. If none remain, go straight to the preview.
-Do not re-explain resolved items or repeat the earlier report.
+then run the checks again. If anything else is open, name only that and keep
+withholding the import. If nothing is open, go straight to the preview. Do not
+re-explain resolved items or repeat the earlier report.
 
 ### 6. Preview and confirm
 
-Once no blocker remains, always show the preview before asking, even when
+Once nothing is open, always show the preview before asking, even when
 nothing is removed. Compare the proposed rows with the current access states
 per person, by name (by email for new people):
 
 - **Added**: people with no current access in the application who get access.
-- **Changed**: people whose permissions change, with the old and new
-  permissions by title.
-- **Removed**: people who lose all their access in the application because
-  they are not in the file. Always show this line, even as "Removed: None".
+- **Changed**: people who stay but whose permissions change, including a
+  resource they no longer have, with the old and new permissions by title, for
+  example "Jim Halpert: Role, Member to Admin".
+- **Removed**: people with current access who are not in the file or whose
+  rows have no permissions. Tag the second group, for example "Oscar Owl
+  (Member), in the file with no permissions". Always show this line, even as
+  "Removed: None". Name every removed person; never shorten this list.
 - **Unchanged**: people whose access stays exactly the same, as a count.
 
+Repeat every automatic correction in the preview; the yes covers them.
+
 List separately, under **New people AccessOwl will create**, every email that
-matches no AccessOwl user. The import creates these people as new users; ask
-the user to double-check their spelling.
+matches no AccessOwl user and has at least one entry. The import creates
+these people as new users. Ask the user to double-check their spelling,
+because people created this way cannot be deleted later, only offboarded.
 
 Right before the question, state plainly:
 
 - This replaces the complete user list for the application in AccessOwl.
-  Anyone not in the file loses their access in AccessOwl.
+  Anyone not in the file, or in it with no permissions, is removed from the
+  <Application> user list in AccessOwl.
 - When there are new people: emails AccessOwl does not know become new users.
 - If the application has an integration that syncs access, its next sync
   overwrites what the import wrote.
-- The import cannot check mandatory resources, so a row missing one is not
-  caught.
+- AccessOwl does not check mandatory resources during the import. When the
+  user named mandatory resources, add "I checked <Resource> because you
+  marked it mandatory."
 - Pending access requests for the application stay open; the import does not
   close them.
 
 Then ask "OK to replace the <Application> user list?" Do not import before a
-clear yes. Anything other than a clear yes means no import.
+clear yes. Only a yes given after this preview counts. An earlier "just import
+it" or "no need to confirm" is not the confirmation.
 
 > Ready to replace the Notion user list:
-> - Added (2): Dwight Schrute (Member), Priya Patel (Admin)
-> - Changed (1): Jim Halpert, Member to Admin
-> - Removed (1): Oscar Owl (Member)
+> - Added (3): Dwight Schrute (Member), Priya Patel (Admin),
+>   erin@company.com (Member)
+> - Changed (1): Jim Halpert: Role, Member to Admin
+> - Removed (2): Oscar Owl (Member), in the file with no permissions; Kevin
+>   Malone (Member)
 > - Unchanged: 12
 >
+> Corrected automatically:
+> - "admin" renamed to "Admin" in 3 rows.
+>
+> New people AccessOwl will create (1):
+> - erin@company.com. Please double-check the spelling, because people
+>   created this way cannot be deleted later, only offboarded.
+>
 > This replaces the complete Notion user list in AccessOwl. Anyone not in the
-> file loses their Notion access in AccessOwl.
+> file, or in it with no permissions, is removed from the Notion user list in
+> AccessOwl.
 >
 > - If Notion has an integration that syncs access, its next sync overwrites
 >   this import.
-> - The import cannot check mandatory resources, so a row missing one is not
->   caught.
+> - AccessOwl does not check mandatory resources during the import. I checked
+>   Role because you marked it mandatory.
 > - Pending Notion access requests stay open.
 >
 > OK to replace the Notion user list?
@@ -309,31 +348,41 @@ Immediately before the import, re-fetch the application with
 `GET /users?status=all&limit=100`, and its current access states with
 `GET /access_states?application_id=<application_id>&expand=grantee_user,application,resource,target_permissions&limit=100`.
 Rebuild and revalidate the rows and the preview from this fresh read. If the
-application title, a resource or permission title, a user's status, a
-blocker, or any Added, Changed, Removed, or new-person line differs, show the
-new preview and confirm again before importing. Keep this final pre-write
-snapshot of access states as the baseline for checking an uncertain outcome.
+fresh read reveals any blocker, go back to step 5 and withhold the import.
+Otherwise, if any title, status, or Added, Changed, Removed, or new-person
+line differs, show the new preview and ask again. Keep this final pre-write
+snapshot of access states as the baseline for checking a `422` or an
+uncertain outcome.
 
 Send one `PUT /applications/{application_id}/access_states` with a fresh
 `Idempotency-Key` and exactly the confirmed body, for example
-`{"access": [{"user_email": "jim@company.com", "resource": "Workspace Role", "permissions": ["Admin"]}]}`.
-The import is a single mutation call. Include every person in the confirmed
-list, unchanged people too, because anyone left out loses their access.
+`{"access": [{"user_email": "jim@company.com", "resource": "Role", "permissions": ["Admin"]}]}`.
+Send it as one call. Every call replaces the whole list, so never split it;
+the 10-item bulk limit applies to access requests, not this import. Include
+every person in the confirmed list, unchanged people too, because anyone left
+out is removed from the user list.
 
-On `422`, AccessOwl rejected the whole import and nothing was written.
-Validate the documented error response, then list each rejected row in plain
-language from its `errors` entries, for example "priya@company.com: Admin is
-not a permission of Workspace Role". Never show raw JSON, and never fix rows
-from the error text on your own; a user-specified correction starts a new
-preview and confirmation.
+On `422`, validate the documented error response, then re-read the current
+access states with the same query and compare them with the pre-write
+snapshot. If nothing differs, say nothing changed; otherwise say the user list
+changed since the preview. List each rejected row in plain language: map an
+`errors` key to a person or row in the sent body only when it clearly
+corresponds, for example "priya@company.com: Admin is not a permission of
+Role", and list any other key exactly as returned, without guessing. Never
+show raw JSON. Never fix rows from the error text on your own and never resend
+the import after a `422`; a user-specified correction starts a new preview,
+confirmation, and idempotency key.
 
 On `200`, require `data.created`, `data.updated`, `data.deleted`, and
 `data.unchanged` to all be present non-negative integers; otherwise the
 response is malformed. Then re-read the current access states with the same
 query and compare them per person with the confirmed target list. Report the
-verified result per person (added, changed, removed) and the counts AccessOwl
-returned. If the re-read disagrees with the preview, list each difference as
-unverified instead of claiming the import succeeded.
+result per person from that re-read. Use the counts only as a consistency
+check and label them as entries, never as people; if they plainly contradict
+the preview, such as no created, updated, or deleted entries when the preview
+had changes, report the result as unverified. If the re-read disagrees with
+the preview, list each difference as unverified instead of claiming the import
+succeeded.
 
 If the outcome is uncertain, never resend the import with a fresh key
 unless the user confirms again after seeing the verified state. The outcome
@@ -345,23 +394,36 @@ confirmed target list and the pre-write baseline. Report which people are
 verified as imported and which are unknown, and stop there.
 
 > Done. The Notion user list in AccessOwl now matches the file:
-> - Added: Dwight Schrute (Member), Priya Patel (Admin)
-> - Changed: Jim Halpert, Member to Admin
-> - Removed: Oscar Owl
+> - Added: Dwight Schrute (Member), Priya Patel (Admin), erin@company.com
+>   (Member)
+> - Changed: Jim Halpert: Role, Member to Admin
+> - Removed: Oscar Owl, Kevin Malone
 > - Unchanged: 12
+>
+> AccessOwl reported 3 entries created, 1 updated, 2 deleted, and 12 unchanged.
 
 ### 8. Cleaned CSV on request
 
 If the user asks for the cleaned CSV, for their records or to run the import
-in AccessOwl themselves, deliver it only when no blocker remains. Immediately
-before delivery, refetch the application structure, users, and current access
-states, rebuild and revalidate the complete file, and compare the replacement
-set again. If the final read introduces drift, report it and withhold the file
-until it is resolved. Otherwise deliver the CSV with every row as a file, not
-pasted text, unless it is only a few rows. For a manual import, include the
-import instructions: open the application in AccessOwl, click **Edit**, then
-**Import**, upload the file, review the preview, and confirm. That manual
-import replaces the user list the same way.
+in AccessOwl themselves, deliver it only when nothing is open. Build it in
+exactly the importer's format:
+
+- **Email** is always the first column.
+- One column per resource, using the exact resource titles. Child resources
+  get their own column, without the parent name as a prefix.
+- Multiple permissions for the same resource go in one cell separated by
+  semicolons with no spaces (Admin;Editor).
+- When a user has several combinations across separate resources, duplicate
+  the user's email with one row per combination.
+- Leave a cell empty when the user has no permission for that resource.
+
+Immediately before delivery, refetch the structure, users, and access states
+as in step 7 and rebuild the file from that final read. If it shows drift or a
+blocker, report it and withhold the file until it is resolved. Otherwise
+deliver the CSV as a file, not pasted text, unless it is only a few rows. For
+a manual import, include the import instructions: open the application in
+AccessOwl, click **Edit**, then **Import**, upload the file, review the
+preview, and confirm. That manual import replaces the user list the same way.
 
 Generate the final CSV as a stream, not as one in-memory string. Use a fixed
 safe pattern such as `accessowl-userlist-<random UUID>.csv` in the allowed
@@ -375,19 +437,6 @@ file. Do the same on any write or close failure. Before attachment, reopen
 without following symlinks, confirm it is the created regular file, verify its
 mode is exactly `0600`, parse it strictly again, and verify the exact header,
 logical row count, and expected entitlement values.
-
-### 9. Missing permissions
-
-If the CSV contains permissions that genuinely do not exist in the
-application, name each missing permission and tell the user to add it to the
-named resource in AccessOwl, then rerun the check. Do not call
-`PUT /applications/{id}/structure`. The documented operation is a partial
-upsert: omitted resources and permissions remain untouched, and deletion
-requires an existing ID plus `delete: true`. The resource read does not expose
-the optional `lock_version` accepted by the write, and updating the existing
-resource requires resending its title. Without a usable version token, an API
-write could overwrite a concurrent title change. Do not preview or import
-until a fresh read confirms every permission.
 
 ## Tone and style
 

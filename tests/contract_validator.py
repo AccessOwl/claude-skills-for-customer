@@ -163,7 +163,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
-    SKILL_ROOT / "import-userlist" / "SKILL.md": "c811a60b79f7331b9a03d395e6e9da87dfba3427096622c69353bffc59d2f1f8",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "293b013c1db9bc2d09bb17a324367878fd99761acc24e396887c846f26b6c53c",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
@@ -189,7 +189,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "df58b9b60925051eb2c2c12f1678b58c5217d502228c9a2d8d5922447616a1d3",
+    Path("tests/test_write_semantic_oracles.py"): "bf4491e7331b71ef0506d863972fbab1a5e0ea7bf5a16d700de7bde60ef5ff98",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -4527,7 +4527,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
         messages = {
             "USERLIST_NEW_USERS": "unmatched emails remain unchanged and import as new users",
             "USERLIST_REPLACEMENT": "the replacement import must warn that absent current access is removed",
-            "USERLIST_READ_ONLY": "the preflight is read-only, refuses structure PUT, and directs UI changes followed by rerun",
+            "USERLIST_READ_ONLY": "the import never writes the application structure, refuses structure PUT, and directs structure changes in AccessOwl followed by rerun",
             "USERLIST_PERMISSION_AMBIGUITY": "duplicate permission titles and semicolons in titles must stop as ambiguous",
             "USERLIST_RESOURCE_CAPS": "CSV processing must enforce file, row, column, and decoded-field caps with no partial output",
             "USERLIST_WITHHOLD_OUTPUT": "withhold CSV and import instructions until every decision and destructive removal is resolved",
@@ -4541,7 +4541,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
                 _issue(
                     "USERLIST_READ_ONLY",
                     relative,
-                    "the preflight must tell the user to make structure changes in AccessOwl, never offer to make them",
+                    "the import must tell the user to make structure changes in AccessOwl, never offer to make them",
                 )
             )
     if skill == "vendor-update":
@@ -6135,6 +6135,106 @@ def _validate_grant_access_semantics(
     return issues
 
 
+def _validate_userlist_import_write(
+    skill: str, text: str, relative: Path | str
+) -> List[Issue]:
+    """The import is one full-replace PUT; pin its preview and write-path safety."""
+    if skill != "import-userlist":
+        return []
+    normalized = re.sub(r"\s+", " ", text.casefold())
+    paragraphs = [re.sub(r"\s+", " ", p.casefold()) for p in _paragraphs(text)]
+    sentences = re.split(r"(?<=[.!?])\s+", normalized)
+    negation = re.compile(r"\b(?:never|do not|must not)\b")
+
+    def paragraph_with(*needles: str) -> bool:
+        return any(all(needle in paragraph for needle in needles) for paragraph in paragraphs)
+
+    def unnegated(anchor: str, pattern: str) -> bool:
+        # ponytail: sentence-level negation, enough for appended unsafe prose
+        return any(
+            re.search(anchor, sentence)
+            and re.search(pattern, sentence)
+            and not negation.search(sentence)
+            for sentence in sentences
+        )
+
+    checks: Sequence[Tuple[str, bool, str]] = (
+        (
+            "USERLIST_FULL_REPLACE_STATEMENT",
+            "anyone not in the file, or in it with no permissions, is removed from the"
+            in normalized
+            and "user list in accessowl" in normalized
+            and not unnegated(
+                r"not in the file", r"\b(?:keeps?|retains?|stays?|remains?)\b.{0,30}\baccess\b"
+            ),
+            "state before confirmation that anyone not in the file, or in it with no permissions, is removed from the user list",
+        ),
+        (
+            "USERLIST_REMOVED_ALWAYS_SHOWN",
+            paragraph_with(
+                "**removed**",
+                "always show this line",
+                '"removed: none"',
+                "never shorten this list",
+            ),
+            "the preview always shows Removed, including Removed: None, and names every removed person",
+        ),
+        (
+            "USERLIST_UNCHANGED_IN_BODY",
+            paragraph_with("`put /applications/{application_id}/access_states`", "unchanged people too")
+            and not unnegated(r"unchanged", r"\b(?:omit|skip|leave out|drop|exclude)\b"),
+            "the full-replace body must include unchanged people, because anyone left out is removed",
+        ),
+        (
+            "USERLIST_NEW_PEOPLE_LIST",
+            paragraph_with(
+                "**new people accessowl will create**",
+                "at least one entry",
+                "double-check their spelling",
+                "cannot be deleted later, only offboarded",
+            ),
+            "list the people the import will create and warn they cannot be deleted later, only offboarded",
+        ),
+        (
+            "USERLIST_DRIFT_RECONFIRM",
+            paragraph_with(
+                "immediately before the import",
+                "if the fresh read reveals any blocker, go back to step 5",
+                "show the new preview and ask again",
+            ),
+            "a fresh pre-write read must return blockers to step 5 and reconfirm any preview drift",
+        ),
+        (
+            "USERLIST_422_NO_AUTOFIX",
+            paragraph_with(
+                "on `422`",
+                "re-read the current access states",
+                "never fix rows from the error text",
+                "never resend the import after a `422`",
+            )
+            and not unnegated(r"\b422\b", r"\b(?:resend|retry|resubmit|fix)\w*"),
+            "after a 422, re-read, report rejected rows, and never auto-fix or resend",
+        ),
+        (
+            "USERLIST_SINGLE_CALL",
+            paragraph_with("send it as one call", "never split it")
+            and not unnegated(r"\bsplit\b", r"\b(?:batch|batches|chunk|chunks|calls)\b"),
+            "the full-replace import is one call and must never be split",
+        ),
+        (
+            "USERLIST_REREAD_AFTER_200",
+            paragraph_with(
+                "on `200`",
+                "re-read the current access states",
+                "per person",
+                "label them as entries",
+            ),
+            "after a 200, re-read access states and report per person; response counts are entries",
+        ),
+    )
+    return [_issue(code, relative, message) for code, passed, message in checks if not passed]
+
+
 def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> List[Issue]:
     issues: List[Issue] = []
     if skill in WRITE_SKILLS:
@@ -6155,6 +6255,7 @@ def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> L
     issues.extend(_validate_openapi_field_semantics(skill, text, relative))
     issues.extend(_validate_reporting_and_csv_invariants(skill, text, relative))
     issues.extend(_validate_destructive_invariants(skill, text, relative))
+    issues.extend(_validate_userlist_import_write(skill, text, relative))
     issues.extend(_validate_grant_access_semantics(skill, text, relative))
     return issues
 
