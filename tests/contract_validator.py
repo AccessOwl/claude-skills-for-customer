@@ -192,34 +192,64 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/test_write_semantic_oracles.py"): "913dff061095b258ef8b8c700fa2ff6f3f0cbcb25cb1f3ce1acb78a03b07c9d1",
 }
 
-# Curated from https://docs.accessowl.com/api-reference/openapi.json on 2026-07-17. The
+# Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
 # repository suite is intentionally offline and deterministic, so the facts
 # that skill prose relies on are reviewed and pinned here.
 API_OPERATIONS: Mapping[Tuple[str, str], frozenset[str]] = {
-    ("GET", "/access_requests"): frozenset({"limit", "cursor"}),
+    ("GET", "/access_requests"): frozenset(
+        {"limit", "cursor", "user_id", "application_id", "status"}
+    ),
     ("POST", "/access_requests"): frozenset(),
     ("POST", "/access_requests/bulk"): frozenset(),
+    ("GET", "/access_requests/{}"): frozenset(),
     ("POST", "/access_requests/{}/grant"): frozenset(),
+    ("POST", "/access_requests/{}/deny"): frozenset(),
+    ("POST", "/access_requests/{}/reject"): frozenset(),
+    ("GET", "/access_revocations"): frozenset(
+        {"limit", "cursor", "status", "user_id", "application_id"}
+    ),
     ("POST", "/access_revocations"): frozenset(),
+    ("GET", "/access_revocations/{}"): frozenset(),
+    ("POST", "/access_revocations/{}/revoke"): frozenset(),
+    ("POST", "/access_revocations/{}/reject"): frozenset(),
     ("GET", "/access_states"): frozenset(
         {"limit", "cursor", "application_id", "grantee_user_id", "expand"}
     ),
     ("GET", "/applications"): frozenset(
-        {"limit", "cursor", "title_like", "category_contains_word"}
+        {
+            "limit",
+            "cursor",
+            "title_like",
+            "category_contains_word",
+            "status",
+            "owner_user_id",
+            "admin_user_id",
+        }
     ),
     ("POST", "/applications"): frozenset(),
     ("GET", "/applications/{}/resources"): frozenset(),
     ("PUT", "/applications/{}/structure"): frozenset(),
+    ("PUT", "/applications/{}/access_states"): frozenset(),
     ("GET", "/applications/{}"): frozenset(),
     ("PATCH", "/applications/{}"): frozenset(),
     ("PUT", "/applications/{}"): frozenset(),
     ("GET", "/policies"): frozenset({"limit", "cursor"}),
     ("PUT", "/policies/{}/applications"): frozenset(),
-    ("GET", "/users"): frozenset({"limit", "cursor", "status"}),
+    ("GET", "/users"): frozenset({"limit", "cursor", "status", "email"}),
+    ("POST", "/users"): frozenset(),
     ("GET", "/users/{}"): frozenset(),
+    ("POST", "/users/{}/onboard"): frozenset(),
+    ("POST", "/users/{}/offboard"): frozenset(),
 }
 CURSOR_ENDPOINTS = frozenset(
-    {"/users", "/applications", "/access_states", "/access_requests", "/policies"}
+    {
+        "/users",
+        "/applications",
+        "/access_states",
+        "/access_requests",
+        "/access_revocations",
+        "/policies",
+    }
 )
 EXPAND_VALUES = frozenset(
     {"grantee_user", "application", "resource", "target_permissions"}
@@ -485,6 +515,14 @@ ACCESS_REQUEST_STATUSES = frozenset(
     }
 )
 ACCESS_REVOCATION_STATUSES = frozenset({"processing_access", "rejected", "revoked"})
+APPLICATION_STATUS_FILTERS = frozenset({"approved", "discovered", "ignored", "requestable"})
+# The status query filter takes a different enum on each list endpoint.
+QUERY_STATUS_VALUES: Mapping[str, frozenset[str]] = {
+    "/users": USER_STATUSES,
+    "/applications": APPLICATION_STATUS_FILTERS,
+    "/access_requests": ACCESS_REQUEST_STATUSES,
+    "/access_revocations": ACCESS_REVOCATION_STATUSES,
+}
 TITLE_LOOKUP_SKILLS = frozenset(
     {
         "access-report",
@@ -2205,9 +2243,19 @@ def validate_api_reference_text(
                     issues.append(
                         _issue("API_LIMIT", relative, "limit must be an integer from 1 through 100", line)
                     )
-                if key == "status" and value and not value.startswith("<") and value not in USER_STATUSES:
+                if (
+                    key == "status"
+                    and value
+                    and not value.startswith("<")
+                    and value not in QUERY_STATUS_VALUES.get(normalized, USER_STATUSES)
+                ):
                     issues.append(
-                        _issue("API_STATUS", relative, "unknown user status %s" % value, line)
+                        _issue(
+                            "API_STATUS",
+                            relative,
+                            "unknown status %s for %s %s" % (value, method, normalized),
+                            line,
+                        )
                     )
                 if key == "expand" and value:
                     expanded = set(value.split(","))
