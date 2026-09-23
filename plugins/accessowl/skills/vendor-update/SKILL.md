@@ -101,8 +101,8 @@ ambiguous, in one question.
   via `GET /users?status=all&limit=100` and require exactly one
   match for either name or email; duplicate email records are ambiguous too.
   Do not assign an `inactive`, `offboarding`, or `offboarded` person. Flag
-  `offboarding_planned` and require explicit confirmation. Stop on an unknown
-  status.
+  `offboarding_planned` as Offboarding scheduled and require explicit
+  confirmation. Stop on an unknown status.
 
 Certificates, data types, and tags replace the application's existing list
 when sent. When adding to them, fetch the application's current values first

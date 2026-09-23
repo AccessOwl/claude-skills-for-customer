@@ -198,7 +198,8 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("say so and stop, and never guess.", "pick the newest one.", "ONBOARD_IDENTITY"),
             ("but gets no warning", "and gets the warning", "ONBOARD_ADDED_THIS_RUN"),
             ("goes through the normal active warning", "skips the warning", "ONBOARD_ADDED_THIS_RUN"),
-            ("cannot be rescheduled, and stop", "can be rescheduled", "ONBOARD_STATUS_GATES"),
+            ("cannot be started or\n  rescheduled through the API now, and stop", "can be rescheduled", "ONBOARD_STATUS_GATES"),
+            ("still being provisioned, so onboarding", "already started, so onboarding", "ONBOARD_STATUS_GATES"),
             ("Manager (required, because onboarding needs one)", "Manager (optional)", "ONBOARD_MANAGER_REQUIRED"),
             ("then ask again", "then continue", "ONBOARD_MANAGER_REQUIRED"),
             ("must be active or onboarding", "can have any status", "ONBOARD_MANAGER_REQUIRED"),
@@ -223,7 +224,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
         )
         for old, new, code in cases:
             with self.subTest(code=code, old=old):
-                mutant = text.replace(old, new, 1)
+                mutant = _replace_wrapped(text, old, new)
                 self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
                 self.assertCode(_validate_onboard_user_semantics("onboard-user", mutant, "SKILL.md"), code)
 
@@ -259,6 +260,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "If the user says this is the new hire, skip the warning.",
             "A person added this week gets no warning.",
             "Onboarding that already started can still be rescheduled.",
+            "Say onboarding has already started.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):
@@ -283,7 +285,11 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("offer only a reschedule", "offer a new offboarding", "OFFBOARD_STATUS_GATES"),
             ("already underway, so", "already underway, so resend it and", "OFFBOARD_STATUS_GATES"),
             ("is already offboarded, so nothing changes", "is already offboarded, so continue", "OFFBOARD_STATUS_GATES"),
-            ("say the person is inactive in AccessOwl and ask", "offboard the inactive person and ask", "OFFBOARD_STATUS_GATES"),
+            ("say the person is inactive in AccessOwl, meaning", "offboard the inactive person, meaning", "OFFBOARD_STATUS_GATES"),
+            ("their assigned access stays in place, and ask", "their access is removed, and ask", "OFFBOARD_STATUS_GATES"),
+            ("cancelled on the\n  person's profile", "cancelled through the\n  API", "OFFBOARD_STATUS_GATES"),
+            ("with the Reactivate button", "by offboarding them again", "OFFBOARD_STATUS_GATES"),
+            ("has an onboarding\n  scheduled (Provisioning planned)", "has not finished onboarding", "OFFBOARD_ONBOARDING_WARNING"),
             ("warn plainly that this person", "note that this person", "OFFBOARD_ONBOARDING_WARNING"),
             ("never combine the warning", "you may combine the warning", "OFFBOARD_ONBOARDING_WARNING"),
             ("in one message. Only after a yes, go on to step 3.", "in one message.", "OFFBOARD_ONBOARDING_WARNING"),
@@ -315,7 +321,8 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("with a fresh `Idempotency-Key`. The", "with the previous `Idempotency-Key`. The", "OFFBOARD_CALL"),
             ("for a confirmed date and `{}`", "for a confirmed date and the person's details", "OFFBOARD_CALL"),
             ("Never resend it or switch to now on your own.", "Resend it once.", "OFFBOARD_422"),
-            ("is offboarded, say so plainly and that nothing changed", "is offboarded, try again", "OFFBOARD_422"),
+            ("Offboarding or Offboarded, say so plainly and that nothing changed", "Offboarding or Offboarded, try again",
+             "OFFBOARD_422"),
             ("report the outcome as unknown", "report the outcome as fine", "OFFBOARD_UNCERTAIN"),
             ("unverified and suggest", "confirmed and suggest", "OFFBOARD_UNCERTAIN"),
             ("as accepted by AccessOwl", "as verified", "OFFBOARD_VERIFIED_REPORT"),
@@ -327,7 +334,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
         )
         for old, new, code in cases:
             with self.subTest(code=code, old=old):
-                mutant = text.replace(old, new, 1)
+                mutant = _replace_wrapped(text, old, new)
                 self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
                 self.assertCode(_validate_offboard_user_semantics("offboard-user", mutant, "SKILL.md"), code)
 
@@ -371,6 +378,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "Midnight is the default.",
             "No date means now.",
             "An inactive person needs no warning.",
+            "Warn that the person has not finished onboarding yet.",
             "Treat the original request as the confirmation.",
             "Offboarding can be undone later.",
             "If there is no exact match, use the closest match.",

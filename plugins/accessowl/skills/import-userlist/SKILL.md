@@ -183,7 +183,8 @@ import onto that user; emails that match nobody become new users, because the
 import creates an AccessOwl user for every unknown email with an entry. If one
 email matches multiple AccessOwl records, stop as ambiguous rather than
 choosing one. Report both valid groups. Separately flag every match whose status is `inactive`,
-`offboarding_planned`, `offboarding`, or `offboarded`; importing that row can
+`offboarding_planned`, `offboarding`, or `offboarded` (shown as Inactive,
+Offboarding scheduled, Offboarding, or Offboarded); importing that row can
 restore application access to someone who is leaving or has left. Do not ask
 for the import confirmation until the user explicitly keeps or removes every flagged
 row. Stop on an unknown user status rather than assuming it is safe.

@@ -64,8 +64,9 @@ same email are ambiguous. Never guess or expose IDs.
 
 The person must currently be `active`, `onboarding`, or
 `onboarding_provisioning_planned`. Stop for `inactive`, `offboarding`, or
-`offboarded`. For `offboarding_planned`, show that status and continue only
-after explicit confirmation. Stop on an unknown user status.
+`offboarded`. For `offboarding_planned`, show it as Offboarding scheduled
+and continue only after explicit confirmation. Stop on an unknown user
+status.
 
 Require the application's `provisioning_type` to be the exact documented enum
 value `application_admin`. A missing, null, wrong-type, `automatic`, or unknown

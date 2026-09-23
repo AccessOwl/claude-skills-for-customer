@@ -71,7 +71,8 @@ email address.
 
 Do not submit new access for a user whose status is `inactive`, `offboarding`,
 or `offboarded`; explain the status and stop. For `offboarding_planned`, show
-that status in the confirmation and proceed only after explicit confirmation.
+it as Offboarding scheduled in the confirmation and proceed only after
+explicit confirmation.
 `active`, `onboarding`, and `onboarding_provisioning_planned` are eligible.
 Stop on any unknown status rather than assuming eligibility.
 

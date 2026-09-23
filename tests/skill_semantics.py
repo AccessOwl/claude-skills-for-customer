@@ -118,10 +118,11 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "a person whose add returned `201` (or was verified) in this run, same user id, is `active` too, but gets no warning",
       "a person added in an earlier conversation goes through the normal active warning")),
     ("ONBOARD_STATUS_GATES", "scheduled onboarding only reschedules; started, offboarding, and inactive stop", False,
-     ("`onboarding_provisioning_planned` (onboarding scheduled): offer only a reschedule",
+     ("`onboarding_provisioning_planned` (provisioning planned): offer only a reschedule",
       "details are ignored on a reschedule",
-      "`onboarding` (onboarding started): say onboarding has already started and cannot be rescheduled, and stop",
-      "`offboarding_planned` (offboarding planned), `offboarding`, `offboarded`, or `inactive`: stop",
+      "`onboarding` (onboarding): say the person has an onboarding or access request still being provisioned, "
+      "so onboarding cannot be started or rescheduled through the api now, and stop",
+      "`offboarding_planned` (offboarding scheduled), `offboarding`, `offboarded`, or `inactive`: stop",
       "any other status: stop")),
     ("ONBOARD_MANAGER_REQUIRED", "an active or onboarding manager resolved to exactly one person is required", False,
      ("manager (required, because onboarding needs one)", "matches exactly one user case-insensitively",
@@ -153,7 +154,8 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
      ("report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation",
       "report the new date as unverified")),
     ("ONBOARD_VERIFIED_REPORT", "report the re-read status in plain words, never specific apps", False,
-     ("`onboarding_provisioning_planned`: onboarding scheduled", "`onboarding`: onboarding started now",
+     ("`onboarding_provisioning_planned`: provisioning planned for the confirmed date",
+      "`onboarding`: onboarding started now",
       "never list or promise specific applications")),
 )
 _EDITABLE = r"(?:manager|department|team|job\s+title|location|city|employment\s+type|details)"
@@ -191,6 +193,7 @@ ONBOARD_CONTRADICTIONS = (
     r"\bnew\s+hire\b[^.]{0,80}\b(?:no|skip\w*|without)\s+(?:the\s+)?warning",
     r"\b(?:created|added|inserted)\b[^.]{0,40}\b(?:this|last|past)\s+(?:week|day|month|few)\b[^.]{0,40}\bno\s+warning",
     r"\b(?:already\s+)?started\b[^.]{0,40}\bcan\s+(?:still\s+)?be\s+rescheduled",
+    r"\bonboarding\s+has\s+already\s+started",
 )
 
 
@@ -218,16 +221,19 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "a first name alone is not enough: ask for the full name or email", "ask which one is meant; never guess")),
     ("OFFBOARD_STATUS_GATES", "planned only reschedules; underway, offboarded, and unknown stop; inactive asks", False,
      ("`active`: offboard, now or on a date",
-      "`offboarding_planned` (offboarding planned): offer only a reschedule, to a new date, "
+      "`offboarding_planned` (offboarding scheduled): offer only a reschedule, to a new date, "
       "or to now when the user explicitly asks for now",
-      "`offboarding` (being offboarded): say offboarding is already underway, so nothing changes, and stop",
-      "`offboarded`: say the person is already offboarded, so nothing changes, and stop",
-      "`inactive`: say the person is inactive in accessowl and ask whether to continue with offboarding. "
-      "this is its own question, not the confirmation. only after a yes, go on to step 3",
+      "a scheduled offboarding can be rescheduled here or cancelled on the person's profile in accessowl",
+      "`offboarding` (offboarding): say offboarding is already underway, so nothing changes, and stop",
+      "`offboarded` (offboarded): say the person is already offboarded, so nothing changes, and stop",
+      "reactivated with the reactivate button on their profile in accessowl",
+      "`inactive` (inactive): say the person is inactive in accessowl, meaning their account is suspended "
+      "(for example extended leave) and their assigned access stays in place, and ask whether to continue "
+      "with offboarding. this is its own question, not the confirmation. only after a yes, go on to step 3",
       "any other status: stop")),
     ("OFFBOARD_ONBOARDING_WARNING", "warn before offboarding someone still onboarding, as its own question", True,
-     ("`onboarding_provisioning_planned` (onboarding scheduled) or `onboarding` (onboarding started): "
-      "warn plainly that this person has not finished onboarding yet",
+     ("`onboarding_provisioning_planned` or `onboarding`: warn plainly that this person has an onboarding "
+      "scheduled (provisioning planned) or an onboarding or access request still being provisioned (onboarding)",
       "ask whether to continue with offboarding", "this is its own question, not the confirmation",
       "never combine the warning and the confirmation", "only after a yes, go on to step 3")),
     ("OFFBOARD_NO_CANCEL", "cancelling is on the profile; never offboard now to cancel or fix a planned date", False,
@@ -266,18 +272,18 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "after a `200`, re-read the person with `get /users/{user_id}`")),
     ("OFFBOARD_422", "a 400 or 422 re-reads, changes nothing, and never resends or switches to now", True,
      ("a `400` or `422` means accessowl did not accept the change", "re-read the person with `get /users/{user_id}`",
-      "if the person is now being offboarded or is offboarded, say so plainly and that nothing changed",
+      "if the person's status is now offboarding or offboarded, say so plainly and that nothing changed",
       "if the date was rejected", "with a new confirmation", "never resend it or switch to now on your own")),
     ("OFFBOARD_UNCERTAIN", "an uncertain outcome stops all writes; a rescheduled date stays unverified", False,
      ("a `409` proves only that the attempt was received", "report the new date as unverified",
       "report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation")),
     ("OFFBOARD_VERIFIED_REPORT", "report the re-read status in plain words, never specific apps or removed access", False,
-     ("`offboarding_planned`: offboarding planned for the confirmed date and time",
+     ("`offboarding_planned`: offboarding scheduled for the confirmed date and time",
       "`offboarding` or `offboarded`: offboarding has started",
       "\"accessowl removes the access it can automatically, and application admins get a task for the rest.\"",
       "for a planned offboarding, add instead: \"on that date, accessowl removes the access it can automatically, "
       "and application admins get a task for the rest.\"",
-      "the status stays offboarding planned and the person's record does not show the date",
+      "the status stays offboarding scheduled and the person's record does not show the date",
       "report the new date as accepted by accessowl", "if the status is not the one that was confirmed",
       "never list or promise specific applications, and never claim access was removed")),
 )
@@ -322,6 +328,7 @@ OFFBOARD_CONTRADICTIONS = (
     r"(?:midnight|00:00|start\s+of\s+(?:the|that)\s+day)\b[^.]{0,30}\b(?:is\s+the\s+default|by\s+default)",
     r"\b(?:no|without\s+an?|missing|any)\s+(?:date|day)\b[^.]{0,40}\b(?:means|use|offboard\w*|defaults?\s+to)\s+(?:them\s+)?now\b",
     r"\b(?:inactive|onboarding)\b[^.]{0,40}\b(?:needs?\s+no\s+warning|without\s+(?:a|the)\s+warning|straight\s+to\s+the\s+confirmation)",
+    r"\bnot\s+(?:yet\s+)?finished\s+onboarding",
     r"\b(?:original|initial|first)\s+(?:request|message)\b[^.]{0,30}\bas\s+(?:the\s+)?confirmation",
     r"(?<!not )\b(?:can|may)\s+(?:later\s+)?be\s+(?:undone|reversed)",
     r"\b(?:closest|nearest|similar|best)[\s-]+(?:match\w*|email|name)",

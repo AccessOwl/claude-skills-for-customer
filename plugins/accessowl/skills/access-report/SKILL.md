@@ -211,8 +211,9 @@ that the duplicate check may be incomplete.
 Do not submit new access for a user whose status is `inactive`, `offboarding`,
 or `offboarded`; name that exclusion before the proposed requests. A user in
 `offboarding_planned` may be included only when that status is shown in the
-confirmation and the user explicitly confirms it. `active`, `onboarding`, and
-`onboarding_provisioning_planned` are eligible. Stop on an unknown status.
+confirmation as Offboarding scheduled and the user explicitly confirms it.
+`active`, `onboarding`, and `onboarding_provisioning_planned` are eligible.
+Stop on an unknown status.
 `pending_approval`, `pending_permissions_assignment`, `processing_access`,
 `scheduled`, and `pending_dependency` block a duplicate. `access_granted`
 blocks only when a current active access state also confirms the access;

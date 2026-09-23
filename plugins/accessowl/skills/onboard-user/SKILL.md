@@ -101,7 +101,7 @@ Collect:
 Compare the full name with the user list. If the email is new but someone
 with the same full name is already listed, name them in the confirmation
 with their email and status, for example "There is already a Sarah Lee,
-s.lee@company.com, offboarded."
+s.lee@company.com, Offboarded."
 
 Departments and teams are free text sent exactly as given. The access
 template rules match the person's details, so when the user list already has
@@ -125,14 +125,14 @@ existing person's details. Always show the person's email in the warning and the
 confirmation.
 
 - `active`: first check the manager (see below). Then warn plainly that
-  onboarding switches the person to onboarding, provisions whatever access
+  onboarding switches the person to Onboarding, provisions whatever access
   their access template matches, cannot be undone through the API, and does
   not change their details, since none are sent. Ask whether to continue.
   This is its own question, not the confirmation; never combine the warning
   and the confirmation in one message. For example:
 
   > Mike Carter, mike@company.com, is already active in AccessOwl.
-  > Onboarding switches Mike Carter to onboarding and provisions whatever
+  > Onboarding switches Mike Carter to Onboarding and provisions whatever
   > access Mike Carter's access template matches. It cannot be undone
   > through the API, and it does not change Mike Carter's details. To edit
   > the manager, department, or other details, use Mike Carter's profile in
@@ -141,14 +141,15 @@ confirmation.
   > Continue with onboarding?
 
   Only after a yes, go on to the confirmation in step 5.
-- `onboarding_provisioning_planned` (onboarding scheduled): offer only a
+- `onboarding_provisioning_planned` (Provisioning planned): offer only a
   reschedule, to a new date or to now. Details are ignored on a reschedule,
   so if the user gave any, say they are not changed and point to the
   person's profile in AccessOwl.
-- `onboarding` (onboarding started): say onboarding has already started and
-  cannot be rescheduled, and stop.
-- `offboarding_planned` (offboarding planned), `offboarding`, `offboarded`, or
-  `inactive`: stop and explain that this person cannot be onboarded from
+- `onboarding` (Onboarding): say the person has an onboarding or access
+  request still being provisioned, so onboarding cannot be started or
+  rescheduled through the API now, and stop.
+- `offboarding_planned` (Offboarding scheduled), `offboarding`, `offboarded`,
+  or `inactive`: stop and explain that this person cannot be onboarded from
   here.
 - Any other status: stop and say the person's state could not be
   classified.
@@ -199,11 +200,11 @@ question and ask nothing else in that message. For example:
 After the warning for an active person:
 
 > Ready to onboard:
-> - Mike Carter, mike@company.com, active
+> - Mike Carter, mike@company.com, Active
 > - Manager: Dana Lee
 > - Start: now
 >
-> This switches Mike Carter to onboarding and provisions the access Mike
+> This switches Mike Carter to Onboarding and provisions the access Mike
 > Carter's access template matches now. OK to onboard?
 
 For a reschedule:
@@ -265,8 +266,8 @@ add. Re-read the email with `GET /users?email=<email>&status=all&limit=100`,
 say plainly that nothing was added, and continue only through step 3 with a
 fresh confirmation. On one from the onboarding, re-read the person with
 `GET /users/{user_id}` and say plainly why (for example the start date must
-be in the future, or onboarding has already started and cannot be
-rescheduled) and that nothing changed. For a start date that has passed,
+be in the future, or the person has an onboarding or access request still
+being provisioned) and that nothing changed. For a start date that has passed,
 offer now or a new date, with a new confirmation. Never resend it or switch
 to another action on your own.
 
@@ -280,8 +281,8 @@ confirmed onboarding may follow. For the onboarding, re-read
 `GET /users/{user_id}`. For a reschedule to a new date, the re-read cannot
 show the date: after an uncertain outcome, report the new date as unverified
 and suggest checking the person's profile in AccessOwl. In every other case,
-onboarding scheduled after a confirmed date, or onboarding started after a
-confirmed now, means it is verified. If nothing is verified, report the
+Provisioning planned after a confirmed date, or Onboarding after a confirmed
+now, means it is verified. If nothing is verified, report the
 outcome as unknown and stop remaining writes. Sending it again with a fresh
 key needs a new confirmation.
 
@@ -289,14 +290,15 @@ key needs a new confirmation.
 
 Report the status from the re-read in plain words:
 
-- `onboarding_provisioning_planned`: onboarding scheduled for the confirmed
+- `onboarding_provisioning_planned`: Provisioning planned for the confirmed
   date.
 - `onboarding`: onboarding started now.
 
 For example:
 
-> Sarah Lee was added to AccessOwl. Onboarding is scheduled for 2026-10-05,
-> when AccessOwl provisions the access Sarah Lee's access template matches.
+> Sarah Lee was added to AccessOwl. Onboarding is scheduled for 2026-10-05
+> (Provisioning planned), when AccessOwl provisions the access Sarah Lee's
+> access template matches.
 
 For a reschedule:
 
@@ -321,8 +323,8 @@ template matched. Never describe onboarding as changing the person's details.
 - Describe what you are doing as "adding the person" and "onboarding".
   Never describe onboarding as editing a person's details or as granting
   specific access.
-- Show statuses in plain words: active, onboarding scheduled, onboarding
-  started, offboarding planned, offboarding, offboarded, or inactive.
+- Show statuses by their AccessOwl labels: Active, Provisioning planned,
+  Onboarding, Offboarding scheduled, Offboarding, Offboarded, or Inactive.
 - Refer to people by name, not by pronoun.
 - Write email addresses as plain text, not links.
 - Always state what you will NOT do and why (details not editable here,

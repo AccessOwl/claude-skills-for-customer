@@ -82,7 +82,9 @@ commas, for example `2. Business Owner, Mike Carter`.
 - `approver_types`: Manager, Application Admin, Business Owner
 - `specific_approver_user_ids`: the person's name. If a named approver's
   status is `inactive`, `offboarding_planned`, `offboarding`, or `offboarded`,
-  show it after the name.
+  show its AccessOwl label after the name: (Inactive), (Offboarding
+  scheduled), (Offboarding), or (Offboarded), for example
+  `Mike Carter (Offboarding scheduled)`.
 - `strategy`: `first_to_respond` means one approval is enough, `all` means
   every approver in the step must approve. Mark every `all` step with
   `(all must approve)`. Never mark `first_to_respond` steps.

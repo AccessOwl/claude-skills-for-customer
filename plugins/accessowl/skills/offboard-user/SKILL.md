@@ -64,9 +64,10 @@ folder and follow it. The essentials:
 
 Be fast. Fetch only what you need and do not narrate lookup steps. The user
 should see at most two messages: the confirmation question and the result,
-plus the separate warning when the person has not finished onboarding or is
-inactive. If something is missing (who, now or a date, or the timezone),
-first run every lookup you can, then ask for all of it in one message.
+plus the separate warning when the person's status is Provisioning planned,
+Onboarding, or Inactive. If something is missing (who, now or a date, or the
+timezone), first run every lookup you can, then ask for all of it in one
+message.
 
 ## Workflow
 
@@ -98,31 +99,36 @@ Read the person with `GET /users/{user_id}` and act on the exact `status`.
 Always show the person's email in the warning and the confirmation.
 
 - `active`: offboard, now or on a date (step 3).
-- `onboarding_provisioning_planned` (onboarding scheduled) or `onboarding`
-  (onboarding started): warn plainly that this person has not finished
-  onboarding yet, and ask whether to continue with offboarding. This is its
-  own question, not the confirmation; never combine the warning and the
-  confirmation in one message. Only after a yes, go on to step 3. For
-  example:
+- `onboarding_provisioning_planned` or `onboarding`: warn plainly that this
+  person has an onboarding scheduled (Provisioning planned) or an onboarding
+  or access request still being provisioned (Onboarding), and ask whether to
+  continue with offboarding. This is its own question, not the confirmation;
+  never combine the warning and the confirmation in one message. Only after
+  a yes, go on to step 3. For example:
 
-  > Sarah Lee, sarah@company.com, has not finished onboarding yet
-  > (onboarding scheduled). Offboarding sends the offboarding notice and
-  > revokes the access AccessOwl tracks for Sarah Lee.
+  > Sarah Lee, sarah@company.com, has an onboarding scheduled (Provisioning
+  > planned). Offboarding sends the offboarding notice and revokes the
+  > access AccessOwl tracks for Sarah Lee.
   >
   > Continue with offboarding?
 
-- `offboarding_planned` (offboarding planned): offer only a reschedule, to a
-  new date, or to now when the user explicitly asks for now.
-- `offboarding` (being offboarded): say offboarding is already underway, so
+- `offboarding_planned` (Offboarding scheduled): offer only a reschedule, to
+  a new date, or to now when the user explicitly asks for now. Until it runs,
+  a scheduled offboarding can be rescheduled here or cancelled on the
+  person's profile in AccessOwl.
+- `offboarding` (Offboarding): say offboarding is already underway, so
   nothing changes, and stop.
-- `offboarded`: say the person is already offboarded, so nothing changes,
-  and stop.
-- `inactive`: say the person is inactive in AccessOwl and ask whether to
-  continue with offboarding. This is its own question, not the confirmation.
+- `offboarded` (Offboarded): say the person is already offboarded, so
+  nothing changes, and stop. If the person returns, they are reactivated
+  with the Reactivate button on their profile in AccessOwl.
+- `inactive` (Inactive): say the person is inactive in AccessOwl, meaning
+  their account is suspended (for example extended leave) and their
+  assigned access stays in place, and ask whether to continue with
+  offboarding. This is its own question, not the confirmation.
   Only after a yes, go on to step 3. For example:
 
   > Sarah Lee, sarah@company.com, is inactive in AccessOwl, for example on
-  > extended leave.
+  > extended leave, and Sarah Lee's assigned access stays in place.
   >
   > Continue with offboarding?
 
@@ -191,7 +197,7 @@ For a date:
 For a reschedule to a new date:
 
 > Ready to reschedule offboarding for Jan Novak, jan@company.com:
-> - Offboarding planned, new date: 2026-10-15 at 20:00, America/Toronto
+> - Offboarding scheduled, new date: 2026-10-15 at 20:00, America/Toronto
 >
 > This moves Jan Novak's planned offboarding to 2026-10-15 at 20:00. OK to
 > reschedule?
@@ -199,7 +205,7 @@ For a reschedule to a new date:
 A reschedule to now carries the offboarding consequence sentence:
 
 > Ready to offboard now instead of the planned date:
-> - Jan Novak, jan@company.com, offboarding planned
+> - Jan Novak, jan@company.com, Offboarding scheduled
 > - When: now
 >
 > This sends the offboarding notice and revokes the access AccessOwl tracks
@@ -215,7 +221,7 @@ confirm again.
 Immediately before the write, re-fetch `GET /users/{user_id}` and require
 the same email and the same status as confirmed. If the status changed,
 explain what changed and go back to step 2 for the current status (a person
-who has not finished onboarding, or is inactive, gets the warning again),
+in Provisioning planned, Onboarding, or Inactive gets the warning again),
 then confirm again. Never write from the older snapshot.
 
 ### 6. Offboard
@@ -231,28 +237,28 @@ malformed, or mismatched response is an uncertain outcome, handled as
 described below.
 
 A `400` or `422` means AccessOwl did not accept the change. Re-read the
-person with `GET /users/{user_id}`. If the person is now being offboarded or
-is offboarded, say so plainly and that nothing changed. If the date was
-rejected, for example because it must be in the future, say so plainly and
-that nothing changed, then offer a new date or now, with a new confirmation.
-Never resend it or switch to now on your own.
+person with `GET /users/{user_id}`. If the person's status is now
+Offboarding or Offboarded, say so plainly and that nothing changed. If the
+date was rejected, for example because it must be in the future, say so
+plainly and that nothing changed, then offer a new date or now, with a new
+confirmation. Never resend it or switch to now on your own.
 
 After a timeout, network error, `5xx`, exhausted retries, a missing,
 malformed, or mismatched response, or a same-key replay returning `409`,
 re-read `GET /users/{user_id}` and report only verified state. A `409`
-proves only that the attempt was received. Offboarding planned after a
-confirmed date, or being offboarded or offboarded after a confirmed now,
-means it is verified. For a reschedule to a new date, the re-read cannot
-show the date: after an uncertain outcome, report the new date as
-unverified and suggest checking the person's profile in AccessOwl. If
-nothing is verified, report the outcome as unknown and stop remaining
-writes. Sending it again with a fresh key needs a new confirmation.
+proves only that the attempt was received. Offboarding scheduled after a
+confirmed date, or Offboarding or Offboarded after a confirmed now, means it
+is verified. For a reschedule to a new date, the re-read cannot show the
+date: after an uncertain outcome, report the new date as unverified and
+suggest checking the person's profile in AccessOwl. If nothing is verified,
+report the outcome as unknown and stop remaining writes. Sending it again
+with a fresh key needs a new confirmation.
 
 ### 7. Report the verified result
 
 Report the status from the re-read in plain words:
 
-- `offboarding_planned`: offboarding planned for the confirmed date and
+- `offboarding_planned`: offboarding scheduled for the confirmed date and
   time.
 - `offboarding` or `offboarded`: offboarding has started.
 
@@ -262,7 +268,7 @@ planned offboarding, add instead: "On that date, AccessOwl removes the
 access it can automatically, and Application Admins get a task for the
 rest."
 
-For a reschedule to a new date, the status stays offboarding planned and
+For a reschedule to a new date, the status stays Offboarding scheduled and
 the person's record does not show the date: after a `200`, report the new
 date as accepted by AccessOwl.
 
@@ -272,7 +278,7 @@ For example:
 > removes the access it can automatically, and Application Admins get a
 > task for the rest.
 
-> Offboarding for Jan Novak, jan@company.com, is planned for 2026-10-02 at
+> Offboarding for Jan Novak, jan@company.com, is scheduled for 2026-10-02 at
 > 20:00, America/Toronto. On that date, AccessOwl removes the access it
 > can automatically, and Application Admins get a task for the rest.
 
@@ -295,8 +301,8 @@ person's record does not show which access was revoked.
 - Describe what you are doing as "offboarding" and "rescheduling the
   offboarding". Never describe offboarding as deleting a person or as
   revoking specific access.
-- Show statuses in plain words: active, onboarding scheduled, onboarding
-  started, offboarding planned, being offboarded, offboarded, or inactive.
+- Show statuses by their AccessOwl labels: Active, Provisioning planned,
+  Onboarding, Offboarding scheduled, Offboarding, Offboarded, or Inactive.
 - Refer to people by name, not by pronoun.
 - Write email addresses as plain text, not links.
 - Always state what you will NOT do and why (no deleting, no cancelling
