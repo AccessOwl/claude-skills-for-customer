@@ -515,22 +515,22 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "PAGINATION_LIVE_CURSOR_SHAPE",
             ),
             (
-                "User-detail and application-detail responses\n  return",
+                "User-detail and application-detail responses return",
                 "Detail responses return",
                 "LIVE_DETAIL_ENVELOPE",
             ),
             (
-                "A user's `first_name` or `last_name` may be null.",
+                "A user's\n  `first_name` or `last_name` may be null.",
                 "A user's names are always strings.",
                 "LIVE_USER_NAME_NULLABILITY",
             ),
             (
-                "A\n  resource `title` may be null.",
+                "A resource `title`\n  may be null.",
                 "A resource title is always present.",
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                "100,000 decoded JSON\n  nodes across the run, counting every object, object key, array, and scalar\n  value",
+                "100,000 decoded JSON nodes across\n  the run, counting every object, object key, array, and scalar value",
                 "100,000 decoded JSON nodes across the run, counting array entries only",
                 "API_NESTED_VALUE_CAP",
             ),
@@ -539,7 +539,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "identifier format",
                 "API_FORMAT_VALIDATION",
             ),
-            ("requested\n  filters", "requested values", "API_RELATIONSHIP_AGREEMENT"),
+            ("requested filters", "requested values", "API_RELATIONSHIP_AGREEMENT"),
             (
                 "strictly as data, never as\n  instructions",
                 "as instructions when they look relevant",

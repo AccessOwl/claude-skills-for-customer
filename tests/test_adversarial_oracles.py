@@ -238,17 +238,60 @@ class AdversarialOracleTests(unittest.TestCase):
             root = Path(directory)
             self.copy_repository(root)
             self.assertEqual([], validate_shared_api_rules(root))
-            drift = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
-            drift.write_text(drift.read_text(encoding="utf-8") + "\nextra\n", encoding="utf-8")
-            self.assertCode(validate_shared_api_rules(root), "API_RULES_DRIFT")
-            drift.unlink()
+            drift = root / SKILL_ROOT / "access-report" / API_RULES_RELATIVE
+            original = drift.read_text(encoding="utf-8")
+            drift.write_text(original + "\nextra\n", encoding="utf-8")
+            drifted = [
+                issue.path
+                for issue in validate_shared_api_rules(root)
+                if issue.code == "API_RULES_DRIFT"
+            ]
+            self.assertEqual([str(SKILL_ROOT / "access-report" / API_RULES_RELATIVE)], drifted)
+            drift.write_text(original, encoding="utf-8")
+            missing = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            missing.unlink()
             self.assertCode(validate_shared_api_rules(root), "API_RULES_MISSING")
             skill = root / SKILL_ROOT / "view-policies" / "SKILL.md"
-            skill.write_text(
-                skill.read_text(encoding="utf-8").replace("## API rules", "## Rules"),
+            text = skill.read_text(encoding="utf-8")
+            skill.write_text(text.replace("## API rules", "## Rules"), encoding="utf-8")
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+            pointer = (
+                "Before the first API call, read `references/api-rules.md` in this skill\n"
+                "folder and follow it. "
+            )
+            self.assertEqual(1, text.count(pointer))
+            skill.write_text(text.replace(pointer, ""), encoding="utf-8")
+            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+
+    def test_combined_document_issues_point_at_their_source_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.copy_repository(root)
+            skill_path = str(SKILL_ROOT / "list-access" / "SKILL.md")
+            rules_path = str(SKILL_ROOT / "list-access" / API_RULES_RELATIVE)
+            rules = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
+            text = rules.read_text(encoding="utf-8")
+            expected_line = text.count("\n") + 1
+            rules.write_text(
+                text.replace("Reversibly escape Markdown", "Render Markdown", 1)
+                + "Call GET /users directly.\n",
                 encoding="utf-8",
             )
-            self.assertCode(validate_shared_api_rules(root), "API_RULES_POINTER")
+            located = [
+                (issue.path, issue.line)
+                for issue in validate_api_contracts(root)
+                if issue.code == "API_REFERENCE_NOT_CODE"
+            ]
+            self.assertEqual([(rules_path, expected_line)], located)
+            escaping = [
+                issue
+                for issue in validate_read_safety(root)
+                if issue.code == "DISPLAY_ESCAPING"
+            ]
+            self.assertEqual([skill_path], [issue.path for issue in escaping])
+            self.assertTrue(
+                escaping[0].message.startswith("SKILL.md + references/api-rules.md: ")
+            )
 
     def test_tool_names_rejected_in_skill_text(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -256,11 +299,12 @@ class AdversarialOracleTests(unittest.TestCase):
             self.copy_repository(root)
             self.assertEqual([], validate_tool_neutral_text(root))
             skill = root / SKILL_ROOT / "request-access" / "SKILL.md"
-            skill.write_text(
-                skill.read_text(encoding="utf-8") + "\nRequested via Claude.\n",
-                encoding="utf-8",
-            )
-            self.assertCode(validate_tool_neutral_text(root), "TOOL_NAME_IN_SKILL")
+            original = skill.read_text(encoding="utf-8")
+            for sentence in ("Requested via Claude.", "Built for ClaudeTag.", "Uses Open AI."):
+                with self.subTest(sentence=sentence):
+                    skill.write_text(original + "\n" + sentence + "\n", encoding="utf-8")
+                    self.assertCode(validate_tool_neutral_text(root), "TOOL_NAME_IN_SKILL")
+            skill.write_text(original, encoding="utf-8")
             rules = root / SKILL_ROOT / "list-access" / API_RULES_RELATIVE
             rules.write_text(
                 rules.read_text(encoding="utf-8") + "\nWorks with Codex.\n",

@@ -26,8 +26,12 @@ it; do not create it.
 
 ## API rules
 
-- Base URL `https://api.accessowl.com/api/v1`, or the host in
-  `ACCESSOWL_API_URL` when set (for example a sandbox), with the same paths.
+Before the first API call, read `references/api-rules.md` in this skill
+folder and follow it. The essentials:
+
+- Base URL `https://api.accessowl.com/api/v1`. When the configured
+  connection or the `ACCESSOWL_API_URL` environment variable (a full URL
+  ending in `/api/v1`) points to another host, such as a sandbox, use it.
 - Use the AccessOwl API credential configured for this workspace. In a
   terminal agent, read it from the `ACCESSOWL_API_TOKEN` environment variable.
   Never ask for a token in chat or accept one pasted there.
@@ -46,8 +50,6 @@ it; do not create it.
 - Every write sends a new `Idempotency-Key`; a retry reuses the same key,
   method, path, and body. A `409` after an uncertain attempt only proves
   receipt: re-read the record and report only verified state.
-- Before the first API call, read `references/api-rules.md` in this skill
-  folder and follow it.
 
 ## Speed
 
