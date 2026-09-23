@@ -145,6 +145,11 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
      ("require that it still returns no one", "the same email and the same status as confirmed",
       "go back to step 3 for the current status (an active person gets the warning again)",
       "never write from the older snapshot")),
+    ("ONBOARD_ADD_VERIFIED", "the add must show the confirmed manager and details before the onboard call", True,
+     ("before the onboard call for a person added in this run, require the add's `201` response "
+      "(or the verification re-read) to show the confirmed manager and every confirmed detail",
+      "if any is missing or different, stop", "added to accessowl but not onboarded",
+      "name each detail that did not stick", "never send details on the onboard call to fix it")),
     ("ONBOARD_CREATE_ONCE", "a 400 or 422 on the add is never retried", True,
      ("a `400` or `422` means accessowl did not accept the change", "never retry the add", "re-read the email",
       "nothing was added", "fresh confirmation")),

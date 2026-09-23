@@ -242,7 +242,8 @@ The documented success status is `200` with the request. Require the same
 request ID, person, application, resource, and permissions, with status
 `denied` after a deny or `rejected` after a reject, and `termination_reason`
 equal to the confirmed reason. A missing, malformed, mismatched, or
-other-status response is an uncertain outcome and stops all remaining writes.
+other-status response is an uncertain outcome and stops all remaining writes,
+even if a re-read then shows it closed.
 
 After every `200`, re-read `GET /access_requests/{access_request_id}` and
 require the same closed status and `termination_reason`. If the re-read fails

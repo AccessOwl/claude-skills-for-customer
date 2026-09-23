@@ -67,9 +67,10 @@ result.
 ## Workflow
 
 If the user says the removal already happened in the application, or refers
-to an existing pending revocation or task ("close", "mark done", "cancel the
-revocation", "keep the access"), follow **Close a pending revocation**. If
-the user wants access to end, create a revocation. If unclear, ask.
+to an existing pending revocation or task ("close the task", "mark it done",
+"mark the revocation as done", "cancel the revocation", "keep the access"),
+follow **Close a pending revocation**. If the user wants access to end,
+create a revocation. If unclear, ask.
 
 ### 1. Establish who and which application
 
@@ -108,11 +109,13 @@ At the same time, list
 `GET /access_revocations?user_id=<user_id>&application_id=<application_id>&limit=100`.
 If a pending (`processing_access`) revocation already covers an entry, with
 the same resource and complete permission set (null `permission_ids` means no
-permissions), do not create a duplicate for it. Say one is already pending
-and offer to close it instead (see **Close a pending revocation**):
+permissions), do not create a duplicate for it. Say a revocation for that
+entry is already pending, naming the entry, and offer to close it instead
+(see **Close a pending revocation**):
 
-> A revocation for this is already pending. If Jan was already removed from
-> Figma, I can mark it revoked; if the access should stay, I can reject it.
+> A revocation for Jan Levinson's Figma Editor access is already pending. If
+> Jan Levinson was already removed from Figma, I can mark it revoked; if the
+> access should stay, I can reject it.
 
 A single access entry can carry several permissions (check
 `target_permission_ids`). A revocation always covers the WHOLE entry; the
@@ -168,8 +171,8 @@ In the same pre-write refetch, list
 `GET /access_revocations?user_id=<user_id>&application_id=<application_id>&limit=100`
 and record every returned revocation ID as the pre-create snapshot. If a
 pending revocation now covers that state's resource and complete permission
-set, skip the state, say one is already pending, and offer to mark it
-revoked or rejected instead.
+set, skip the state, say a revocation for that entry is already pending,
+naming the entry, and offer to mark it revoked or rejected instead.
 
 For each still-selected access state, use `POST /access_revocations` with
 `access_state_id` and the exact confirmed `reason`, and a separate fresh
@@ -247,7 +250,8 @@ that the access should stay.
 
 ### Find the pending revocation
 
-1. If the person or application is missing, ask for both in one message.
+1. If the person or application is missing, ask for both in one message;
+   for a reject, ask for a missing reason in that same message.
    Resolve the person via `GET /users?status=all&limit=100` and the
    application via `GET /applications?title_like=<title>&limit=100`, with the
    rules of Workflow step 1: exactly one person, and one nonblank application
@@ -266,7 +270,7 @@ that the access should stay.
    If two pending revocations still share a label, ask the user to inspect
    them in AccessOwl.
 
-### Before either close
+### Rules for either close
 
 - Immediately before the `POST`, refetch
   `GET /access_revocations/{access_revocation_id}` and require the same
@@ -280,8 +284,9 @@ that the access should stay.
 - A `422` usually means the revocation was already closed. Re-read the same
   record; if it is already revoked or rejected, say so plainly and that
   nothing changed. Otherwise report a validation failure in plain language.
-- After an uncertain retry returns `409`, re-read the same record and report
-  only its verified status.
+- After any uncertain close (a `409` on a same-key replay, exhausted
+  retries, or a malformed response), do not resubmit; re-read the same
+  record and report only its verified status.
 
 ### Mark a pending revocation revoked
 
@@ -301,7 +306,7 @@ that the access should stay.
 > OK to mark it revoked?
 
 4. Send `POST /access_revocations/{access_revocation_id}/revoke` with no body
-   and a fresh `Idempotency-Key`, following **Before either close**. Report
+   and a fresh `Idempotency-Key`, following **Rules for either close**. Report
    the verified status:
    - `revoked`: "Marked the Figma revocation for Jan Levinson as revoked."
    - `rejected`: AccessOwl found no current access left to revoke. Say the
@@ -315,7 +320,8 @@ revocation".
 
 1. Find the pending revocation as above.
 2. A `reason` is required (max 255 characters). Ask for one if none was
-   given. Faithfully shorten a longer reason to 255 characters or fewer
+   given, in the same message as a missing person or application.
+   Faithfully shorten a longer reason to 255 characters or fewer
    before confirmation and before sending.
 3. Confirm in one short message that says plainly the access stays, and do
    not write before a clear yes:
@@ -330,7 +336,7 @@ revocation".
 
 4. Send `POST /access_revocations/{access_revocation_id}/reject` with body
    `{"reason": "<reason>"}`, the exact confirmed reason, and a fresh
-   `Idempotency-Key`, following **Before either close**. Require the
+   `Idempotency-Key`, following **Rules for either close**. Require the
    verified status `rejected`, then report: "Rejected the Notion revocation
    for Tom Smith. Tom Smith keeps the access." Any other status or a
    mismatched response is an unknown outcome.

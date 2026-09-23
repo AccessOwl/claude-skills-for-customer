@@ -121,8 +121,8 @@ type, in one message.
 
 Read the person with `GET /users/{user_id}` and act on the exact `status`.
 Every onboard call sends only `scheduled_at`, so onboarding never changes an
-existing person's details. Always show the person's email in the warning and the
-confirmation.
+existing person's details. Always show the person's email in the warning and
+the confirmation.
 
 - `active`: first check the manager (see below). Then warn plainly that
   onboarding switches the person to Onboarding, provisions whatever access
@@ -252,6 +252,13 @@ Every onboard call sends only `scheduled_at`: the body is
 `{"scheduled_at": "<scheduled_at>"}` for a confirmed date and `{}` for now.
 Never send details on any onboard call.
 
+Before the onboard call for a person added in this run, require the add's
+`201` response (or the verification re-read) to show the confirmed manager
+and every confirmed detail. If any is missing or different, stop: say
+plainly that the person was added to AccessOwl but not onboarded, name each
+detail that did not stick, and never send details on the onboard call to
+fix it.
+
 After a `201` or `200`, re-read the person with `GET /users/{user_id}`. A
 missing, malformed, or mismatched response is an uncertain outcome, handled
 as described below.
@@ -276,8 +283,9 @@ malformed, or mismatched response, or a same-key replay returning `409`,
 re-read the state and report only verified state. A `409` proves only that
 the attempt was received. For the add, re-read
 `GET /users?email=<email>&status=all&limit=100`: one person with the
-confirmed email, first name, and last name means the add is verified and the
-confirmed onboarding may follow. For the onboarding, re-read
+confirmed email, first name, and last name means the add is verified; the
+confirmed onboarding may follow only after the same manager and detail
+check. For the onboarding, re-read
 `GET /users/{user_id}`. For a reschedule to a new date, the re-read cannot
 show the date: after an uncertain outcome, report the new date as unverified
 and suggest checking the person's profile in AccessOwl. In every other case,

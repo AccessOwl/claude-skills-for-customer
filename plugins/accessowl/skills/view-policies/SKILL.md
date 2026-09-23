@@ -57,7 +57,8 @@ for a lookup.
 
 ## How policies work
 
-- An application with no dedicated policy follows the **Default** policy.
+- An application with no ordinary policy of its own follows the **Default**
+  policy.
 - An **elevated** policy applies only to elevated (admin-level) permission
   requests for the applications it covers. It is not organization-wide.
 - A policy with no approval steps approves its requests automatically.
@@ -106,8 +107,8 @@ one default exists. If several ordinary policies include it, list them all
 without picking one.
 
 > You have 3 approval policies:
-> - **Default Policy** (default): applies to every application without a
->   dedicated policy
+> - **Default Policy** (default): applies to every application without its
+>   own ordinary policy
 >   1. Manager
 > - **For High Risk Apps** (elevated): 17hats, 1Password, admin-level
 >   permissions only
