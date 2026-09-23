@@ -14,6 +14,8 @@ description: >
 
 Mark one fully approved manual access request as granted through the AccessOwl
 API. This is a direct write. It is not approval and it is not a new request.
+A request that should not be granted is closed with the `close-request` skill
+(deny or reject).
 
 Use this skill only when the application's `provisioning_type` is
 `application_admin` and the exact request status is `processing_access`. That

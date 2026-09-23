@@ -19,7 +19,8 @@ This skill only **requests** access. It never approves or provisions anything.
 Only a returned `pending_approval` status means the request is awaiting
 approval. Classify every returned status exactly instead of promising one
 approval path. Never call the grant endpoint here; use `grant-access` as a
-separate confirmed workflow for eligible approved manual requests.
+separate confirmed workflow for eligible approved manual requests. Onboarding
+a new hire uses the `onboard-user` skill.
 
 ## API rules
 

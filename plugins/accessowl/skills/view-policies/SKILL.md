@@ -22,10 +22,11 @@ application list with no protection against a concurrent change.
 The API returns each policy's title, whether it is the default policy, whether
 it is an elevated (admin-level) policy, the applications it covers, and its
 approval steps. It cannot create, edit, or delete policies or change who
-approves. The Default fallback and the auto-approval of a policy with no steps
-are AccessOwl product behavior outside the OpenAPI schema, not API-verified
-configuration. For any exact current configuration beyond what the API
-returns, point the user to AccessOwl under Settings, then Policies.
+approves. The OpenAPI documents that a policy with no approval steps
+auto-approves its requests. The Default fallback is AccessOwl product
+behavior outside the OpenAPI schema, not API-verified configuration. For any
+exact current configuration beyond what the API returns, point the user to
+AccessOwl under Settings, then Policies.
 
 ## API rules
 
