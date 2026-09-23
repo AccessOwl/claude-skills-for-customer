@@ -50,13 +50,7 @@ Then, as a Claude organization admin:
 1. **Fork this repository.** Fork `github.com/AccessOwl/claude-skills-for-customer` into a **private** repository in your organization's GitHub account. Claude only accepts private or internal repositories as organization plugin sources, so your fork is what Claude syncs from.
 2. **Connect your fork.** In claude.ai, go to **Organization settings > Plugins**, add your fork via **Sync from GitHub** (installing the Claude GitHub App on it if prompted), and leave **Sync automatically** on.
 3. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **AccessOwl Skills**.
-4. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
-
-```text
-For anything about access, applications, users, or policies, always use
-the skills from the AccessOwl Skills plugin. Do not answer AccessOwl
-questions without them.
-```
+4. **Add the recommended instructions.** Paste the [recommended instructions](#recommended-instructions) into the custom instructions for your workspace or your access channel.
 
 That's it. Mention `@Claude` in your access channel and ask.
 
@@ -69,7 +63,8 @@ No fork needed. Run:
 /plugin install claudetag-for-accessowl@accessowl-claude-skills
 ```
 
-Then set your credentials as described below.
+Then add the recommended instructions and set your credentials as described
+below.
 
 ## Install in Codex
 
@@ -80,7 +75,31 @@ codex plugin marketplace add AccessOwl/claude-skills-for-customer
 codex plugin add accessowl-skills@accessowl-skills
 ```
 
-Then set your credentials as described below.
+Then add the recommended instructions and set your credentials as described
+below.
+
+## Recommended instructions
+
+Give every assistant the same instructions, so each one uses the skills and
+waits for your yes before it changes anything, even when a request is phrased
+as a direct command:
+
+```text
+For anything about AccessOwl access, applications, users, or policies, use the AccessOwl skills and follow them exactly, including their confirmation step: never create, change, close, or delete anything in AccessOwl until you have shown the skill's confirmation message and the person asking has answered yes to that message, even when the request is phrased as a direct command. Do not mention the skills or link their files in your replies.
+```
+
+- **Claude Tag:** paste it into the custom instructions for your workspace or
+  your access channel.
+- **Claude Code:** put it in an `AGENTS.md` file at the root of your project.
+  Claude Code reads it automatically when the project has no `CLAUDE.md`. If
+  the project has a `CLAUDE.md`, add the line `@AGENTS.md` to it. To use it in
+  every project, put the text in `~/.claude/CLAUDE.md`
+  ([Claude Code memory](https://code.claude.com/docs/en/memory)).
+- **Codex:** put it in an `AGENTS.md` file at the root of your project. To use
+  it in every project, put it in `~/.codex/AGENTS.md` (or
+  `$CODEX_HOME/AGENTS.md`). Some Codex versions have not loaded the global
+  file, so the project file is the most reliable
+  ([Codex AGENTS.md](https://developers.openai.com/codex/guides/agents-md)).
 
 ## Credentials for terminal assistants
 

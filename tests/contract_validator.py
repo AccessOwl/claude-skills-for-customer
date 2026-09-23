@@ -167,7 +167,7 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "a40e1147e366c761ab4f98fc55a44f2d83ec3ce9c54d3ae8b08e1edffece7029",
+    Path("README.md"): "2d7fa539b7bbd2e860a42ec70d379af7934787527f203c434f79bb2f3980aed7",
     Path("SKILL_STYLE.md"): "f107d23881f0fd5b0db00af325c5131618f399292dcb416544a922e3cae53a68",
     SKILL_ROOT / "access-report" / "SKILL.md": "125d63c3e5c1a171b8174e1a6ebd4aaba787e348b9524831f1aee533200563b3",
     SKILL_ROOT / "close-request" / "SKILL.md": "90cf2f6513cce77b9891366c4b8b48c285081edad424d8ff6a48dc3314038011",
