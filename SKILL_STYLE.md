@@ -26,7 +26,10 @@ Every SKILL.md has, in this order:
    - The AccessOwl API credential configured for the workspace, or the
      `ACCESSOWL_API_TOKEN` environment variable in a terminal agent. Never
      ask for a token in chat or accept one pasted there.
-   - `401`, billing-redirect, and `403` stops with the correct remedy.
+   - `401`: the credential is missing or invalid. In a workspace, an
+     organization admin must reconnect it; in a terminal, check
+     `ACCESSOWL_API_TOKEN`. Billing redirect: the API is not enabled,
+     contact AccessOwl. `403`: the credential lacks permission. Stop on each.
    - `429` with an integer `Retry-After` of 0 to 60 seconds and at most three
      retries; a network error or `5xx` at most two retries; then stop as
      incomplete.
@@ -62,19 +65,22 @@ Every SKILL.md has, in this order:
    - Describe request actions as "submitting requests". The grant skill says
      "mark the approved request granted" only after confirmation and verified
      state. Never describe either action as approving a request.
-   - Refer to people by name, never by gendered pronoun. In the confirmation
-     of a change that cannot be undone, show each person's name and email.
-   - Show statuses by their AccessOwl UI labels: Provisioning planned,
-     Onboarding, Active, Inactive, Offboarding scheduled, Offboarding, and
-     Offboarded.
    - Write email addresses as plain text, not links.
    - State what you will NOT do and why before stating what you will do.
    - Be brief. One short confirmation question beats three long ones. Do not
      narrate matching steps unless something needs the user's attention.
 
+Apply these wherever the skill names people or statuses:
+
+- Refer to people by name, never by gendered pronoun. In the confirmation of
+  a change that cannot be undone, show each person's name and email.
+- Show statuses by their AccessOwl UI labels: Provisioning planned,
+  Onboarding, Active, Inactive, Offboarding scheduled, Offboarding, and
+  Offboarded.
+
 Skill text never names an AI tool or vendor; it says "the assistant". Reason
-text sent to AccessOwl says "via AI assistant", for example "Requested by
-<name> via AI assistant".
+text the assistant composes says "via AI assistant", for example "Requested
+by <name> via AI assistant".
 
 ## Confirmation format
 

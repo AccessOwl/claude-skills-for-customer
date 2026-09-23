@@ -8,9 +8,7 @@ for AI assistants. They work in [Claude Tag](https://claude.com/docs/claude-tag/
 are built on the [AccessOwl REST API](https://docs.accessowl.com/api-reference/introduction).
 Read-only questions are answered in one message. Every change is confirmed
 once with you before anything is written. Requests follow your AccessOwl
-approval policies, and the assistant never approves a request. AccessOwl
-returns each access request's workflow status, and only `pending_approval` is
-described as awaiting approval.
+approval policies, and the assistant never approves a request.
 
 Ask things like:
 
@@ -87,8 +85,8 @@ Then set your credentials as described below.
 ## Credentials for terminal assistants
 
 Claude Code and Codex read your AccessOwl API token from the environment.
-Create an API token in AccessOwl, then set it in the shell you start the
-assistant from:
+Create an API token in AccessOwl under Settings, then API Tokens, and set it
+in the shell you start the assistant from:
 
 ```bash
 export ACCESSOWL_API_TOKEN="your-token"
@@ -96,12 +94,11 @@ export ACCESSOWL_API_TOKEN="your-token"
 export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
 ```
 
-- When both a configured connection and `ACCESSOWL_API_URL` are set, the
-  environment variable wins.
+- `ACCESSOWL_API_URL` overrides any other configured AccessOwl host.
 - Never paste a token into the chat. The assistant never asks for one and
   never accepts one pasted there.
 - Any change (requests, grants, closing requests, imports, onboarding,
-  offboarding, vendor updates) needs a token with write scope.
+  offboarding, vendor updates) needs a token with write permission.
 
 ## Good to know
 
@@ -109,8 +106,8 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
   approval policies, and the assistant reports its returned workflow
   status: only `pending_approval` means it is awaiting approval. A
   revocation request may begin removal immediately, depending on the
-  application, so it is always confirmed first. The revocation skill can also mark a pending revocation
-  revoked or rejected after you confirm.
+  application, so it is always confirmed first. The revocation skill can
+  also mark a pending revocation revoked or rejected after you confirm.
 - The grant skill records that a fully approved manual request was set up,
   then verifies the resulting access. The close skill denies or rejects only
   the open requests you confirm; it never grants them.
@@ -139,17 +136,22 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
   change that cannot be undone.
 - Statuses use the AccessOwl labels: Provisioning planned, Onboarding,
   Active, Inactive, Offboarding scheduled, Offboarding, and Offboarded.
-- New conversations pick up skill updates automatically; ongoing ones keep
-  the version they started with.
 
 ## Staying up to date
 
 - **Claude Tag:** Claude syncs from your fork, so pull upstream changes with
   GitHub's **Sync fork** button when a new version ships, or enable Actions
   on your fork once and the bundled `sync-upstream` workflow pulls them in
-  daily.
-- **Claude Code:** run `/plugin marketplace update accessowl-claude-skills`.
-- **Codex:** run `codex plugin marketplace upgrade`.
+  daily. New conversations pick up skill updates automatically; ongoing ones
+  keep the version they started with.
+- **Claude Code:** run the commands below, then restart Claude Code.
+
+  ```bash
+  claude plugin marketplace update accessowl-claude-skills
+  claude plugin update claudetag-for-accessowl@accessowl-claude-skills
+  ```
+
+- **Codex:** run `codex plugin marketplace upgrade accessowl-skills`.
 
 ## Learn more
 
@@ -157,3 +159,10 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
 - [Connect Claude Tag to AccessOwl](https://docs.accessowl.com/guides/ai/claude-in-slack), the full Claude Tag setup guide
 - [Manage access with Claude Tag](https://docs.accessowl.com/guides/ai/claude-workflows), conversation examples per use case
 - [AccessOwl API reference](https://docs.accessowl.com/api-reference/introduction), everything the skills are built on
+
+## Releasing
+
+Updates are detected by version, so every release bumps `version` in
+`.claude-plugin/marketplace.json`,
+`plugins/accessowl/.claude-plugin/plugin.json`, and
+`plugins/accessowl/.codex-plugin/plugin.json` together.

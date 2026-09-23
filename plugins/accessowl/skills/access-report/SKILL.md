@@ -37,9 +37,10 @@ folder and follow it. The essentials:
 - Use the AccessOwl API credential configured for this workspace. In a
   terminal agent, read it from the `ACCESSOWL_API_TOKEN` environment variable.
   Never ask for a token in chat or accept one pasted there.
-- `401`: the credential is missing or invalid, an organization admin must
-  reconnect it. Billing redirect: the API is not enabled, contact AccessOwl.
-  `403`: the credential lacks permission. Stop on each.
+- `401`: the credential is missing or invalid. In a workspace, an
+  organization admin must reconnect it; in a terminal, check
+  `ACCESSOWL_API_TOKEN`. Billing redirect: the API is not enabled, contact
+  AccessOwl. `403`: the credential lacks permission. Stop on each.
 - `429`: honor an integer `Retry-After` of 0 to 60 seconds, at most three
   retries. Network error or `5xx`: at most two retries. Then stop as
   incomplete.
