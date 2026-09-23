@@ -59,8 +59,8 @@ folder and follow it. The essentials:
 Be fast. Never ask permission before a read-only lookup. Fetch the
 application's structure, the user directory, and its current access in
 parallel. Besides the import confirmation, ask for at most two inputs
-(application, CSV), and only when they are missing. When nothing blocks, send
-the corrections and the preview in one message.
+(application, CSV), and only when they are missing. When nothing is open,
+send the corrections and the preview in one message.
 
 ## Workflow
 
@@ -206,35 +206,28 @@ stay. If removing an entitlement is not intended, offer to restore it to the
 proposed rows. If an
 active state has no linked `grantee_user`, count it as an unresolved current
 account, call it **Unlinked account**, do not expose its internal ID, and block
-the import until a fresh read links it to a person (step 5).
+the import until a fresh read clears it or the user chooses to remove it
+(step 5).
 An active state with `resource_id: null` is application-wide access that the
 resource-based rows cannot represent. Treat it as an unresolved blocker and
-withhold the preview and the import until a fresh read no longer shows it
-(step 5); never silently drop or invent a column for it.
+withhold the preview and the import until a fresh read clears it or the user
+chooses to remove it (step 5); never silently drop or invent a column for it.
 
 ### 5. Report open items
 
 Two kinds of open items stop the flow:
 
-- **Decisions** the user answers: a value with no plausible match, a flagged
-  user status, or a row that leaves a mandatory resource empty.
+- **Decisions** the user answers: a CSV value with no match or two possible
+  matches, a flagged user status, a row that leaves a mandatory resource
+  empty, and the mandatory-resource question from step 2, until the user
+  names resources or says to skip it.
 - **Blockers** in AccessOwl data: an unlinked account, application-wide
-  access, an unusable or ambiguous title, or a missing permission. A blocker
-  clears only when a fresh read no longer shows the problem, never because
-  the user says it is fine. If the user explicitly wants that access gone,
-  list it under Removed instead, for example "Unlinked account (Admin)" or
-  "Priya Patel: access to all of Notion".
-
-**Missing permissions.** If the CSV contains permissions that genuinely do not
-exist in the application, name each missing permission and tell the user to
-add it to the named resource in AccessOwl, then rerun the check. Do not call
-`PUT /applications/{id}/structure`. The documented operation is a partial
-upsert: omitted resources and permissions remain untouched, and deletion
-requires an existing ID plus `delete: true`. The resource read does not expose
-the optional `lock_version` accepted by the write, and updating the existing
-resource requires resending its title. Without a usable version token, an API
-write could overwrite a concurrent title change. Do not preview or import
-until a fresh read confirms every permission.
+  access, an unusable or ambiguous title in AccessOwl, or a permission the
+  user wants to keep that AccessOwl lacks. A blocker clears only when a fresh
+  read no longer shows the problem, never because the user says it is fine.
+  If the user explicitly wants that access gone, list it under Removed
+  instead, for example "Unlinked account (Admin)" or "Priya Patel: access to
+  all of Notion".
 
 While anything is open, send one concise report with these short bullet
 groups:
@@ -266,6 +259,17 @@ was imported yet. Never ask to import while anything is open.
 >
 > Replacement warning: this import replaces the current user list. No current
 > user, resource, or permission is missing from the proposed rows.
+
+**Missing permissions.** If the CSV contains permissions that genuinely do not
+exist in the application, name each missing permission and tell the user to
+add it to the named resource in AccessOwl, then rerun the check. Do not call
+`PUT /applications/{id}/structure`. The documented operation is a partial
+upsert: omitted resources and permissions remain untouched, and deletion
+requires an existing ID plus `delete: true`. The resource read does not expose
+the optional `lock_version` accepted by the write, and updating the existing
+resource requires resending its title. Without a usable version token, an API
+write could overwrite a concurrent title change. Do not preview or import
+until a fresh read confirms every permission.
 
 When the user answers a decision ("all Members should be Users"), apply it,
 then run the checks again. If anything else is open, name only that and keep
@@ -311,7 +315,8 @@ Right before the question, state plainly:
 
 Then ask "OK to replace the <Application> user list?" Do not import before a
 clear yes. Only a yes given after this preview counts. An earlier "just import
-it" or "no need to confirm" is not the confirmation.
+it" or "no need to confirm" is not the confirmation. Never ask another
+question in the same message as the import question.
 
 > Ready to replace the Notion user list:
 > - Added (3): Dwight Schrute (Member), Priya Patel (Admin),
@@ -378,9 +383,9 @@ On `200`, require `data.created`, `data.updated`, `data.deleted`, and
 response is malformed. Then re-read the current access states with the same
 query and compare them per person with the confirmed target list. Report the
 result per person from that re-read. Use the counts only as a consistency
-check and label them as entries, never as people; if they plainly contradict
-the preview, such as no created, updated, or deleted entries when the preview
-had changes, report the result as unverified. If the re-read disagrees with
+check. Report them only as entries, never as people. If they plainly
+contradict the preview, such as no created, updated, or deleted entries when
+the preview had changes, report the result as unverified. If the re-read disagrees with
 the preview, list each difference as unverified instead of claiming the import
 succeeded.
 
@@ -391,7 +396,8 @@ out, when a same-key replay returns `409`, when a write redirect or an
 undocumented status arrives, or when the `200` response is malformed. Re-read
 the current access states with the same query and compare them with the
 confirmed target list and the pre-write baseline. Report which people are
-verified as imported and which are unknown, and stop there.
+verified as imported and which are unknown, and stop there. Any new attempt
+starts over at step 6 with a fresh preview.
 
 > Done. The Notion user list in AccessOwl now matches the file:
 > - Added: Dwight Schrute (Member), Priya Patel (Admin), erin@company.com

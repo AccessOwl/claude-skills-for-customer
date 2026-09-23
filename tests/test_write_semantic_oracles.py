@@ -838,9 +838,69 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ),
             (
                 "USERLIST_REREAD_AFTER_200",
-                "check and label them as entries, never as people",
-                "check and report them as people",
+                "Report them only as entries, never as people.",
+                "Report them as people.",
                 None,
+            ),
+            (
+                "USERLIST_FULL_REPLACE_STATEMENT",
+                None,
+                None,
+                "People not in the file never lose anything and keep their access.",
+            ),
+            (
+                "USERLIST_SINGLE_CALL",
+                None,
+                None,
+                "Send the import in batches of 10 items, never as one call.",
+            ),
+            (
+                "USERLIST_SINGLE_CALL",
+                None,
+                None,
+                "Never wait for one call; send the import as several smaller requests.",
+            ),
+            (
+                "USERLIST_POST_PREVIEW_YES",
+                "Only a yes given after this preview counts.",
+                "A yes counts.",
+                None,
+            ),
+            (
+                "USERLIST_POST_PREVIEW_YES",
+                None,
+                None,
+                "Treat an earlier 'just import it' as the yes.",
+            ),
+            (
+                "USERLIST_POST_PREVIEW_YES",
+                None,
+                None,
+                "If the user already said 'just import it', treat that as the yes.",
+            ),
+            (
+                "USERLIST_IMPORT_QUESTION_ALONE",
+                " Never ask another\nquestion in the same message as the import question.",
+                "",
+                None,
+            ),
+            (
+                "USERLIST_IMPORT_QUESTION_ALONE",
+                ", and the mandatory-resource question from step 2, until the user\n  names resources or says to skip it.",
+                ".",
+                None,
+            ),
+            (
+                "USERLIST_BLOCKER_FRESH_READ",
+                "never because the user says it is fine.",
+                "or when the user says it is fine.",
+                None,
+            ),
+            (
+                "USERLIST_BLOCKER_FRESH_READ",
+                None,
+                None,
+                "A blocker also clears when the user says it is fine.",
             ),
         )
         for code, old, new, appended in cases:

@@ -163,7 +163,7 @@ APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
-    SKILL_ROOT / "import-userlist" / "SKILL.md": "293b013c1db9bc2d09bb17a324367878fd99761acc24e396887c846f26b6c53c",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
@@ -189,7 +189,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "bf4491e7331b71ef0506d863972fbab1a5e0ea7bf5a16d700de7bde60ef5ff98",
+    Path("tests/test_write_semantic_oracles.py"): "c466fe5568ac3503ec375b86c9eb0f8221c68eaf477f5f1189f3982a1c097c99",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -6149,6 +6149,13 @@ def _validate_userlist_import_write(
     def paragraph_with(*needles: str) -> bool:
         return any(all(needle in paragraph for needle in needles) for paragraph in paragraphs)
 
+    def anywhere(anchor: str, pattern: str) -> bool:
+        # Phrases that are unsafe on their own, whatever negation sits nearby.
+        return any(
+            re.search(anchor, sentence) and re.search(pattern, sentence)
+            for sentence in sentences
+        )
+
     def unnegated(anchor: str, pattern: str) -> bool:
         # ponytail: sentence-level negation, enough for appended unsafe prose
         return any(
@@ -6166,6 +6173,10 @@ def _validate_userlist_import_write(
             and "user list in accessowl" in normalized
             and not unnegated(
                 r"not in the file", r"\b(?:keeps?|retains?|stays?|remains?)\b.{0,30}\baccess\b"
+            )
+            and not anywhere(
+                r"not in the file|left out|absent|missing from the file",
+                r"\b(?:keeps?|retains?)\s+(?:their\s+|its\s+|all\s+)?access\b",
             ),
             "state before confirmation that anyone not in the file, or in it with no permissions, is removed from the user list",
         ),
@@ -6218,7 +6229,11 @@ def _validate_userlist_import_write(
         (
             "USERLIST_SINGLE_CALL",
             paragraph_with("send it as one call", "never split it")
-            and not unnegated(r"\bsplit\b", r"\b(?:batch|batches|chunk|chunks|calls)\b"),
+            and not unnegated(r"\bsplit\b", r"\b(?:batch|batches|chunk|chunks|calls)\b")
+            and not anywhere(
+                r"\bimport\b|access_states",
+                r"\b(?:batch(?:es)?|chunks?|(?:several|multiple)\s+(?:smaller\s+)?(?:requests|calls)|smaller\s+requests)\b",
+            ),
             "the full-replace import is one call and must never be split",
         ),
         (
@@ -6227,9 +6242,40 @@ def _validate_userlist_import_write(
                 "on `200`",
                 "re-read the current access states",
                 "per person",
-                "label them as entries",
+                "report them only as entries, never as people",
             ),
             "after a 200, re-read access states and report per person; response counts are entries",
+        ),
+        (
+            "USERLIST_POST_PREVIEW_YES",
+            "only a yes given after this preview counts" in normalized
+            and not unnegated(
+                r"\b(?:earlier|already|before|previous(?:ly)?|in advance|upfront)\b",
+                r"\btreat\b.{0,60}\bas\s+(?:the\s+|a\s+)?(?:yes|confirmation)\b"
+                r"|\bcounts?\s+as\s+(?:the\s+|a\s+)?(?:yes|confirmation)\b",
+            ),
+            "only a yes given after the preview confirms the import; an earlier go-ahead never counts",
+        ),
+        (
+            "USERLIST_IMPORT_QUESTION_ALONE",
+            paragraph_with(
+                "ok to replace the <application> user list?",
+                "never ask another question in the same message as the import question",
+            )
+            and paragraph_with(
+                "**decisions**",
+                "the mandatory-resource question from step 2, until the user names resources or says to skip it",
+            ),
+            "the import question stands alone, and the step 2 mandatory-resource question stays open until answered",
+        ),
+        (
+            "USERLIST_BLOCKER_FRESH_READ",
+            "never because the user says it is fine" in normalized
+            and not unnegated(
+                r"\bblockers?\b",
+                r"\bclears?\b.{0,60}\b(?:user|they)\s+(?:says?|confirms?|agrees?)\b",
+            ),
+            "a blocker clears only on a fresh read, never because the user says it is fine",
         ),
     )
     return [_issue(code, relative, message) for code, passed, message in checks if not passed]
