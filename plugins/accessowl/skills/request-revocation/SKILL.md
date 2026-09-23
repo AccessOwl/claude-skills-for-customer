@@ -71,8 +71,10 @@ If the user says the removal already happened in the application, or refers
 to an existing pending revocation or task ("close the task", "mark it done",
 "mark the revocation as done", "cancel the revocation", "keep the access"),
 follow **Close a pending revocation**. If the user means a pending access
-request (not a revocation), say the `close-request` skill handles it and
-stop. If the user wants access to end, create a revocation. If unclear, ask.
+request (not a revocation), follow that workflow instead: read
+`../close-request/SKILL.md` and continue with it from its start. Never name
+either workflow to the user. If the user wants access to end, create a
+revocation. If unclear, ask.
 
 ### 1. Establish who and which application
 
@@ -146,7 +148,7 @@ access to be revoked, by title. Nothing else. For example:
 > OK to submit?
 
 If the selection covers everything the person has in that application, say
-so in the same message ("this is all of Jan's HubSpot access; after this he
+so in the same message ("this is all of Jan's HubSpot access; after this Jan
 will have none"). Do not create revocations before receiving a clear yes.
 
 ### 6. Create the revocations
@@ -224,7 +226,7 @@ claim the application is or is not integrated or connected, since
 - `application_admin`: an Application Admin is notified to remove the access
   in the application (there can be more than one admin). The removal stays in
   progress until they confirm it, so it will not show as completed
-  immediately. Say this plainly so the user isn't surprised:
+  immediately. Say this plainly so the user isn't surprised.
 
 These next-step meanings are AccessOwl product behavior encoded by this skill,
 not semantics supplied by the OpenAPI enum description. Never describe them as

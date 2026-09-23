@@ -47,7 +47,7 @@ VALID_PLUGIN = {
     "description": "AccessOwl skills for Claude.",
     "version": "1.0.0",
     "author": {"name": "AccessOwl", "url": "https://github.com/AccessOwl"},
-    "homepage": "https://docs.accessowl.com/api-reference/introduction",
+    "homepage": "https://docs.accessowl.com/guides/ai/accessowl-skills",
     "repository": "https://github.com/AccessOwl/claude-skills-for-customer",
 }
 
@@ -157,7 +157,7 @@ class CiAndManifestOracleTests(unittest.TestCase):
         )
 
         bad_homepage = copy.deepcopy(VALID_PLUGIN)
-        bad_homepage["homepage"] = "http://docs.accessowl.com/api-reference/introduction"
+        bad_homepage["homepage"] = "http://docs.accessowl.com/guides/ai/accessowl-skills"
         cases.append(("homepage", VALID_MARKETPLACE, bad_homepage, "PLUGIN_HOMEPAGE"))
 
         bad_repository = copy.deepcopy(VALID_PLUGIN)

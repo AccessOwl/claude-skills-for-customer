@@ -122,11 +122,12 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
 ## Good to know
 
 - Request skills create **requests**. An access request follows your
-  approval policies, and the assistant reports its returned workflow
-  status: only `pending_approval` means it is awaiting approval. A
-  revocation request may begin removal immediately, depending on the
-  application, so it is always confirmed first. The revocation skill can
-  also mark a pending revocation revoked or rejected after you confirm.
+  approval policies, and the assistant reports its returned workflow status
+  in plain words. It calls a request awaiting approval only while its status
+  is `pending_approval`, never once it has been approved. A revocation
+  request may begin removal immediately, depending on the application, so it
+  is always confirmed first. The revocation skill can also mark a pending
+  revocation revoked or rejected after you confirm.
 - The grant skill records that a fully approved manual request was set up,
   then verifies the resulting access. The close skill denies or rejects only
   the open requests you confirm; it never grants them.
@@ -144,8 +145,10 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
   after the write.
 - The vendor skill makes only the direct metadata updates you confirm.
   Structure and policy changes are previewed, then completed in AccessOwl.
-  Structure reads expose no usable version token, and policy assignment is
-  an unprotected full-set replacement.
+  The API gives no usable version check for an application's structure, so
+  it cannot tell whether someone else changed it in the meantime, and a
+  policy assignment is a complete-set replacement that could silently undo
+  someone else's change, so the assistant refuses to write either one.
 - Nothing is written to AccessOwl before you confirm it in the conversation,
   and every result is re-read before it is reported.
 - Read-only questions (listings, reports) are answered directly, no

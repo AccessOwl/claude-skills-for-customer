@@ -2,7 +2,7 @@
 name: close-request
 description: >
   Close AccessOwl access requests without granting them: deny a request that
-  is still waiting for approval, on behalf of its approver, or reject an
+  is still awaiting approval, on behalf of its approver, or reject an
   approved request that cannot be provisioned. Use for "deny Tom's Figma
   request", "reject the approved Notion request, we can't provision it",
   "clean up the old pending requests for 1Password". Users may also phrase
@@ -17,7 +17,7 @@ description: >
 Close open AccessOwl access requests without granting them, through the
 AccessOwl REST API.
 
-This skill only **denies** a request that is still waiting for approval, or
+This skill only **denies** a request that is still awaiting approval, or
 **rejects** an approved request that cannot be set up. It never approves or
 grants a request, never changes approvers, approval steps, or policies, and
 never revokes access someone already has. Marking an approved manual request
@@ -71,8 +71,10 @@ Follow these steps in order. Never skip the confirmation step.
 
 A request is found by its person, its application, or both ("the old pending
 requests for 1Password" names only the application). If neither is known,
-ask. If the user means a pending revocation, say the revocation skill handles
-it and stop.
+ask. If the user means a pending revocation, not an access request, follow
+that workflow instead: read `../request-revocation/SKILL.md` and continue
+with its **Close a pending revocation** section. Never name either workflow
+to the user.
 
 List users via `GET /users?status=all&limit=100` and keep the full list: it
 also labels every request's person and approvers. Resolve a named person by
@@ -116,7 +118,7 @@ user sees exactly what will close.
 
 Classify each request by its exact `status`:
 
-- `pending_approval` (waiting for approval): deny it.
+- `pending_approval` (awaiting approval): deny it.
 - `pending_permissions_assignment`, `scheduled`, `pending_dependency`, or
   `processing_access` (approved, not yet set up; `processing_access` means
   being provisioned): reject it.
@@ -126,7 +128,7 @@ Classify each request by its exact `status`:
 - Any other status: stop and say the request's state could not be classified.
 
 The status decides the action, not the user's wording. "Cancel" or "decline"
-means deny while a request is waiting for approval and reject once it is
+means deny while a request is awaiting approval and reject once it is
 approved. An approved request is never denied: if the user said "deny" for
 one, name the reject in the confirmation instead.
 
@@ -303,7 +305,7 @@ describe the result as an approval.
   a customer's naming odd, weird, or unusual.
 - Describe what you are doing as "denying the request" or "rejecting the
   request". Never describe it as approving, granting, or revoking access.
-- Show request statuses in plain words: waiting for approval, approved, being
+- Show request statuses in plain words: awaiting approval, approved, being
   provisioned, denied, rejected, or granted.
 - Write email addresses as plain text, not links.
 - Always state what you will NOT do and why (already closed, approver

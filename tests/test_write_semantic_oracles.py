@@ -215,6 +215,10 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("offer to onboard now instead", "use it as given", "ONBOARD_DATES"),
             ("partial yes means no write", "partial yes still counts", "ONBOARD_CONFIRMATION"),
             ("Always show the person's", "Optionally show the person's", "ONBOARD_CONFIRMATION"),
+            ("For an add or an onboard, also say", "Optionally say", "ONBOARD_CONFIRMATION"),
+            ("> API; people can be offboarded but not deleted. OK to add and onboard?", "> OK to add and onboard?",
+             "ONBOARD_CONFIRMATION"),
+            ("> API; people can be offboarded but not deleted. OK to onboard?", "> OK to onboard?", "ONBOARD_CONFIRMATION"),
             ("go back to step 3", "continue from step 7", "ONBOARD_PREWRITE_RECHECK"),
             ("show the confirmed manager\nand every confirmed detail", "show the confirmed email", "ONBOARD_ADD_VERIFIED"),
             ("If any is missing or different, stop:", "If any is missing or different, continue:", "ONBOARD_ADD_VERIFIED"),
@@ -874,8 +878,13 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'When a reply shows the permissions of such an application,',
+                "When a reply presents or confirms such an application's permissions for a choice or a write,",
                 'In every reply,',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'Plain access listings and report tables show only the label and add no such sentence.',
+                'Access listings and report tables add the same sentence.',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (

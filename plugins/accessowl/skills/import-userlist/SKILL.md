@@ -262,7 +262,7 @@ instructions while any decision or blocker remains. State plainly that nothing
 was imported yet. Never ask to import while anything is open.
 
 > **Nothing was imported yet.** 4 rows match existing AccessOwl users; 1
-> (levinson@dundermufflins.com) matches nobody, so the import would create a
+> (levinson@company.com) matches nobody, so the import would create a
 > new user.
 >
 > Corrected automatically:

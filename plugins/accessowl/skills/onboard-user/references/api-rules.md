@@ -133,15 +133,17 @@ writes apply only when the skill performs a write.
   resource. Such a resource still has its own resource ID. Its access is
   resource-level, never Application-wide access (a state with
   `resource_id: null`), and every request for it carries that resource ID.
-  When a reply shows the permissions of such an application, say once in
+  When a reply presents or confirms such an application's permissions for a
+  choice or a write, such as a list of options or a confirmation, say once in
   that reply, in plain words, that it has a single resource, so it has no
   name in AccessOwl, and that what matters is the permission, for example
   "1Password has a single resource, so it has no name in AccessOwl; what
-  matters is the permission: 1password-user or 1password-admin." When the
-  application has more than one resource and any of them has a null title,
-  treat that title as unavailable: continue by verified IDs only when the
-  workflow does not need it for display, selection, CSV output, or
-  disambiguation; otherwise stop incomplete as ambiguous. When a workflow
+  matters is the permission: 1password-user or 1password-admin." Plain
+  access listings and report tables show only the label and add no such
+  sentence. When the application has more than one resource and any of them
+  has a null title, treat that title as unavailable: continue by verified IDs
+  only when the workflow does not need it for display, selection, CSV output,
+  or disambiguation; otherwise stop incomplete as ambiguous. When a workflow
   sees a resource only through an expanded access state, a null title needs
   no resource count. Name the application and the permission titles, show a
   state with no permissions as `<Application> (resource-level access)`, and

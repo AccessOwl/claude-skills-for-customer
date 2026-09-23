@@ -119,9 +119,9 @@ effective date; never emit several indistinguishable **Unlinked account** rows:
 >
 > | Person | Access effective since |
 > |---|---|
-> | Maria Fernandez | May 16, 2026 |
-> | Tom Okafor | Apr 24, 2026 |
-> | Lisa Chen | Jan 21, 2026 |
+> | Maria Fernandez | 2026-05-16 |
+> | Tom Okafor | 2026-04-24 |
+> | Lisa Chen | 2026-01-21 |
 
 ### Per person ("what apps has AccessOwl discovered for Mike?")
 
@@ -133,8 +133,8 @@ ambiguity and never guess. Two columns:
 >
 > | Application | Access effective since |
 > |---|---|
-> | Vercel | Jul 16, 2026 |
-> | Notion | May 16, 2026 |
+> | Vercel | 2026-07-16 |
+> | Notion | 2026-05-16 |
 
 If nothing is discovered for the scope asked, say so in one sentence.
 

@@ -187,8 +187,10 @@ out.
 ### 5. Confirm once
 
 Show one short message with the person and their email, the manager, every
-detail that will be sent, and the start (a date or now). End with one
-question and ask nothing else in that message. For example:
+detail that will be sent, and the start (a date or now). For an add or an
+onboard, also say "It cannot be undone through the API; people can be
+offboarded but not deleted." End with one question and ask nothing else in
+that message. For example:
 
 > Ready to add and onboard:
 > - Sarah Lee, sarah@company.com
@@ -198,7 +200,8 @@ question and ask nothing else in that message. For example:
 > - Start: 2026-10-05
 >
 > This adds Sarah Lee to AccessOwl and provisions the access Sarah Lee's
-> access template matches on that date. OK to add and onboard?
+> access template matches on that date. It cannot be undone through the
+> API; people can be offboarded but not deleted. OK to add and onboard?
 
 After the warning for an active person:
 
@@ -208,7 +211,8 @@ After the warning for an active person:
 > - Start: now
 >
 > This switches Mike Carter to Onboarding and provisions the access Mike
-> Carter's access template matches now. OK to onboard?
+> Carter's access template matches now. It cannot be undone through the
+> API; people can be offboarded but not deleted. OK to onboard?
 
 For a reschedule:
 

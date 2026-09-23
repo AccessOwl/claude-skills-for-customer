@@ -72,15 +72,15 @@ _SEMVER = re.compile(
 # They pin tests/api_contract.py, which in turn pins APPROVED_CONTENT_SHA256.
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
-    Path("tests/api_contract.py"): "54ff0be8497a02b0847d0f834a60b91a224e05162d9340927e8e81f0a2b0618d",
+    Path("tests/api_contract.py"): "2dcdabc27fff7cbded6b7e36c16bde0c1a3cc00f174248467ded685db076391f",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
-    Path("tests/skill_semantics.py"): "c04763d619431fd14c3e887f6d585950411709cc71b8e4d7c8bfd09485d51021",
+    Path("tests/skill_semantics.py"): "b2801b1eb32772d061ca849d25159c0b05cfe52db471c2d675139412ad67ef2d",
     Path("tests/test_adversarial_oracles.py"): "edfb28cf90e62ce1b7fe814ba375bc8c9c0a147efbdfc82695f41d3836543062",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
-    Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
+    Path("tests/test_ci_manifest_oracles.py"): "a14a542f70122acee04384055ad774b3b6cc2b006cf372272bf6575c704811dd",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "d34b4e8cec745bd3c720653be3c03da39b41b8d55580a1f3ff22377dd5980c11",
+    Path("tests/test_write_semantic_oracles.py"): "cf2ec102c3ed1742cd978c30dd9217cd5b19684226c9ebb3b2348f658eb30065",
 }
 
 
