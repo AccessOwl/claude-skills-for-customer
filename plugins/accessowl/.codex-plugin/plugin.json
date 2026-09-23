@@ -1,0 +1,20 @@
+{
+  "name": "accessowl-skills",
+  "version": "1.0.0",
+  "description": "AccessOwl skills for AI assistants: request, grant, close and revoke access, import user lists, onboard and offboard people, and report on access through the AccessOwl REST API.",
+  "author": {
+    "name": "AccessOwl",
+    "url": "https://github.com/AccessOwl"
+  },
+  "homepage": "https://docs.accessowl.com/guides/ai/accessowl-skills",
+  "repository": "https://github.com/AccessOwl/claude-skills-for-customer",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AccessOwl Skills",
+    "shortDescription": "Manage AccessOwl access from your AI assistant",
+    "developerName": "AccessOwl",
+    "category": "Productivity",
+    "capabilities": ["Instructions"],
+    "websiteURL": "https://docs.accessowl.com/guides/ai/accessowl-skills"
+  }
+}

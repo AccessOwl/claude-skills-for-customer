@@ -1,8 +1,8 @@
 {
   "name": "claudetag-for-accessowl",
-  "displayName": "ClaudeTag for AccessOwl",
-  "description": "AccessOwl skills for Claude, built on the AccessOwl REST API.",
-  "version": "0.4.0",
+  "displayName": "AccessOwl Skills",
+  "description": "AccessOwl skills for AI assistants, built on the AccessOwl REST API.",
+  "version": "1.0.0",
   "author": {
     "name": "AccessOwl",
     "url": "https://github.com/AccessOwl"

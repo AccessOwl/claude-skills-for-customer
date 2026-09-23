@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,6 +18,7 @@ from .contract_validator import (
     SYNC_WORKFLOW_PATH,
     WORKFLOW_PATH,
     validate_ci,
+    validate_codex_manifests,
     validate_manifest_values,
     validate_readme_repository_identity,
     validate_readme_request_status,
@@ -30,7 +33,7 @@ VALID_MARKETPLACE = {
         {
             "name": "claudetag-for-accessowl",
             "description": "AccessOwl skills for Claude.",
-            "version": "0.4.0",
+            "version": "1.0.0",
             "source": "./plugins/accessowl",
         }
     ],
@@ -38,9 +41,9 @@ VALID_MARKETPLACE = {
 
 VALID_PLUGIN = {
     "name": "claudetag-for-accessowl",
-    "displayName": "ClaudeTag for AccessOwl",
+    "displayName": "AccessOwl Skills",
     "description": "AccessOwl skills for Claude.",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "author": {"name": "AccessOwl", "url": "https://github.com/AccessOwl"},
     "homepage": "https://docs.accessowl.com/api-reference/introduction",
     "repository": "https://github.com/AccessOwl/claude-skills-for-customer",
@@ -165,6 +168,10 @@ class CiAndManifestOracleTests(unittest.TestCase):
             ("repository object", VALID_MARKETPLACE, repository_object, "PLUGIN_REPOSITORY")
         )
 
+        bad_display_name = copy.deepcopy(VALID_PLUGIN)
+        bad_display_name["displayName"] = "ClaudeTag for AccessOwl"
+        cases.append(("display name", VALID_MARKETPLACE, bad_display_name, "PLUGIN_DISPLAY_NAME"))
+
         for name, marketplace, plugin, code in cases:
             with self.subTest(name=name):
                 self.assertCode(validate_manifest_values(marketplace, plugin), code)
@@ -186,6 +193,44 @@ class CiAndManifestOracleTests(unittest.TestCase):
         for marketplace, plugin, code in cases:
             with self.subTest(code=code):
                 self.assertCode(validate_manifest_values(marketplace, plugin), code)
+
+    def test_codex_manifests_valid_and_version_matched(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        self.assertEqual([], validate_codex_manifests(repo))
+
+        def mutate_version(market: dict, plugin: dict) -> None:
+            plugin["version"] = "9.9.9"
+
+        def mutate_source(market: dict, plugin: dict) -> None:
+            market["plugins"][0]["source"]["path"] = "./plugins/other"
+
+        def mutate_display_name(market: dict, plugin: dict) -> None:
+            del plugin["interface"]["displayName"]
+
+        def mutate_hooks(market: dict, plugin: dict) -> None:
+            plugin["hooks"] = "./hooks/payload.json"
+
+        def mutate_entry_field(market: dict, plugin: dict) -> None:
+            market["plugins"][0]["commands"] = ["./payload.sh"]
+
+        for mutate in (
+            mutate_version,
+            mutate_source,
+            mutate_display_name,
+            mutate_hooks,
+            mutate_entry_field,
+        ):
+            with self.subTest(mutation=mutate.__name__), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "repo"
+                shutil.copytree(repo, root, ignore=shutil.ignore_patterns(".git"))
+                market_path = root / ".agents/plugins/marketplace.json"
+                plugin_path = root / "plugins/accessowl/.codex-plugin/plugin.json"
+                market = json.loads(market_path.read_text(encoding="utf-8"))
+                plugin = json.loads(plugin_path.read_text(encoding="utf-8"))
+                mutate(market, plugin)
+                market_path.write_text(json.dumps(market), encoding="utf-8")
+                plugin_path.write_text(json.dumps(plugin), encoding="utf-8")
+                self.assertCode(validate_codex_manifests(root), "CODEX_MANIFEST")
 
     def test_readme_uses_the_transferred_repository_owner(self) -> None:
         current = "Install github.com/AccessOwl/claude-skills-for-customer."

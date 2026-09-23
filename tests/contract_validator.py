@@ -31,11 +31,15 @@ API_RULES_POINTER_SENTENCE = (
 )
 MARKETPLACE_PATH = Path(".claude-plugin/marketplace.json")
 PLUGIN_MANIFEST_PATH = Path("plugins/accessowl/.claude-plugin/plugin.json")
+CODEX_MARKETPLACE_PATH = Path(".agents/plugins/marketplace.json")
+CODEX_PLUGIN_MANIFEST_PATH = Path("plugins/accessowl/.codex-plugin/plugin.json")
 WORKFLOW_PATH = Path(".github/workflows/adversarial-tests.yml")
 SYNC_WORKFLOW_PATH = Path(".github/workflows/sync-upstream.yml")
 
 EXPECTED_MARKETPLACE_NAME = "accessowl-claude-skills"
 EXPECTED_PLUGIN_NAME = "claudetag-for-accessowl"
+EXPECTED_CODEX_PLUGIN_NAME = "accessowl-skills"
+EXPECTED_DISPLAY_NAME = "AccessOwl Skills"
 EXPECTED_PLUGIN_SOURCE = "./plugins/accessowl"
 EXPECTED_PLUGIN_HOMEPAGE = "https://docs.accessowl.com/api-reference/introduction"
 EXPECTED_PLUGIN_REPOSITORY = "https://github.com/AccessOwl/claude-skills-for-customer"
@@ -139,6 +143,8 @@ ALLOWED_REPOSITORY_FILES = frozenset(
         Path("SKILL_STYLE.md"),
         MARKETPLACE_PATH,
         PLUGIN_MANIFEST_PATH,
+        CODEX_MARKETPLACE_PATH,
+        CODEX_PLUGIN_MANIFEST_PATH,
         WORKFLOW_PATH,
         SYNC_WORKFLOW_PATH,
     }
@@ -175,7 +181,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/test_adversarial_oracles.py"): "281fd3c7c94b28e23956b58206dd555adf47eb7b971068f1138d14eed334512c",
     Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
-    Path("tests/test_ci_manifest_oracles.py"): "12a4f88b57cb45d53a5efe612d99ac6331d675b53aea5df710155759df58b8f1",
+    Path("tests/test_ci_manifest_oracles.py"): "5603e00e5b2098cfbc9922b2805100a6ae7882f2396f37a2d11d0830ea13c946",
     Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
     Path("tests/test_write_semantic_oracles.py"): "913dff061095b258ef8b8c700fa2ff6f3f0cbcb25cb1f3ce1acb78a03b07c9d1",
@@ -1616,6 +1622,14 @@ def validate_manifest_values(marketplace: object, plugin: object) -> List[Issue]
                     "name must be exactly %s" % EXPECTED_PLUGIN_NAME,
                 )
             )
+        if plugin.get("displayName") != EXPECTED_DISPLAY_NAME:
+            issues.append(
+                _issue(
+                    "PLUGIN_DISPLAY_NAME",
+                    PLUGIN_MANIFEST_PATH,
+                    "displayName must be exactly %s" % EXPECTED_DISPLAY_NAME,
+                )
+            )
         version = plugin.get("version")
         if not isinstance(version, str) or _SEMVER.fullmatch(version) is None:
             issues.append(
@@ -1732,6 +1746,61 @@ def validate_manifests_and_readme(root: Path) -> List[Issue]:
                     "README must distinguish the structure version-token limit from unsafe full-set policy replacement",
                 )
             )
+    return issues
+
+
+# Exact key sets: Codex manifests can declare hooks and MCP servers, which are
+# execution surfaces this repository does not ship.
+CODEX_MARKETPLACE_FIELDS = frozenset({"name", "interface", "plugins"})
+CODEX_MARKETPLACE_ENTRY_FIELDS = frozenset({"name", "source", "policy", "category"})
+CODEX_PLUGIN_FIELDS = frozenset(
+    {
+        "name",
+        "version",
+        "description",
+        "author",
+        "homepage",
+        "repository",
+        "skills",
+        "interface",
+    }
+)
+
+
+def validate_codex_manifests(root: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    market, market_issues = _load_json_file(root, CODEX_MARKETPLACE_PATH)
+    plugin, plugin_issues = _load_json_file(root, CODEX_PLUGIN_MANIFEST_PATH)
+    claude_plugin, claude_issues = _load_json_file(root, PLUGIN_MANIFEST_PATH)
+    issues.extend(market_issues + plugin_issues + claude_issues)
+    if not isinstance(market, dict) or not isinstance(plugin, dict) or not isinstance(claude_plugin, dict):
+        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex manifests must be JSON objects"))
+        return issues
+    entries = market.get("plugins")
+    ok_entry = (
+        isinstance(entries, list)
+        and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and set(entries[0]) == CODEX_MARKETPLACE_ENTRY_FIELDS
+        and entries[0].get("name") == EXPECTED_CODEX_PLUGIN_NAME
+        and entries[0].get("source") == {"source": "local", "path": EXPECTED_PLUGIN_SOURCE}
+    )
+    if (
+        set(market) != CODEX_MARKETPLACE_FIELDS
+        or market.get("name") != EXPECTED_CODEX_PLUGIN_NAME
+        or not ok_entry
+    ):
+        issues.append(_issue("CODEX_MANIFEST", CODEX_MARKETPLACE_PATH, "Codex marketplace must list exactly accessowl-skills from ./plugins/accessowl"))
+    interface = plugin.get("interface")
+    if (
+        set(plugin) != CODEX_PLUGIN_FIELDS
+        or plugin.get("name") != EXPECTED_CODEX_PLUGIN_NAME
+        or plugin.get("skills") != "./skills/"
+        or plugin.get("version") != claude_plugin.get("version")
+        or not isinstance(interface, dict)
+        or interface.get("displayName") != EXPECTED_DISPLAY_NAME
+    ):
+        issues.append(_issue("CODEX_MANIFEST", CODEX_PLUGIN_MANIFEST_PATH, "Codex plugin needs exact keys, name, ./skills/, display name, and the Claude plugin version"))
     return issues
 
 
@@ -6399,6 +6468,7 @@ def validate_repository(root: Path) -> List[Issue]:
         validate_approved_harness,
         validate_skill_inventory,
         validate_manifests_and_readme,
+        validate_codex_manifests,
         validate_style_guide,
         validate_api_contracts,
         validate_read_safety,
