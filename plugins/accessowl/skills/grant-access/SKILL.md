@@ -88,9 +88,9 @@ If no eligible request exists, state the verified status and stop. If several
 eligible requests exist, fetch `GET /applications/{id}/resources`, correlate
 each request's resource and complete permission IDs to exact nonblank titles,
 and ask which one was provisioned. When the application has exactly one
-resource and its title is null, show that resource as the application itself
-wherever this skill names it, by the application title plus its permission
-titles, for example "Dwight Schrute: 1Password, 1password-user". Otherwise stop on any
+resource and its title is null, show that resource by the label Permission
+wherever this skill names it, as AccessOwl shows it, for example
+"Dwight Schrute: 1Password, Permission: 1password-user". Otherwise stop on any
 missing, duplicate, blank, null, or inconsistent title or relationship. Never
 choose by a hidden ID.
 

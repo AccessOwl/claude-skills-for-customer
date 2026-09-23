@@ -193,7 +193,8 @@ class WriteSemanticOracleTests(unittest.TestCase):
         self.assertEqual([], validate_write_safety_text("onboard-user", text, "SKILL.md"))
         cases = (
             ("Point the user to the person's profile", "Point the user to a repeat onboarding", "ONBOARD_SCOPE"),
-            ("cannot be undone through the API", "can be undone later", "ONBOARD_ACTIVE_WARNING"),
+            ("can be cancelled on the person's profile in AccessOwl", "can be cancelled later", "ONBOARD_ACTIVE_WARNING"),
+            ("keeps their current access", "loses their current access", "ONBOARD_ACTIVE_WARNING"),
             ("never combine the warning", "you may combine the warning", "ONBOARD_ACTIVE_WARNING"),
             ("say so and stop, and never guess.", "pick the newest one.", "ONBOARD_IDENTITY"),
             ("but gets no warning", "and gets the warning", "ONBOARD_ADDED_THIS_RUN"),
@@ -215,10 +216,9 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("offer to onboard now instead", "use it as given", "ONBOARD_DATES"),
             ("partial yes means no write", "partial yes still counts", "ONBOARD_CONFIRMATION"),
             ("Always show the person's", "Optionally show the person's", "ONBOARD_CONFIRMATION"),
-            ("For an add or an onboard, also say", "Optionally say", "ONBOARD_CONFIRMATION"),
-            ("> API; people can be offboarded but not deleted. OK to add and onboard?", "> OK to add and onboard?",
-             "ONBOARD_CONFIRMATION"),
-            ("> API; people can be offboarded but not deleted. OK to onboard?", "> OK to onboard?", "ONBOARD_CONFIRMATION"),
+            ("The API cannot read access templates.", "The API reads access templates.", "ONBOARD_TEMPLATES"),
+            ("cannot\nbe read or changed from here; they are managed in AccessOwl", "can be read here",
+             "ONBOARD_TEMPLATES"),
             ("go back to step 3", "continue from step 7", "ONBOARD_PREWRITE_RECHECK"),
             ("show the confirmed manager\nand every confirmed detail", "show the confirmed email", "ONBOARD_ADD_VERIFIED"),
             ("If any is missing or different, stop:", "If any is missing or different, continue:", "ONBOARD_ADD_VERIFIED"),
@@ -277,6 +277,11 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "A person added this week gets no warning.",
             "Onboarding that already started can still be rescheduled.",
             "Say onboarding has already started.",
+            "Onboarding cannot be undone through the API.",
+            "It cannot be undone through the API; people can be offboarded but not deleted.",
+            "An onboarding cannot be cancelled.",
+            "You cannot cancel an onboarding.",
+            "Read the access template to list the apps it provisions.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):
@@ -309,15 +314,24 @@ class WriteSemanticOracleTests(unittest.TestCase):
             ("Only an Active person is offboarded", "Any person is offboarded", "OFFBOARD_STATUS_GATES"),
             ("cancelled on the\n  person's profile", "cancelled through the\n  API", "OFFBOARD_STATUS_GATES"),
             ("with the Reactivate button", "by offboarding them again", "OFFBOARD_STATUS_GATES"),
-            ("(Inactive): stop before any write.", "(Inactive): warn, then offboard.", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("cannot be confirmed through the API (for", "can be confirmed through the API (for", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("AccessOwl returns success but the status does not change", "AccessOwl confirms it", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("(Inactive): stop before any write,", "(Inactive): warn, then offboard,", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("an offboarding cannot be confirmed through the API", "an offboarding can be confirmed through the API",
+             "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("this is how AccessOwl works, not a failure", "this is a failure", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("Onboarding has to finish before the person can be offboarded", "The person can be offboarded now",
+             "OFFBOARD_NOT_ACTIVE_STOP"),
             ("never offboard them from here, even after a warning or a yes.", "offboard them after a warning and a yes.",
              "OFFBOARD_NOT_ACTIVE_STOP"),
             ("or wait until the status is Active and ask again", "or continue with offboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("offboard from the profile in AccessOwl, or wait", "offboard here, or wait", "OFFBOARD_NOT_ACTIVE_STOP"),
-            ("the onboarding is cancelled on the profile instead", "offboard them here", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("cancel the onboarding on the profile in AccessOwl.", "offboard them here.", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("and the status switches to Active once it finishes", "and the status stays Onboarding", "OFFBOARD_NOT_ACTIVE_STOP"),
+            ("Onboarding has to finish before <Name> can", "Offboarding is not possible for <Name> can",
+             "OFFBOARD_ONBOARDING_STOP_MESSAGE"),
+            ("> - Wait until the status is Active, then ask again.", "> - Offboard from the profile.",
+             "OFFBOARD_ONBOARDING_STOP_MESSAGE"),
+            ("> - If <Name> is not joining after all, cancel the onboarding on the", "> - Offboard anyway on the",
+             "OFFBOARD_ONBOARDING_STOP_MESSAGE"),
             ("with access kept in place", "with access removed", "OFFBOARD_NOT_ACTIVE_STOP"),
             ("cancelled on the person's profile in AccessOwl, and stop", "cancelled by offboarding now", "OFFBOARD_NO_CANCEL"),
             ("happens only when the user explicitly asks for now", "is fine to fix a date", "OFFBOARD_NO_CANCEL"),
@@ -425,6 +439,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
             "A delete request for an Inactive person goes on with offboarding.",
             "If the user confirms, send the offboard call for an Onboarding person.",
             "After the stop message, a yes offboards them.",
+            "Onboarding has to finish first, but Onboarding people can be offboarded here after a yes.",
         )
         for unsafe in contradictions:
             with self.subTest(unsafe=unsafe):
@@ -853,23 +868,33 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'Never invent or display a fallback resource title',
+                'Never invent or display any other fallback resource title',
                 'Display a fallback resource title',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'present that resource as the application itself',
+                'label that resource "Permission" wherever a resource name is shown',
                 'hide that resource',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'label it by the application title plus its permission titles',
-                'label it Default',
+                '`1Password | Permission | 1password-user`',
+                '`1Password | 1Password | 1password-user`',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
-                'allow selecting it because it is the only resource',
-                'allow selecting it',
+                '"1Password, Permission: 1password-user"',
+                '"1Password, Default: 1password-user"',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'so it is not an invented title',
+                'so it is a placeholder title',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'Allow selecting it because it is the only resource',
+                'Allow selecting it',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
@@ -945,6 +970,16 @@ class WriteSemanticOracleTests(unittest.TestCase):
             (
                 'Never write the displayed label back to AccessOwl',
                 'Write the displayed label back to AccessOwl',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'the Permission label is never sent as a resource title',
+                'the Permission label may be sent as a resource title',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'so AccessOwl shows it as Permission, and that',
+                'so it has no name in AccessOwl, and that',
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (

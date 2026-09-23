@@ -108,8 +108,9 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
       "never grants individual app access", "never offboards anyone", "onboarding is not a way to edit those details")),
     ("ONBOARD_ACTIVE_WARNING", "warn before onboarding an active person, as its own question", True,
      ("`active`: first check the manager", "then warn plainly that onboarding switches the person to onboarding",
-      "provisions whatever access their access template matches", "cannot be undone through the api",
-      "does not change their details", "this is its own question, not the confirmation",
+      "provisions whatever access their access template matches", "does not change their details",
+      "an onboarding can be cancelled on the person's profile in accessowl",
+      "the person switches back to active and keeps their current access", "this is its own question, not the confirmation",
       "never combine the warning and the confirmation")),
     ("ONBOARD_IDENTITY", "several records for one email are ambiguous and stop", False,
      ("several matches are ambiguous: say so and stop, and never guess",)),
@@ -140,10 +141,11 @@ ONBOARD_REQUIREMENTS: PhraseRules = (
     ("ONBOARD_CONFIRMATION", "only a clear yes after the confirmation counts, asked alone", False,
      ("only a clear yes given after this confirmation counts", "is not the confirmation",
       "ask nothing else in that message", "a question, a change, or a partial yes means no write",
-      "in one message", "always show the person's email in the warning and the confirmation", "there is already a",
-      "for an add or an onboard, also say \"it cannot be undone through the api; people can be offboarded but not deleted.\"",
-      "api; people can be offboarded but not deleted. ok to add and onboard?",
-      "api; people can be offboarded but not deleted. ok to onboard?")),
+      "in one message", "always show the person's email in the warning and the confirmation", "there is already a")),
+    ("ONBOARD_TEMPLATES", "access templates cannot be read or changed here; they are managed in AccessOwl", True,
+     ("the api cannot read access templates",
+      "if the user asks what an access template contains or asks to change one, say that access templates cannot "
+      "be read or changed from here; they are managed in accessowl",)),
     ("ONBOARD_PREWRITE_RECHECK", "re-check the email and status right before each write", False,
      ("require that it still returns no one", "the same email and the same status as confirmed",
       "go back to step 3 for the current status (an active person gets the warning again)",
@@ -210,6 +212,11 @@ ONBOARD_CONTRADICTIONS = (
     r"\b(?:created|added|inserted)\b[^.]{0,40}\b(?:this|last|past)\s+(?:week|day|month|few)\b[^.]{0,40}\bno\s+warning",
     r"\b(?:already\s+)?started\b[^.]{0,40}\bcan\s+(?:still\s+)?be\s+rescheduled",
     r"\bonboarding\s+has\s+already\s+started",
+    r"\b(?:cannot|can\s*not|can't)\s+be\s+(?:undone|reversed)\b",
+    r"\bonboard\w*\b[^.]{0,60}\b(?:cannot|can\s*not|can't)\s+be\s+cancel\w*(?!\s+(?:here|from\s+here|through\s+the\s+api))",
+    r"\b(?:cannot|can\s*not|can't)\s+(?:undo|cancel|reverse)\s+(?:an\s+|the\s+|this\s+)?onboard",
+    r"(?<!never )(?<!not )(?<!cannot )\b(?:read|list|show|change|edit|update)\w*\s+(?:the\s+|an\s+)?(?:person's\s+)?"
+    r"access\s+templates?\b",
 )
 
 
@@ -248,15 +255,21 @@ OFFBOARD_REQUIREMENTS: PhraseRules = (
       "any other status: stop")),
     ("OFFBOARD_NOT_ACTIVE_STOP", "provisioning planned, onboarding, and inactive stop with two choices, never a warning", True,
      ("`onboarding_provisioning_planned` (provisioning planned), `onboarding` (onboarding), or `inactive` "
-      "(inactive): stop before any write",
-      "an offboarding for these people cannot be confirmed through the api (for provisioning planned, accessowl "
-      "returns success but the status does not change), so never offboard them from here, even after a warning or a yes",
-      "give two choices: offboard from the profile in accessowl, or wait until the status is active and ask again",
-      "provisioning planned: an onboarding is scheduled for later. if the person is not joining after all, "
-      "the onboarding is cancelled on the profile instead",
-      "onboarding: an onboarding or an access request is still being provisioned, and the status switches to "
+      "(inactive): stop before any write, and never offboard them from here, even after a warning or a yes",
+      "provisioning planned or onboarding: this is how accessowl works, not a failure. onboarding has to finish "
+      "before the person can be offboarded, and the person must be active",
+      "provisioning planned means an onboarding is scheduled for later",
+      "onboarding means an onboarding or an access request is still being provisioned, and the status switches to "
       "active once it finishes",
-      "inactive: the account is suspended in your directory (for example extended leave), with access kept in place")),
+      "the two choices: wait until the status is active and ask again, or, if the person is not joining after all, "
+      "cancel the onboarding on the profile in accessowl",
+      "inactive: the account is suspended in your directory (for example extended leave), with access kept in place",
+      "for an inactive person, an offboarding cannot be confirmed through the api",
+      "the two choices: offboard from the profile in accessowl, or wait until the status is active and ask again")),
+    ("OFFBOARD_ONBOARDING_STOP_MESSAGE", "provisioning planned and onboarding get the fixed stop message", True,
+     ("> <name>, <email>, is <status>. onboarding has to finish",
+      "be offboarded, so nothing was changed. you can:", "> - wait until the status is active, then ask again.",
+      "> - if <name> is not joining after all, cancel the onboarding on the")),
     ("OFFBOARD_NO_CANCEL", "cancelling is on the profile; never offboard now to cancel or fix a planned date", False,
      ("if the user asks to cancel a planned offboarding, say that a planned offboarding is cancelled on the "
       "person's profile in accessowl, and stop", "never offboard now to cancel or fix a planned offboarding",
@@ -358,7 +371,7 @@ OFFBOARD_CONTRADICTIONS = (
     r"\bnot\s+(?:yet\s+)?finished\s+onboarding",
     _NA + r"\b" + _G + r"{0,60}\b(?:ask\w*\s+whether\s+to\s+continue|continue\s+with\s+(?:the\s+)?offboarding"
     r"|after\s+a\s+yes|(?:then|and)\s+(?:offboard|proceed|continue))",
-    _NA + r"\b" + _G + r"{0,60}\b(?:go(?:es)?\s+(?:on\s+)?(?:to\s+step\s+3|with\s+(?:the\s+)?offboarding)|step\s+3\s+applies"
+    _NA + r"\b(?:(?!\bnever\b|\bnot\b|\bcannot\b|\bno\b|\bhas\s+to\s+finish\s+before\b)[^.]){0,60}\b(?:go(?:es)?\s+(?:on\s+)?(?:to\s+step\s+3|with\s+(?:the\s+)?offboarding)|step\s+3\s+applies"
     r"|like\s+(?:an?\s+)?active|(?:can|may)\s+be\s+offboarded|enough\s+to\s+offboard)",
     r"(?<!never )(?<!not )\boffboard\w*(?:\s+call)?\s+(?:for\s+)?(?:the\s+|a\s+|an\s+)?" + _NA + r"\s+(?:person|people|user)",
     r"\b(?:after|once)\s+(?:the\s+)?stop\s+message\b[^.]{0,40}\b(?:yes|confirm\w*|offboard\w*)",

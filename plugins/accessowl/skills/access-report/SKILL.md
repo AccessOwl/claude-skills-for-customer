@@ -199,8 +199,8 @@ and present the requestable options by title). Require selectable resource
 titles to be nonblank and unique case-insensitively, and permission titles to
 be nonblank and unique case-insensitively within their resource. The one
 exception is an application whose only resource has a null title: present
-and select that resource as the application itself, by the application title
-plus its permission titles, for example "1Password, 1password-user". A null resource
+and select that resource by the label Permission, as AccessOwl shows it, for
+example "1Password, Permission: 1password-user". A null resource
 title next to any other resource stops as ambiguous. On a collision, do not
 choose by hidden ID; ask for the AccessOwl structure to be
 fixed and stop. Require the application's current `status` to be `requestable`;

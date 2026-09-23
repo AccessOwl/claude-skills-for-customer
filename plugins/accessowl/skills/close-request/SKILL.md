@@ -102,9 +102,9 @@ For a request without one, leave it out and list it as unreadable.
 Label each request by application title plus the resource and permission
 titles from `GET /applications/{application_id}/resources`, matching its
 `resource_id` and every one of its `permission_ids`. When the application
-has exactly one resource and its title is null, label the request by the
-application title plus its permission titles instead, for example
-"1Password, 1password-user". Otherwise, if a needed title is missing, null, blank,
+has exactly one resource and its title is null, label that resource
+Permission, as AccessOwl shows it, for example
+"1Password, Permission: 1password-user". Otherwise, if a needed title is missing, null, blank,
 duplicated, or inconsistent, leave that request out and list it as
 unreadable. Never choose or show a request by ID.
 
@@ -182,7 +182,7 @@ reason. End with one question and ask nothing else in that message. For
 example:
 
 > Ready to deny these requests on behalf of their approvers:
-> - 1Password, 1password-user for Mike Carter, on behalf of Dana Lee
+> - 1Password, Permission: 1password-user for Mike Carter, on behalf of Dana Lee
 > - Slack, User for Mike Carter, on behalf of Dana Lee
 >
 > Reason: No longer needed
@@ -280,7 +280,7 @@ confirmation.
 Report only verified statuses, grouped by what happened:
 
 > Denied:
-> - 1Password, 1password-user for Mike Carter
+> - 1Password, Permission: 1password-user for Mike Carter
 > - Slack, User for Mike Carter
 >
 > Reason: No longer needed

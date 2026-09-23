@@ -103,29 +103,30 @@ person is rescheduled.
 
 - `active`: offboard, now or on a date (step 3).
 - `onboarding_provisioning_planned` (Provisioning planned), `onboarding`
-  (Onboarding), or `inactive` (Inactive): stop before any write. An
-  offboarding for these people cannot be confirmed through the API (for
-  Provisioning planned, AccessOwl returns success but the status does not
-  change), so never offboard them from here, even after a warning or a yes.
-  Say plainly why, add the line for the status, and give two choices:
-  offboard from the profile in AccessOwl, or wait until the status is Active
-  and ask again.
-  - Provisioning planned: an onboarding is scheduled for later. If the
-    person is not joining after all, the onboarding is cancelled on the
-    profile instead.
-  - Onboarding: an onboarding or an access request is still being
-    provisioned, and the status switches to Active once it finishes.
+  (Onboarding), or `inactive` (Inactive): stop before any write, and never
+  offboard them from here, even after a warning or a yes. Say plainly why
+  and give the two choices for the status.
+  - Provisioning planned or Onboarding: this is how AccessOwl works, not a
+    failure. Onboarding has to finish before the person can be offboarded,
+    and the person must be Active. Provisioning planned means an onboarding
+    is scheduled for later. Onboarding means an onboarding or an access
+    request is still being provisioned, and the status switches to Active
+    once it finishes. The two choices: wait until the status is Active and
+    ask again, or, if the person is not joining after all, cancel the
+    onboarding on the profile in AccessOwl.
   - Inactive: the account is suspended in your directory (for example
-    extended leave), with access kept in place.
+    extended leave), with access kept in place. For an Inactive person, an
+    offboarding cannot be confirmed through the API. The two choices:
+    offboard from the profile in AccessOwl, or wait until the status is
+    Active and ask again.
 
-  For example:
+  For Provisioning planned or Onboarding, say:
 
-  > Sarah Lee, sarah@company.com, is Provisioning planned, with an
-  > onboarding scheduled for later. An offboarding for someone in this
-  > status cannot be confirmed from here, so nothing was changed. You can:
-  > - Offboard from the profile in AccessOwl. If Sarah Lee is not joining
-  >   after all, cancel the onboarding there instead.
+  > <Name>, <email>, is <Status>. Onboarding has to finish before <Name> can
+  > be offboarded, so nothing was changed. You can:
   > - Wait until the status is Active, then ask again.
+  > - If <Name> is not joining after all, cancel the onboarding on the
+  >   profile in AccessOwl.
 
 - `offboarding_planned` (Offboarding scheduled): offer only a reschedule, to
   a new date, or to now when the user explicitly asks for now. Until it runs,

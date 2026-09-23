@@ -146,34 +146,34 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "7c965ddbfab54b8a9ec54bca0261f138cc24a0e5d7652bd3dba0de52d3d98763",
+    Path("README.md"): "4fcdd62ac672376b07dc024ff36d4bc8fcd2aa95b997c2294203919d09b97e3c",
     Path("SKILL_STYLE.md"): "f107d23881f0fd5b0db00af325c5131618f399292dcb416544a922e3cae53a68",
-    SKILL_ROOT / "access-report" / "SKILL.md": "f681ff7e660e16899c881d56da57915df3e044d11616b2367f6f925a98179daa",
-    SKILL_ROOT / "close-request" / "SKILL.md": "9eaf5fab5e1e6801c0a7d66337353ea8b807bb3ff85a98c5700c5e9ca0039f0c",
+    SKILL_ROOT / "access-report" / "SKILL.md": "92287d7aa645ed8f19da7d49908f152f2114eadf97df201da986eca25422ce2c",
+    SKILL_ROOT / "close-request" / "SKILL.md": "8929ba223407f7c8301a69d53d9c0e048c98daeb0919cb91a0b01d718c3b35be",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "7aea7fe5f24cb1978a930d3ee9b2279ca68744b75ef86428f481837c747b53eb",
-    SKILL_ROOT / "grant-access" / "SKILL.md": "5cb9314bf6ffad5ba293317b2725025442d84d6432e65ac3c99bf3ecf39a3945",
-    SKILL_ROOT / "import-userlist" / "SKILL.md": "02c2f200fcd05098a9f15d61582f7bb55b2e2cdc7fe1552c9ad9b8310a2ac7e4",
+    SKILL_ROOT / "grant-access" / "SKILL.md": "2b2fceb8ca3eefbc7ab6ffe586e313ade21db70dc6a52502d77b932b84ddd05c",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "1ab19d46d2f60593c508a68186f9705e7afe74694bcd39c6e79dab314dde06e0",
     SKILL_ROOT / "list-access" / "SKILL.md": "3693984ed77b047aaa41c4fe4c8b9c2c96ab2a9ec5ffdcf413676f029908dfb5",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "d729c81e10a7b4feda3795a5e0e6d290ff4207f2e407d68bbf6f2623fd16c289",
-    SKILL_ROOT / "offboard-user" / "SKILL.md": "cf1f7fe2ee2800883bbcd02667a8e822882500bd6964c5b63fe5a3340498033a",
-    SKILL_ROOT / "onboard-user" / "SKILL.md": "14db78bf38f4a93139d098c74608ffe7a5bf8ad69534993d00601875cad8d779",
-    SKILL_ROOT / "request-access" / "SKILL.md": "92014e1d6a910e7477373d825d03ca073f973142ad9369f3d9972602ab0f895a",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "170a6624e952c3230ad0609acaaac897305c8b0cfcac1db158762231f86f490d",
+    SKILL_ROOT / "offboard-user" / "SKILL.md": "a43abacc184fdf5f33aeacf6045797ff8ed4afb927eb8a29cbd1d29bdc34b18c",
+    SKILL_ROOT / "onboard-user" / "SKILL.md": "4de5a4365e9b8c45d8fe114e788dec4890dccf83f55dfef975b965dae050c5f8",
+    SKILL_ROOT / "request-access" / "SKILL.md": "2e77d57b60a1aca73cbc0df7e4b9216940000b35d2288d6d8bd091188f0c9f42",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "a25058e628fcdfbb70ae31ec74d0910aee950bdbfd10ef936db90154e2bcb63a",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "189f498b7daeb256e4ed8af65e62b1e4d604830185e52c364d7a27280de6357b",
     SKILL_ROOT / "view-policies" / "SKILL.md": "64b31b318ec336efd20a6559a360d9af7be32765b5c2e91971f21f16b704d7d2",
-    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
-    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "1ab035f663edae454ab08b3febb7d842f6a162c5f343ca843f1021f0f2e48d48",
+    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
+    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "fff1fa2025879fe04c086f8bd3a46127051bc417d169ad20b2a1fab2ff7e0587",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -701,17 +701,18 @@ LIVE_USER_NAME_NULLABILITY_TERMS = (
 )
 LIVE_RESOURCE_TITLE_NULLABILITY_TERMS = (
     "resource `title` may be null",
-    "never invent or display a fallback resource title",
+    "never invent or display any other fallback resource title",
     "exactly one resource and its title is null",
-    "present that resource as the application itself",
-    "application title plus its permission titles",
+    "label that resource \"permission\" wherever a resource name is shown, as the accessowl ui does",
+    "`1password | permission | 1password-user`", "\"1password, permission: 1password-user\"",
+    "\"permission\" is accessowl's display label for an unnamed single resource, so it is not an invented title",
     "because it is the only resource",
     "such a resource still has its own resource id. its access is resource-level, never "
     "application-wide access (a state with `resource_id: null`), and every request for it "
     "carries that resource id",
     "when a reply presents or confirms such an application's permissions for a choice or a write, "
     "such as a list of options or a confirmation, say once in that reply, in plain words, that it "
-    "has a single resource, so it has no name in accessowl, and that what matters is the permission",
+    "has a single resource, so accessowl shows it as permission, and that what matters is the permission",
     "plain access listings and report tables show only the label and add no such sentence",
     "when a workflow sees a resource only through an expanded access state, a null title needs no "
     "resource count. name the application and the permission titles, show a state with no "
@@ -723,6 +724,7 @@ LIVE_RESOURCE_TITLE_NULLABILITY_TERMS = (
     "otherwise stop incomplete as ambiguous",
     "permission titles must still be nonblank",
     "never write the displayed label back to accessowl",
+    "the permission label is never sent as a resource title",
 )
 API_NESTED_VALUE_CAP_TERMS = (
     "every object",

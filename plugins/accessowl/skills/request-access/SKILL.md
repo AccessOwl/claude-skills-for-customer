@@ -109,9 +109,9 @@ Before presenting or accepting a title-based choice, require every selectable
 resource title to be nonblank and unique case-insensitively, and every
 selectable permission title to be nonblank and unique case-insensitively within
 its resource. The one exception is an application whose only resource has a
-null title: present and select that resource as the application itself, by
-the application title plus its permission titles, for example
-"1Password, 1password-user". A null resource title next to any other resource stops
+null title: present and select that resource by the label Permission, as
+AccessOwl shows it, for example "1Password, Permission: 1password-user". A
+null resource title next to any other resource stops
 as ambiguous. On a collision, do not choose by hidden ID; ask for the
 application structure to be fixed in AccessOwl and stop.
 

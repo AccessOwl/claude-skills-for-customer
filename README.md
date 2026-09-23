@@ -136,9 +136,11 @@ export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
   reschedules onboarding, which provisions what their access template
   matches. The offboarding skill offboards an Active person you confirm, now
   or on a date, which sends the offboarding notice and revokes the access
-  AccessOwl tracks. Onboarding and offboarding cannot be undone through the API.
-  Details of existing people are edited, and a planned offboarding is
-  cancelled, on the person's profile in AccessOwl. People are never deleted.
+  AccessOwl tracks. Onboarding has to finish, with the person Active, before
+  the person can be offboarded. Offboarding cannot be undone through the API.
+  Details of existing people are edited, and an onboarding or a planned
+  offboarding is cancelled, on the person's profile in AccessOwl. People are
+  never deleted.
 - The user list import fully replaces an application's user list. It is the
   one deliberate full-replacement write: it is always previewed as Added,
   Changed, Removed, and Unchanged, and the list is re-read right before and

@@ -137,8 +137,8 @@ current user list, they are listed under Removed.
   because it cannot form a safe, identifiable CSV header or import entry.
   Never invent a fallback column title.
   The one exception is an application whose only resource has a null title:
-  present that resource as the application itself, by the application title
-  plus its permission titles. When reading the user's file, use the
+  present that resource by the label Permission, as AccessOwl shows it, with
+  its permission titles. When reading the user's file, use the
   permission column the user has, and ask which column holds the
   permissions only if it is not obvious. Its import entries omit the
   optional `resource` field and carry permission titles only; never send

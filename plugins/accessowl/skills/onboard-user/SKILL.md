@@ -27,6 +27,10 @@ in AccessOwl for those edits. It never grants individual app access (that is
 a request made with the request skill) and never offboards anyone (that
 belongs to the offboarding skill).
 
+The API cannot read access templates. If the user asks what an access
+template contains or asks to change one, say that access templates cannot
+be read or changed from here; they are managed in AccessOwl.
+
 ## API rules
 
 Before the first API call, read `references/api-rules.md` in this skill
@@ -128,18 +132,21 @@ the confirmation.
 - `active`: first check the manager (see below). Then warn plainly that
   onboarding switches the person to Onboarding (Provisioning planned until a
   future start date), provisions whatever access their access template
-  matches, cannot be undone through the API, and does not change their
-  details, since none are sent. Ask whether to continue.
+  matches, and does not change their details, since none are sent. Add
+  that an onboarding can be cancelled on the person's profile in AccessOwl:
+  the person switches back to Active and keeps their current access. Ask
+  whether to continue.
   This is its own question, not the confirmation; never combine the warning
   and the confirmation in one message. For example:
 
   > Mike Carter, mike@company.com, is already active in AccessOwl.
   > Onboarding switches Mike Carter to Onboarding (Provisioning planned
   > until a future start date) and provisions whatever access Mike Carter's
-  > access template matches. It cannot be undone
-  > through the API, and it does not change Mike Carter's details. To edit
-  > the manager, department, or other details, use Mike Carter's profile in
-  > AccessOwl.
+  > access template matches. It does not change Mike Carter's details. To
+  > edit the manager, department, or other details, use Mike Carter's
+  > profile in AccessOwl. The onboarding can be cancelled on the same
+  > profile: Mike Carter switches back to Active and keeps the current
+  > access.
   >
   > Continue with onboarding?
 
@@ -187,10 +194,8 @@ out.
 ### 5. Confirm once
 
 Show one short message with the person and their email, the manager, every
-detail that will be sent, and the start (a date or now). For an add or an
-onboard, also say "It cannot be undone through the API; people can be
-offboarded but not deleted." End with one question and ask nothing else in
-that message. For example:
+detail that will be sent, and the start (a date or now). End with one
+question and ask nothing else in that message. For example:
 
 > Ready to add and onboard:
 > - Sarah Lee, sarah@company.com
@@ -200,8 +205,7 @@ that message. For example:
 > - Start: 2026-10-05
 >
 > This adds Sarah Lee to AccessOwl and provisions the access Sarah Lee's
-> access template matches on that date. It cannot be undone through the
-> API; people can be offboarded but not deleted. OK to add and onboard?
+> access template matches on that date. OK to add and onboard?
 
 After the warning for an active person:
 
@@ -211,8 +215,7 @@ After the warning for an active person:
 > - Start: now
 >
 > This switches Mike Carter to Onboarding and provisions the access Mike
-> Carter's access template matches now. It cannot be undone through the
-> API; people can be offboarded but not deleted. OK to onboard?
+> Carter's access template matches now. OK to onboard?
 
 For a reschedule:
 
