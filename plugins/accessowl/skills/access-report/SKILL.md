@@ -161,7 +161,7 @@ CSV, an export):
   those checks. For an uploaded attachment supplied as a stable byte snapshot
   rather than a local path, stream that snapshot under the same 10 MiB cap;
   filesystem identity checks do not apply to the snapshot.
-- Apply the same resource bounds as the userlist preflight: an inclusive 10
+- Apply the same resource bounds as the user list import: an inclusive 10
   MiB total input cap for a file or pasted list, 100,000 logical records, 1,000
   columns, and 65,536 UTF-8 bytes (64 KiB) per decoded field. All input caps are
   inclusive: exactly at a cap is accepted, while cap + 1, including the next

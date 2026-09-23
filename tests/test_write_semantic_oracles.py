@@ -748,7 +748,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "CURRENT_ACCESS_EFFECTIVE_END",
             ),
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "Treat historical access with a non-null effective_end as current.",
                 "CURRENT_ACCESS_EFFECTIVE_END",
             ),
@@ -763,7 +763,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "PROVISIONING_TYPE_SCHEMA",
             ),
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "For a null resource title, use a Permissions fallback column.",
                 "RESOURCE_TITLE_REQUIRED",
             ),
@@ -798,12 +798,12 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "MULTIPLE_PERMISSION_SELECTION_SCHEMA",
             ),
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "The structure PUT is a full overwrite.",
                 "STRUCTURE_PARTIAL_UPSERT",
             ),
             (
-                "userlist-import-preflight",
+                "import-userlist",
                 "I can add the missing permission to the application for you.",
                 "USERLIST_READ_ONLY",
             ),

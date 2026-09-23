@@ -134,11 +134,11 @@ EXPECTED_SKILLS: Tuple[str, ...] = (
     "access-report",
     "discovered-apps",
     "grant-access",
+    "import-userlist",
     "list-access",
     "mirror-access",
     "request-access",
     "request-revocation",
-    "userlist-import-preflight",
     "vendor-update",
     "view-policies",
 )
@@ -158,26 +158,26 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "3771bf362ae75ce5b6cd1e70a3cb38951400af2e3b06a0f71665224a6492ab98",
+    Path("README.md"): "e732f09c5f79cf373f51e5b862ae70407bb27046aafee4ae3efff827140b255a",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
-    SKILL_ROOT / "access-report" / "SKILL.md": "b766b263f31f7c6aa740bd6d141fd12ac91ec9676f4b2ca722a0e1eec3252d1a",
+    SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "c811a60b79f7331b9a03d395e6e9da87dfba3427096622c69353bffc59d2f1f8",
     SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
     SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
     SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "453c777baa2f3b23167738d02dca24157ec4e662531bb345104618bce7b5aa2f",
-    SKILL_ROOT / "userlist-import-preflight" / "SKILL.md": "0121a8f60eddd8670e80a163dc3fdd7d77aff00c91abfa512ce2821f4c8b0743",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
     SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
     SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
+    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "userlist-import-preflight" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
     SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
 }
@@ -185,11 +185,11 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/test_adversarial_oracles.py"): "e2d3386e4e0f61c6bc1a0a933b595a9c8cc1dc8680b748c7b2832862cd592739",
-    Path("tests/test_api_semantic_oracles.py"): "4ad70ff26aaaa9e63a21adbf3b343e17a1f86629023c1586ce3d91d2eaf09ffa",
+    Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
-    Path("tests/test_output_semantic_oracles.py"): "839c0419b45111e6a3b0296979d7f549f84d7c0928ba18c0a436add2bd2959c7",
+    Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "913dff061095b258ef8b8c700fa2ff6f3f0cbcb25cb1f3ce1acb78a03b07c9d1",
+    Path("tests/test_write_semantic_oracles.py"): "df58b9b60925051eb2c2c12f1678b58c5217d502228c9a2d8d5922447616a1d3",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -317,6 +317,16 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("POST", "/access_requests/{}/grant"),
         }
     ),
+    "import-userlist": frozenset(
+        {
+            ("GET", "/users"),
+            ("GET", "/applications"),
+            ("GET", "/applications/{}"),
+            ("GET", "/applications/{}/resources"),
+            ("GET", "/access_states"),
+            ("PUT", "/applications/{}/access_states"),
+        }
+    ),
     "list-access": frozenset(
         {("GET", "/users"), ("GET", "/access_states"), ("GET", "/applications")}
     ),
@@ -357,14 +367,6 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("POST", "/access_revocations/{}/reject"),
         }
     ),
-    "userlist-import-preflight": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_states"),
-        }
-    ),
     "vendor-update": frozenset(
         {
             ("GET", "/users"),
@@ -381,18 +383,18 @@ ALLOWED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
     "access-report": REQUIRED_OPERATIONS["access-report"],
     "discovered-apps": REQUIRED_OPERATIONS["discovered-apps"],
     "grant-access": REQUIRED_OPERATIONS["grant-access"],
+    "import-userlist": REQUIRED_OPERATIONS["import-userlist"]
+    | frozenset({("PUT", "/applications/{}/structure")}),
     "list-access": REQUIRED_OPERATIONS["list-access"],
     "mirror-access": REQUIRED_OPERATIONS["mirror-access"],
     "request-access": REQUIRED_OPERATIONS["request-access"],
     "request-revocation": REQUIRED_OPERATIONS["request-revocation"],
-    "userlist-import-preflight": REQUIRED_OPERATIONS["userlist-import-preflight"]
-    | frozenset({("PUT", "/applications/{}/structure")}),
     "vendor-update": REQUIRED_OPERATIONS["vendor-update"],
     "view-policies": REQUIRED_OPERATIONS["view-policies"]
     | frozenset({("PUT", "/policies/{}/applications")}),
 }
 REFUSED_OPERATIONS: Mapping[str, Tuple[str, str]] = {
-    "userlist-import-preflight": ("PUT", "/applications/{}/structure"),
+    "import-userlist": ("PUT", "/applications/{}/structure"),
     "view-policies": ("PUT", "/policies/{}/applications"),
 }
 
@@ -401,11 +403,11 @@ STATUS_ALL_SKILLS = frozenset(
         "access-report",
         "discovered-apps",
         "grant-access",
+        "import-userlist",
         "list-access",
         "mirror-access",
         "request-access",
         "request-revocation",
-        "userlist-import-preflight",
         "vendor-update",
         "view-policies",
     }
@@ -416,13 +418,13 @@ EXPANSION_REQUIREMENTS: Mapping[str, frozenset[str]] = {
     ),
     "discovered-apps": frozenset({"grantee_user", "application"}),
     "grant-access": frozenset({"application", "resource", "target_permissions"}),
+    "import-userlist": frozenset(
+        {"grantee_user", "application", "resource", "target_permissions"}
+    ),
     "list-access": frozenset({"application", "resource", "target_permissions"}),
     "mirror-access": frozenset({"application", "resource", "target_permissions"}),
     "request-access": frozenset({"application", "resource", "target_permissions"}),
     "request-revocation": frozenset(
-        {"grantee_user", "application", "resource", "target_permissions"}
-    ),
-    "userlist-import-preflight": frozenset(
         {"grantee_user", "application", "resource", "target_permissions"}
     ),
 }
@@ -431,6 +433,7 @@ WRITE_SKILLS = frozenset(
     {
         "access-report",
         "grant-access",
+        "import-userlist",
         "mirror-access",
         "request-access",
         "request-revocation",
@@ -440,6 +443,7 @@ WRITE_SKILLS = frozenset(
 IDEMPOTENCY_VERIFICATION: Mapping[str, Tuple[str, str]] = {
     "access-report": ("GET", "/access_requests"),
     "grant-access": ("GET", "/access_requests"),
+    "import-userlist": ("GET", "/access_states"),
     "mirror-access": ("GET", "/access_requests"),
     "request-access": ("GET", "/access_requests"),
     "request-revocation": ("GET", "/access_revocations"),
@@ -463,6 +467,9 @@ CONCURRENCY_READS: Mapping[str, frozenset[Tuple[str, str]]] = {
             ("GET", "/access_states"),
             ("GET", "/access_requests"),
         }
+    ),
+    "import-userlist": frozenset(
+        {("GET", "/access_states"), ("GET", "/applications/{}/resources")}
     ),
     "mirror-access": frozenset(
         {
@@ -537,10 +544,10 @@ TITLE_LOOKUP_SKILLS = frozenset(
         "access-report",
         "discovered-apps",
         "grant-access",
+        "import-userlist",
         "list-access",
         "request-access",
         "request-revocation",
-        "userlist-import-preflight",
         "vendor-update",
         "view-policies",
     }
@@ -4326,7 +4333,7 @@ def _validate_openapi_field_semantics(
                     "multi-permission requests require a present boolean-true multiple_permissions_selectable field",
                 )
             )
-    if skill in {"request-access", "userlist-import-preflight"}:
+    if skill in {"request-access", "import-userlist"}:
         effective_end_safe = all(
             term in normalized
             for term in (
@@ -4360,7 +4367,7 @@ def _validate_openapi_field_semantics(
                     "only a present explicit-null effective_end proves current access",
                 )
             )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         resource_title_safe = all(
             term in normalized
             for term in (
@@ -4458,7 +4465,7 @@ def _validate_destructive_invariants(skill: str, text: str, relative: Path | str
                 "confirm every permission because a revocation covers the whole access state",
             )
         )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         userlist_write_offer = bool(
             re.search(
                 r"\b(?:i|we)\s+(?:can|will|could)\s+add.{0,60}"
@@ -5206,7 +5213,7 @@ def _validate_reporting_and_csv_invariants(
             "effective_start must be compared as an instant and rendered with a deterministic UTC date",
         )
 
-    if skill in {"access-report", "userlist-import-preflight"}:
+    if skill in {"access-report", "import-userlist"}:
         input_file_identity_safe = all(
             term in normalized
             for term in (
@@ -5356,7 +5363,7 @@ def _validate_reporting_and_csv_invariants(
                     "reconciliation files and pasted input need inclusive 10 MiB, 100,000-record, 1,000-column, and 64 KiB-field caps",
                 )
             )
-    if skill == "userlist-import-preflight":
+    if skill == "import-userlist":
         malformed_csv_safe = has_paragraph(
             "parse quoted csv fields correctly",
             "never split rows on commas by hand",

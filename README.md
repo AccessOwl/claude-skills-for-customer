@@ -27,7 +27,7 @@ a request.
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
 | `access-report` | "Everyone in Marketing without HubSpot." |
-| `userlist-import-preflight` | "Validate this CSV against our Notion app before I import it." |
+| `import-userlist` | "Import this CSV into Notion, replacing its current user list." |
 | `vendor-update` | "We finished the vendor review for Slack, record today's date." |
 | `view-policies` | "Which policy covers Salesforce?" |
 | `discovered-apps` | "Which apps has AccessOwl discovered?" |
