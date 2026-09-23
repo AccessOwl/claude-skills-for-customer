@@ -99,9 +99,12 @@ For a request without one, leave it out and list it as unreadable.
 
 Label each request by application title plus the resource and permission
 titles from `GET /applications/{application_id}/resources`, matching its
-`resource_id` and every one of its `permission_ids`. If a needed title is
-missing, blank, duplicated, or inconsistent, leave that request out and list
-it as unreadable. Never choose or show a request by ID.
+`resource_id` and every one of its `permission_ids`. When the application
+has exactly one resource and its title is null, label the request by the
+application title plus its permission titles instead, for example
+"1Password, Member". Otherwise, if a needed title is missing, null, blank,
+duplicated, or inconsistent, leave that request out and list it as
+unreadable. Never choose or show a request by ID.
 
 When the user gave a date cutoff ("from before March"), compare it with each
 request's `inserted_at`. A vague "old" or "stale" without a date is missing

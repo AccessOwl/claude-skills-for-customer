@@ -87,8 +87,12 @@ status are ineligible. Never call the grant endpoint for an ineligible request.
 If no eligible request exists, state the verified status and stop. If several
 eligible requests exist, fetch `GET /applications/{id}/resources`, correlate
 each request's resource and complete permission IDs to exact nonblank titles,
-and ask which one was provisioned. Stop on any missing, duplicate, blank, null,
-or inconsistent title or relationship. Never choose by a hidden ID.
+and ask which one was provisioned. When the application has exactly one
+resource and its title is null, show that resource as the application itself
+wherever this skill names it, by the application title plus its permission
+titles, for example "Dwight Schrute: 1Password, Member". Otherwise stop on any
+missing, duplicate, blank, null, or inconsistent title or relationship. Never
+choose by a hidden ID.
 
 ### 3. Check for an exact duplicate access state
 

@@ -197,8 +197,12 @@ Only if the user says yes. Ask which resource and permission to request if
 the application offers more than one (fetch `GET /applications/{id}/resources`
 and present the requestable options by title). Require selectable resource
 titles to be nonblank and unique case-insensitively, and permission titles to
-be nonblank and unique case-insensitively within their resource. On a
-collision, do not choose by hidden ID; ask for the AccessOwl structure to be
+be nonblank and unique case-insensitively within their resource. The one
+exception is an application whose only resource has a null title: present
+and select that resource as the application itself, by the application title
+plus its permission titles, for example "1Password, Member". A null resource
+title next to any other resource stops as ambiguous. On a collision, do not
+choose by hidden ID; ask for the AccessOwl structure to be
 fixed and stop. Require the application's current `status` to be `requestable`;
 stop for `approved`, `ignored`, `discovered`, or unknown values. Fetch `GET /access_requests?limit=100`
 and apply the exact status rules below to decide which requests block a

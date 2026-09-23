@@ -169,32 +169,32 @@ ALLOWED_REPOSITORY_FILES = frozenset(
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "a40e1147e366c761ab4f98fc55a44f2d83ec3ce9c54d3ae8b08e1edffece7029",
     Path("SKILL_STYLE.md"): "f107d23881f0fd5b0db00af325c5131618f399292dcb416544a922e3cae53a68",
-    SKILL_ROOT / "access-report" / "SKILL.md": "83df521cfa418e32b07c2e7dba602cc4a71055d802986db009ef4596ae2a7f5c",
-    SKILL_ROOT / "close-request" / "SKILL.md": "ffbba377f38af729778288bcb1b25909910b43e89c3e6bcdc3f83b00225f1c2e",
+    SKILL_ROOT / "access-report" / "SKILL.md": "125d63c3e5c1a171b8174e1a6ebd4aaba787e348b9524831f1aee533200563b3",
+    SKILL_ROOT / "close-request" / "SKILL.md": "90cf2f6513cce77b9891366c4b8b48c285081edad424d8ff6a48dc3314038011",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "c3c0ab04e1c2b414fbcbbe35c34b092fc8d3c09c60c86cda61c024c00c70b67d",
-    SKILL_ROOT / "grant-access" / "SKILL.md": "b4e03a07b7593802c1e1782f5ff6171fc97e1f353ae7c162d773b8d3107220ee",
-    SKILL_ROOT / "import-userlist" / "SKILL.md": "1028fefa1f6d4263d4bf11baf6af2c641d4c052fb843eb134ec7145d202607e1",
+    SKILL_ROOT / "grant-access" / "SKILL.md": "6fc8624120a5dea4f8b84a726d96572a951f2efe1b894074917174baf52fe698",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "ee4f2b296fdb76e07c32261cc9fc0f77dcddda1d7659028ef59f94443e09e024",
     SKILL_ROOT / "list-access" / "SKILL.md": "3693984ed77b047aaa41c4fe4c8b9c2c96ab2a9ec5ffdcf413676f029908dfb5",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "cc62b2f90f05ba28616037abd0f14d0ffac8ccb9a71314369086223200374e01",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "fcbd6a24c1022792656369b808db69302d3168c6ec2365b0e122d1b0fb720ba3",
     SKILL_ROOT / "offboard-user" / "SKILL.md": "6793b6f614140161a276097143e4cbd03a947c3ebfeb1ef19af7a7e1ae3439cd",
     SKILL_ROOT / "onboard-user" / "SKILL.md": "26bbac008ee5ebfe58cc4704daefb8e1ba7a4e8b0fbf453edfe15c9e2b580527",
-    SKILL_ROOT / "request-access" / "SKILL.md": "a486db839c856fa892f2a959b7204c96222ca1f16d452d343f69720ae86639b4",
+    SKILL_ROOT / "request-access" / "SKILL.md": "96436a4eddc407f71496e196c5238a9d5eb644049451549127f044c44503cfc2",
     SKILL_ROOT / "request-revocation" / "SKILL.md": "8d64de05b8a8c4d02915df5b519a9b5c880b68f51e64dcd46f4859a70d441986",
     SKILL_ROOT / "vendor-update" / "SKILL.md": "189f498b7daeb256e4ed8af65e62b1e4d604830185e52c364d7a27280de6357b",
     SKILL_ROOT / "view-policies" / "SKILL.md": "64b31b318ec336efd20a6559a360d9af7be32765b5c2e91971f21f16b704d7d2",
-    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
-    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "16070648b88c63e6832cb333850bfa6d70474633fa12abeb921ad6eecbfd8910",
+    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
+    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "4e70a248c8c82fc7b83e568c0bf110c886f186aabf542a23ebb931a977137d6b",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
@@ -205,7 +205,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "b6de0f63b87223de36719cbedc938b8849dd1c1c0b471b01e7dbb04d1cbe8ba7",
+    Path("tests/test_write_semantic_oracles.py"): "0913b98e65c1ed85ff4ad1373507b9da5ec959e00fd5c5654a97f48d00b3c12e",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -3265,13 +3265,20 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                     term in normalized
                     for term in (
                         "resource `title` may be null",
-                        "treat it as unavailable",
-                        "never invent or display a fallback title",
+                        "never invent or display a fallback resource title",
+                        "exactly one resource and its title is null",
+                        "present that resource as the application itself",
+                        "application title plus its permission titles",
+                        "because it is the only resource",
+                        "more than one resource and any of them has a null title",
+                        "treat that title as unavailable",
                         "display, selection, csv output, or disambiguation",
-                        "otherwise stop incomplete",
+                        "otherwise stop incomplete as ambiguous",
+                        "permission titles must still be nonblank",
+                        "never write the displayed label back to accessowl",
                     )
                 ),
-                "handle live nullable resource titles only where a title is not needed",
+                "show an only untitled resource as the application; otherwise stop on null resource titles",
             ),
             (
                 "LIVE_OPENAPI_EXCEPTIONS",
@@ -4426,6 +4433,11 @@ def _validate_openapi_field_semantics(
                 "despite the current openapi string requirement",
                 "reject a missing, null, empty",
                 "never invent a fallback column title",
+                "only resource has a null title",
+                "empty header, both when mapping the source file and in the cleaned csv",
+                "omit the optional `resource` field and carry permission titles only",
+                "never write the application title back as its resource title",
+                "next to any other resource stays rejected",
             )
         )
         if not resource_title_safe or re.search(
@@ -4437,7 +4449,7 @@ def _validate_openapi_field_semantics(
                 _issue(
                     "RESOURCE_TITLE_REQUIRED",
                     relative,
-                    "a nullable resource title cannot be used or replaced as a CSV header",
+                    "a null resource title is never replaced; only an only untitled resource gets an empty header and no resource field",
                 )
             )
         structure_safe = all(

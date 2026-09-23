@@ -819,6 +819,51 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 "LIVE_RESOURCE_TITLE_NULLABILITY",
             ),
             (
+                'Never invent or display a fallback resource title',
+                'Display a fallback resource title',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'present that resource as the application itself',
+                'hide that resource',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'label it by the application title plus its permission titles',
+                'label it Default',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'allow selecting it because it is the only resource',
+                'allow selecting it',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'When the application has more than one resource and any of them has a null title,',
+                'When a resource has a null title,',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'treat that title as unavailable',
+                'display that title',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'otherwise stop incomplete as ambiguous',
+                'otherwise continue',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'Permission titles must still be nonblank',
+                'Permission titles may be blank',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
+                'Never write the displayed label back to AccessOwl',
+                'Write the displayed label back to AccessOwl',
+                "LIVE_RESOURCE_TITLE_NULLABILITY",
+            ),
+            (
                 "100,000 decoded JSON nodes across\n  the run, counting every object, object key, array, and scalar value",
                 "100,000 decoded JSON nodes across the run, counting array entries only",
                 "API_NESTED_VALUE_CAP",
@@ -1191,6 +1236,10 @@ class WriteSemanticOracleTests(unittest.TestCase):
                 None,
                 "A blocker also clears when the user says it is fine.",
             ),
+            ("RESOURCE_TITLE_REQUIRED", 'Its CSV column has an empty header, both when\n  mapping the source file and in the cleaned CSV', 'Its CSV column is titled Permissions', None),
+            ("RESOURCE_TITLE_REQUIRED", 'Its import\n  entries omit the optional `resource` field and carry permission titles\n  only.', 'Its import entries use the application title as the resource.', None),
+            ("RESOURCE_TITLE_REQUIRED", 'Never write the application title back as its resource title.', '', None),
+            ("RESOURCE_TITLE_REQUIRED", 'A\n  null title on a resource next to any other resource stays rejected.', 'A null title on a resource next to any other resource is shown as the application.', None),
         )
         for code, old, new, appended in cases:
             with self.subTest(code=code, old=old, appended=appended):

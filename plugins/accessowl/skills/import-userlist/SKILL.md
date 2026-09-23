@@ -118,7 +118,8 @@ identity checks do not apply to the snapshot.
 
 Build the import from the validated rows: one entry per person and resource,
 carrying the person's email, the exact resource title, and the exact
-permission titles. Merge rows for the same person and resource into one entry.
+permission titles (no resource title for an application's only untitled
+resource, see below). Merge rows for the same person and resource into one entry.
 A person whose rows have no permissions gets no entry; if they are on the
 current user list, they are listed under Removed.
 
@@ -131,6 +132,14 @@ current user list, they are listed under Removed.
   Reject a missing, null, empty, whitespace-only, or control-character title
   because it cannot form a safe, identifiable CSV header or import entry.
   Never invent a fallback column title.
+  The one exception is an application whose only resource has a null title:
+  present that resource as the application itself, by the application title
+  plus its permission titles. Its CSV column has an empty header, both when
+  mapping the source file and in the cleaned CSV; if the source file has no
+  empty-header column, ask which column holds its permissions. Its import
+  entries omit the optional `resource` field and carry permission titles
+  only. Never write the application title back as its resource title. A
+  null title on a resource next to any other resource stays rejected.
   If two resources would produce the same column title, including a
   case-insensitive collision, stop without importing or producing a file. The
   same applies if a resource title is **Email**, which conflicts with the
@@ -364,7 +373,9 @@ uncertain outcome.
 
 Send one `PUT /applications/{application_id}/access_states` with a fresh
 `Idempotency-Key` and exactly the confirmed body, for example
-`{"access": [{"user_email": "jim@company.com", "resource": "Role", "permissions": ["Admin"]}]}`.
+`{"access": [{"user_email": "jim@company.com", "resource": "Role", "permissions": ["Admin"]}]}`,
+or `{"access": [{"user_email": "jim@company.com", "permissions": ["Admin"]}]}`
+for an application whose only resource has a null title.
 Send it as one call. Every call replaces the whole list, so never split it;
 the 10-item bulk limit applies to access requests, not this import. Include
 every person in the confirmed list, unchanged people too, because anyone left
@@ -419,7 +430,8 @@ exactly the importer's format:
 
 - **Email** is always the first column.
 - One column per resource, using the exact resource titles. Child resources
-  get their own column, without the parent name as a prefix.
+  get their own column, without the parent name as a prefix. An application
+  whose only resource has a null title gets one column with an empty header.
 - Multiple permissions for the same resource go in one cell separated by
   semicolons with no spaces (Admin;Editor).
 - When a user has several combinations across separate resources, duplicate

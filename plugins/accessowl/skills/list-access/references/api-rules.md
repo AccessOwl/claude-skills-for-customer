@@ -125,11 +125,18 @@ writes apply only when the skill performs a write.
   `first_name` or `last_name` may be null. For a customer-facing person label,
   use a trimmed nonblank `full_name`, otherwise a validated nonblank email
   address; stop if neither exists and never invent a name. A resource `title`
-  may be null. Treat it as unavailable and never invent or display a fallback
-  title. Continue by verified IDs only when the workflow does not need that
-  title for display, selection, CSV output, or disambiguation; otherwise stop
-  incomplete. These exceptions override only the specific stale OpenAPI claims
-  described here.
+  may be null. Never invent or display a fallback resource title such as
+  "Default" or "Role". When the application has exactly one resource and its
+  title is null, present that resource as the application itself: label it by
+  the application title plus its permission titles, for example
+  "1Password, Member", and allow selecting it because it is the only
+  resource. When the application has more than one resource and any of them
+  has a null title, treat that title as unavailable: continue by verified IDs
+  only when the workflow does not need it for display, selection, CSV output,
+  or disambiguation; otherwise stop incomplete as ambiguous. Permission titles
+  must still be nonblank. Never write the displayed label back to AccessOwl.
+  These exceptions override only the specific stale OpenAPI claims described
+  here.
 - On a missing, malformed, or inconsistent read or pre-write response, stop as
   incomplete and never answer or write from it. A malformed or missing write
   response is an uncertain outcome: never repeat it with a fresh key, verify
