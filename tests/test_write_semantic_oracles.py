@@ -8,6 +8,7 @@ from typing import Iterable, Set
 
 from .contract_validator import (
     Issue,
+    _validate_close_request_semantics,
     _validate_grant_access_semantics,
     skill_document_text,
     validate_resilience_text,
@@ -116,6 +117,61 @@ class WriteSemanticOracleTests(unittest.TestCase):
                         "grant-access", text + "\n\n" + unsafe, "SKILL.md"
                     ),
                     "GRANT_CONTRADICTION",
+                )
+
+    def test_close_request_status_action_and_approver_are_indivisible(self) -> None:
+        text = self.skill_text("close-request")
+        self.assertEqual(
+            [], validate_write_safety_text("close-request", text, "SKILL.md")
+        )
+        cases = (
+            (
+                "never revokes access someone already has",
+                "may revoke access someone already has",
+                "CLOSE_SCOPE",
+            ),
+            ("being provisioned): reject it.", "being provisioned): leave it.", "CLOSE_STATUS_ACTION"),
+            ("Never pick one yourself", "Pick one yourself", "CLOSE_DENY_APPROVER"),
+            (
+                "ask nothing else in that message",
+                "add any other questions",
+                "CLOSE_CONFIRMATION",
+            ),
+            (
+                "with the confirmed approver still pending",
+                "with any approver",
+                "CLOSE_PREWRITE_RECHECK",
+            ),
+            ("A `422` means", "A `422` suggests", "CLOSE_422"),
+            (
+                "outcome as unknown and stop remaining writes",
+                "outcome as unknown and move to the next request",
+                "CLOSE_UNCERTAIN",
+            ),
+        )
+        for old, new, code in cases:
+            with self.subTest(code=code):
+                mutant = text.replace(old, new, 1)
+                self.assertNotEqual(text, mutant, "mutation anchor missing for %s" % code)
+                self.assertCode(
+                    _validate_close_request_semantics("close-request", mutant, "SKILL.md"),
+                    code,
+                )
+
+        contradictions = (
+            "For `pending_approval`, reject it instead.",
+            "For `processing_access`, deny it.",
+            "The `on_behalf_of_user_id` field is optional.",
+            "Use the first pending approver.",
+            "An earlier go ahead counts as the confirmation.",
+        )
+        for unsafe in contradictions:
+            with self.subTest(unsafe=unsafe):
+                self.assertCode(
+                    _validate_close_request_semantics(
+                        "close-request", text + "\n\n" + unsafe, "SKILL.md"
+                    ),
+                    "CLOSE_CONTRADICTION",
                 )
 
     def test_idempotency_retry_tuple_is_indivisible(self) -> None:

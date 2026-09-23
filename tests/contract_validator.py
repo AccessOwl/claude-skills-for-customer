@@ -159,10 +159,10 @@ ALLOWED_REPOSITORY_FILES = frozenset(
     | {SKILL_ROOT / skill / API_RULES_RELATIVE for skill in EXPECTED_SKILLS}
 )
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
-    Path("README.md"): "4e26b8834a412e161b07a2f968f7e6f73b32528e292490c5a26143a6995683c3",
+    Path("README.md"): "436c58c219eea10ba1106827c728828919f76617f5b38d3f29071a0829230d85",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
     SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
-    SKILL_ROOT / "close-request" / "SKILL.md": "a4a82c7264ac3c8717bbd34f5857df5bd1feeed8923301cb3c158ba002a2f6b2",
+    SKILL_ROOT / "close-request" / "SKILL.md": "a8a2181d485370370fe87adc1e88b5351c6702c73954b33bce1a23608b4f5468",
     SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
     SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
     SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
@@ -192,7 +192,7 @@ APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "c466fe5568ac3503ec375b86c9eb0f8221c68eaf477f5f1189f3982a1c097c99",
+    Path("tests/test_write_semantic_oracles.py"): "705a5e3817a961f956960384fc2d2906824c391374519cb4563464ce5e6d8c13",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -306,15 +306,9 @@ REQUIRED_OPERATIONS: Mapping[str, frozenset[Tuple[str, str]]] = {
         }
     ),
     "close-request": frozenset(
-        {
-            ("GET", "/users"),
-            ("GET", "/applications"),
-            ("GET", "/applications/{}/resources"),
-            ("GET", "/access_requests"),
-            ("GET", "/access_requests/{}"),
-            ("POST", "/access_requests/{}/deny"),
-            ("POST", "/access_requests/{}/reject"),
-        }
+        {("GET", "/users"), ("GET", "/applications"), ("GET", "/applications/{}/resources"),
+         ("GET", "/access_requests"), ("GET", "/access_requests/{}"),
+         ("POST", "/access_requests/{}/deny"), ("POST", "/access_requests/{}/reject")}
     ),
     "discovered-apps": frozenset(
         {("GET", "/users"), ("GET", "/applications"), ("GET", "/access_states")}
@@ -6036,124 +6030,87 @@ def _validate_reporting_and_csv_invariants(
     return issues
 
 
-def _validate_grant_access_semantics(
-    skill: str, text: str, relative: Path | str
+PhraseRules = Sequence[Tuple[str, str, bool, Tuple[str, ...]]]
+
+
+def _phrase_contract(
+    text: str, relative: Path | str, requirements: PhraseRules, contradictions: Sequence[str], contradiction: Tuple[str, str]
 ) -> List[Issue]:
+    """Rule: (code, message, per_paragraph, phrases)."""
+    normalized = re.sub(r"\s+", " ", text.casefold())
+    paragraphs = [re.sub(r"\s+", " ", part.casefold()) for part in text.split("\n\n")]
+    issues = [
+        _issue(code, relative, message)
+        for code, message, scoped, terms in requirements
+        if not any(all(term in scope for term in terms) for scope in (paragraphs if scoped else [normalized]))
+    ]
+    if any(re.search(pattern, normalized, re.S) for pattern in contradictions):
+        issues.append(_issue(contradiction[0], relative, contradiction[1]))
+    return issues
+
+
+GRANT_REQUIREMENTS: PhraseRules = (
+    ("GRANT_SCOPE", "grant-access records completed provisioning but never approves or creates a request", False,
+     ("this is a direct write. it is not approval and it is not a new request", "never approves requests")),
+    ("GRANT_MANUAL_ELIGIBILITY", "only a processing_access request for application_admin provisioning is grant-eligible", False,
+     ("`provisioning_type` is `application_admin`", "exact request status is `processing_access`", "only `processing_access` is eligible for granting", "`pending_approval`", "ineligible", "never call the grant endpoint for an ineligible request")),
+    ("GRANT_EXACT_SELECTION", "resolve one exact person, application, request, resource, and permission set", False,
+     ("require exactly one case-insensitive match", "complete permission ids", "never choose by a hidden id")),
+    ("GRANT_DUPLICATE_ACCESS", "block an exact current duplicate without blocking different access in the same app", False,
+     ("exact application, resource, and complete permission set", "different resource or permission", "does not block this grant", "exact requested access is already current", "stop", "duplicate state")),
+    ("GRANT_CONFIRMATION", "confirm the exact completed provisioning immediately before granting", False,
+     ("person, application, resource, and complete permission set", "clearly confirms that provisioning is complete", "earlier request to create or approve access")),
+    ("GRANT_RESPONSE_CORRELATION", "correlate the 200 response and verify exactly one matching current state", False,
+     ("exact documented success status is `200`", "same request id, grantee, application, resource, and complete permission set", "status exactly `access_granted`", "exactly one current access state", "zero or multiple exact matches", "outcome as unknown")),
+    ("GRANT_422_FAIL_CLOSED", "422 must stop without inferring approval or synthesizing another grant", True,
+     ("on `422`", "did not consider the request grant-eligible", "never infer approval", "retry with a new body or key")),
+)
+GRANT_CONTRADICTIONS = (
+    r"pending_approval.{0,80}(?:is|counts?\s+as|treat.{0,20}as).{0,30}grant-eligible",
+    r"(?:grant|mark).{0,80}pending_approval",
+    r"(?:different|other).{0,30}(?:resource|permission).{0,50}(?<!not )(?:blocks?|prevents?).{0,30}grant",
+    r"(?:response\s+status|http\s+200).{0,60}(?:alone|by itself).{0,40}(?:proves?|confirms?).{0,30}grant",
+    r"(?<!never )(?<!not )(?:skip|omit).{0,40}(?:confirmation|current\s+access|read-back|verification)",
+)
+
+
+def _validate_grant_access_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
     if skill != "grant-access":
         return []
-    normalized = re.sub(r"\s+", " ", text.casefold())
-    paragraphs = [
-        re.sub(r"\s+", " ", paragraph.casefold())
-        for paragraph in text.split("\n\n")
-    ]
-    issues: List[Issue] = []
-    requirements: Sequence[Tuple[str, bool, str]] = (
-        (
-            "GRANT_SCOPE",
-            "this is a direct write. it is not approval and it is not a new request" in normalized
-            and "never approves requests" in normalized,
-            "grant-access records completed provisioning but never approves or creates a request",
-        ),
-        (
-            "GRANT_MANUAL_ELIGIBILITY",
-            all(
-                term in normalized
-                for term in (
-                    "`provisioning_type` is `application_admin`",
-                    "exact request status is `processing_access`",
-                    "only `processing_access` is eligible for granting",
-                    "`pending_approval`",
-                    "ineligible",
-                    "never call the grant endpoint for an ineligible request",
-                )
-            ),
-            "only a processing_access request for application_admin provisioning is grant-eligible",
-        ),
-        (
-            "GRANT_EXACT_SELECTION",
-            all(
-                term in normalized
-                for term in (
-                    "require exactly one case-insensitive match",
-                    "complete permission ids",
-                    "never choose by a hidden id",
-                )
-            ),
-            "resolve one exact person, application, request, resource, and permission set",
-        ),
-        (
-            "GRANT_DUPLICATE_ACCESS",
-            all(
-                term in normalized
-                for term in (
-                    "exact application, resource, and complete permission set",
-                    "different resource or permission",
-                    "does not block this grant",
-                    "exact requested access is already current",
-                    "stop",
-                    "duplicate state",
-                )
-            ),
-            "block an exact current duplicate without blocking different access in the same app",
-        ),
-        (
-            "GRANT_CONFIRMATION",
-            "person, application, resource, and complete permission set" in normalized
-            and "clearly confirms that provisioning is complete" in normalized
-            and "earlier request to create or approve access" in normalized,
-            "confirm the exact completed provisioning immediately before granting",
-        ),
-        (
-            "GRANT_RESPONSE_CORRELATION",
-            all(
-                term in normalized
-                for term in (
-                    "exact documented success status is `200`",
-                    "same request id, grantee, application, resource, and complete permission set",
-                    "status exactly `access_granted`",
-                    "exactly one current access state",
-                    "zero or multiple exact matches",
-                    "outcome as unknown",
-                )
-            ),
-            "correlate the 200 response and verify exactly one matching current state",
-        ),
-        (
-            "GRANT_422_FAIL_CLOSED",
-            any(
-                all(
-                    term in paragraph
-                    for term in (
-                        "on `422`",
-                        "did not consider the request grant-eligible",
-                        "never infer approval",
-                        "retry with a new body or key",
-                    )
-                )
-                for paragraph in paragraphs
-            ),
-            "422 must stop without inferring approval or synthesizing another grant",
-        ),
-    )
-    for code, passed, message in requirements:
-        if not passed:
-            issues.append(_issue(code, relative, message))
-    contradictions = (
-        r"pending_approval.{0,80}(?:is|counts?\s+as|treat.{0,20}as).{0,30}grant-eligible",
-        r"(?:grant|mark).{0,80}pending_approval",
-        r"(?:different|other).{0,30}(?:resource|permission).{0,50}(?<!not )(?:blocks?|prevents?).{0,30}grant",
-        r"(?:response\s+status|http\s+200).{0,60}(?:alone|by itself).{0,40}(?:proves?|confirms?).{0,30}grant",
-        r"(?<!never )(?<!not )(?:skip|omit).{0,40}(?:confirmation|current\s+access|read-back|verification)",
-    )
-    if any(re.search(pattern, normalized, re.S) for pattern in contradictions):
-        issues.append(
-            _issue(
-                "GRANT_CONTRADICTION",
-                relative,
-                "unsafe prose must not bypass approval, duplicate, confirmation, or read-back checks",
-            )
-        )
-    return issues
+    return _phrase_contract(text, relative, GRANT_REQUIREMENTS, GRANT_CONTRADICTIONS, (
+        "GRANT_CONTRADICTION", "unsafe prose must not bypass approval, duplicate, confirmation, or read-back checks"))
+
+
+CLOSE_REQUIREMENTS: PhraseRules = (
+    ("CLOSE_SCOPE", "close-request only denies or rejects", False,
+     ("never approves or grants a request", "never revokes access someone already has", "never changes approvers, approval steps, or policies")),
+    ("CLOSE_STATUS_ACTION", "the status alone picks deny, reject, or stop", False,
+     ("`pending_approval` (waiting for approval): deny it", "`pending_permissions_assignment`, `scheduled`, `pending_dependency`, or `processing_access` (approved", "being provisioned): reject it", "`access_granted`, `denied`, or `rejected` (granted, denied, rejected): it is already closed", "any other status: stop", "the status decides the action, not the user's wording")),
+    ("CLOSE_DENY_APPROVER", "deny only for a pending current-step approver", False,
+     ("lowest-numbered step whose `status` is `pending`", "never pick one yourself", "never record a denial for someone who is not a pending approver of the current step", "always include `on_behalf_of_user_id`")),
+    ("CLOSE_CONFIRMATION", "only a clear yes after the confirmation counts", False,
+     ("only a clear yes given after this confirmation counts", "ask nothing else in that message", "will not receive this access")),
+    ("CLOSE_PREWRITE_RECHECK", "re-check status and approver before each write", False,
+     ("same current step with the confirmed approver still pending", "never write from the older snapshot")),
+    ("CLOSE_422", "422 re-reads and changes nothing", True,
+     ("a `422` means", "re-read it", "nothing changed", "needs a new confirmation")),
+    ("CLOSE_UNCERTAIN", "an uncertain outcome stops all writes", False,
+     ("report the outcome as unknown and stop remaining writes", "fresh key needs a new confirmation")),
+)
+CLOSE_CONTRADICTIONS = (
+    r"`pending_approval`[^.]{0,80}\breject\b",
+    r"(?:pending_permissions_assignment|processing_access)[^.]{0,80}\bdeny\b",
+    r"on_behalf_of_user_id[^.]{0,60}\b(?:optional|omit|skip|grantee|requester)\b",
+    r"\b(?:pick|choose|use)\s+(?:the\s+)?first\s+(?:pending\s+)?approver",
+    r"(?:earlier|already|before|previous(?:ly)?)[^.]{0,60}(?:counts?\s+as|treat[^.]{0,20}as)\s+(?:the\s+)?confirmation",
+)
+
+
+def _validate_close_request_semantics(skill: str, text: str, relative: Path | str) -> List[Issue]:
+    if skill != "close-request":
+        return []
+    return _phrase_contract(
+        text, relative, CLOSE_REQUIREMENTS, CLOSE_CONTRADICTIONS, ("CLOSE_CONTRADICTION", "unsafe close prose"))
 
 
 def _validate_userlist_import_write(
@@ -6324,6 +6281,7 @@ def validate_write_safety_text(skill: str, text: str, relative: Path | str) -> L
     issues.extend(_validate_destructive_invariants(skill, text, relative))
     issues.extend(_validate_userlist_import_write(skill, text, relative))
     issues.extend(_validate_grant_access_semantics(skill, text, relative))
+    issues.extend(_validate_close_request_semantics(skill, text, relative))
     return issues
 
 

@@ -8,7 +8,8 @@ description: >
   "clean up the old pending requests for 1Password". Users may also phrase
   this as "cancel this request", "decline it", "close these stale tasks". It
   never approves or grants a request (granting uses the grant skill) and never
-  changes approvers or policies.
+  changes approvers or policies. It never closes revocations; closing a
+  pending revocation belongs to the revocation skill.
 ---
 
 # Close Request
@@ -56,9 +57,9 @@ Be fast. Run independent lookups at the same time (the users, the
 application, and once the requests are known, their applications'
 resources). Fetch only what you need and do not narrate lookup steps. The
 user should see at most two messages: the confirmation question and the
-result. If something is missing (who or which application, the reason, or
-which approver a denial is recorded for), first run every lookup you can,
-then ask for all of it in one message.
+result. If something is missing (who or which application, which request,
+the reason, or which approver a denial is recorded for), first run every
+lookup you can, then ask for all of it in one message.
 
 ## Workflow
 
@@ -68,7 +69,8 @@ Follow these steps in order. Never skip the confirmation step.
 
 A request is found by its person, its application, or both ("the old pending
 requests for 1Password" names only the application). If neither is known,
-ask.
+ask. If the user means a pending revocation, say the revocation skill handles
+it and stop.
 
 List users via `GET /users?status=all&limit=100` and keep the full list: it
 also labels every request's person and approvers. Resolve a named person by
@@ -90,19 +92,20 @@ when both are known, or
 `GET /access_requests?user_id=<user_id>&limit=100` or
 `GET /access_requests?application_id=<application_id>&limit=100` when only
 one is. Every returned request must match the filters, and every request this
-skill closes needs a present `grantee_user_id` that matches a listed user;
-stop for a request without one and say its person could not be read.
+skill closes needs a present `grantee_user_id` that matches a listed user.
+For a request without one, leave it out and list it as unreadable.
 
 Label each request by application title plus the resource and permission
 titles from `GET /applications/{application_id}/resources`, matching its
 `resource_id` and every one of its `permission_ids`. If a needed title is
-missing, blank, duplicated, or inconsistent, stop for that request and say
-its details could not be read. Never choose or show a request by ID.
+missing, blank, duplicated, or inconsistent, leave that request out and list
+it as unreadable. Never choose or show a request by ID.
 
 When the user gave a date cutoff ("from before March"), compare it with each
-request's `inserted_at`. A vague "old" or "stale" without a date covers every
-matching open request. When the scope depends on age, show each request's
-date in the confirmation so the user sees exactly what will close.
+request's `inserted_at`. A vague "old" or "stale" without a date is missing
+input: ask for the cutoff date together with any other missing input. When
+the scope depends on age, show each request's date in the confirmation so the
+user sees exactly what will close.
 
 ### 3. Choose the action from the status
 
@@ -127,6 +130,9 @@ label and date and ask which one; if two are still identical, ask the user to
 close it in AccessOwl. If the user asked for all of them ("clean up"),
 include every matching open request.
 
+Count the requests to close. Above 100, send nothing and ask the user to
+narrow the scope.
+
 ### 4. Find the approver for each denial
 
 A denial is recorded on behalf of an approver of the request's current
@@ -142,6 +148,8 @@ list.
   which approver the denial is recorded for, in the same single message as
   any other missing input. Never pick one yourself, and never record a denial
   for someone who is not a pending approver of the current step.
+- If the user named an approver who is not a pending approver of the current
+  step, say so and name who can decide, in the one missing-inputs message.
 - None (no pending step, no pending approver, or an approver missing from the
   user list): stop for that request and say its approver could not be
   determined. Nothing is sent for it.
@@ -161,9 +169,6 @@ different ones.
 
 ### 6. Confirm once
 
-Compute the number of requests to close before confirming. Above 100, send
-nothing and ask the user to narrow the scope.
-
 Show one short message: every request to close by person, application,
 resource, and permissions, the action, the approver for each denial, and the
 reason. End with one question and ask nothing else in that message. For
@@ -177,9 +182,25 @@ example:
 >
 > OK to deny?
 
+When the scope depends on age, each line carries the request date:
+
+> Ready to deny these 1Password requests from before March 1, 2026, on behalf
+> of their approvers:
+> - Member for Jan Levinson, requested February 3, 2026, on behalf of Dana Lee
+> - Member for Kevin Malone, requested January 12, 2026, on behalf of Dana Lee
+>
+> Reason: Stale request, please request again if still needed
+>
+> OK to deny?
+
+For a `processing_access` request, the confirmation also says "If it was
+already set up in <App>, rejecting does not remove it.":
+
 > Ready to reject this approved request. Tom Smith will not receive this
 > access:
 > - Notion, Member for Tom Smith
+>
+> If it was already set up in Notion, rejecting does not remove it.
 >
 > Reason: No Notion seats left this quarter
 >
@@ -218,13 +239,18 @@ Send one call per request, one request at a time, each with its own fresh
 
 The documented success status is `200` with the request. Require the same
 request ID, person, application, resource, and permissions, with status
-`denied` after a deny or `rejected` after a reject. A missing, malformed,
-mismatched, or other-status response is an uncertain outcome and stops all
-remaining writes.
+`denied` after a deny or `rejected` after a reject, and `termination_reason`
+equal to the confirmed reason. A missing, malformed, mismatched, or
+other-status response is an uncertain outcome and stops all remaining writes.
 
 After every `200`, re-read `GET /access_requests/{access_request_id}` and
-require the same closed status. If the re-read fails or disagrees with the
-response, report that request as unverified.
+require the same closed status and `termination_reason`. If the re-read fails
+or disagrees with the response, report that request as unverified.
+
+AccessOwl stores the reason verbatim. When a response or re-read shows the
+intended closed status with a different `termination_reason`, someone else
+closed the request: list it as "already closed by someone else", never as
+closed by this run. That outcome is known, not uncertain.
 
 A `422` means the request is already closed or not in a state that allows
 this action. Re-read it with `GET /access_requests/{access_request_id}` and
@@ -232,13 +258,15 @@ say plainly that it was already closed (with its status in plain words) or
 that AccessOwl did not accept the change for its current state, and that
 nothing changed. If the re-read shows the other action now applies, for
 example the request was approved in the meantime, say so; it needs a new
-confirmation.
+confirmation. Never resend it, switch to the other action, or pick another
+approver on your own.
 
 After a timeout, network error, `5xx`, exhausted retries, a malformed
 response, or a same-key replay returning `409`, re-read the request with
 `GET /access_requests/{access_request_id}` and report only its verified
 status. A `409` proves only that the attempt was received. If the re-read
-shows the intended closed status, report it as verified. Otherwise report the
+shows the intended closed status with the confirmed reason, report it as
+verified. Otherwise report the
 outcome as unknown and stop remaining writes. Sending it again with a fresh
 key needs a new confirmation.
 
