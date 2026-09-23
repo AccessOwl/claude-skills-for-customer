@@ -13,7 +13,8 @@ description: >
   was removed from Figma, close the task", "mark the Notion revocation as
   done"), and mark it rejected when the access should stay ("keep Tom's
   access, cancel the revocation"). It never grants or approves access,
-  provisions anything, or deletes users.
+  provisions anything, or deletes users, and never removes access in the
+  application itself.
 ---
 
 # Request Revocation
@@ -64,8 +65,10 @@ result.
 
 ## Workflow
 
-To close a pending revocation instead of creating one, follow
-**Close a pending revocation** below.
+If the user says the removal already happened in the application, or refers
+to an existing pending revocation or task ("close", "mark done", "cancel the
+revocation", "keep the access"), follow **Close a pending revocation**. If
+the user wants access to end, create a revocation. If unclear, ask.
 
 ### 1. Establish who and which application
 
@@ -103,9 +106,12 @@ If the person has no active access to that application, say so and stop.
 At the same time, list
 `GET /access_revocations?user_id=<user_id>&application_id=<application_id>&limit=100`.
 If a pending (`processing_access`) revocation already covers an entry, with
-the same resource and complete permission set, do not create a duplicate for
-it. Say one is already pending and offer to mark it revoked or rejected
-instead (see **Close a pending revocation**).
+the same resource and complete permission set (null `permission_ids` means no
+permissions), do not create a duplicate for it. Say one is already pending
+and offer to close it instead (see **Close a pending revocation**):
+
+> A revocation for this is already pending. If Jan was already removed from
+> Figma, I can mark it revoked; if the access should stay, I can reject it.
 
 A single access entry can carry several permissions (check
 `target_permission_ids`). A revocation always covers the WHOLE entry; the
@@ -185,17 +191,18 @@ Classify the correlated response by its actual status. `processing_access`
 means submitted and in progress. `rejected` is a verified failure. For
 `revoked`, refetch the exact source access state and require a present,
 non-null `effective_end` before saying removal is complete; if it remains
-active or cannot be read, report an inconsistent or unknown result. If an
-uncertain retry returns `409`, do not resubmit and do not call it successful;
-the `409` alone proves only that the attempt was received. Verify it by
-listing
+active or cannot be read, report an inconsistent or unknown result. After
+any uncertain create (a `409` on a same-key replay, exhausted retries, or a
+malformed response), do not resubmit and do not call it successful; a `409`
+alone proves only that the attempt was received. Verify it by listing
 `GET /access_revocations?user_id=<user_id>&application_id=<application_id>&limit=100`
 again. The attempt is verified only when exactly one revocation is missing
 from the pre-create snapshot and matches the confirmed resource, complete
-permission set, and exact reason. Report only that verified revocation and its
-actual status. With zero or several such revocations, say the outcome is still
-unverified. Another attempt needs a fresh confirmation and a new idempotency
-key.
+permission set, and exact reason. Classify a verified revocation found this
+way like a normal `201`, including the `effective_end` check for `revoked`,
+and report only its verified status. With zero or several such revocations,
+say the outcome is still unverified. Another attempt needs a fresh
+confirmation and a new idempotency key.
 
 ### 7. Report the result and set expectations
 
@@ -237,9 +244,10 @@ removal stays pending until someone confirms the person was removed in the
 application. Use this section when the user says that removal happened, or
 that the access should stay.
 
-### Mark a pending revocation revoked
+### Find the pending revocation
 
-1. Resolve the person via `GET /users?status=all&limit=100` and the
+1. If the person or application is missing, ask for both in one message.
+   Resolve the person via `GET /users?status=all&limit=100` and the
    application via `GET /applications?title_like=<title>&limit=100`, with the
    rules of Workflow step 1: exactly one person, and one nonblank application
    title that is unique case-insensitively.
@@ -247,51 +255,64 @@ that the access should stay.
    `GET /access_revocations?status=processing_access&user_id=<user_id>&application_id=<application_id>&limit=100`.
    Every returned record must match that person and application. With none,
    say there is no pending revocation for that person in that application and
-   stop. With several, list them and ask which one; never choose by ID.
+   stop.
 3. Label each revocation by matching its `resource_id` and `permission_ids`
-   to the person's entries from
+   (null `permission_ids` means no permissions) to the person's entries from
    `GET /access_states?grantee_user_id=<id>&application_id=<id>&expand=grantee_user,application,resource,target_permissions&limit=100`,
-   with the labeling rules of Workflow step 3. If no entry matches, label it by the
-   application title and its reason. If two pending revocations still share a
-   label, ask the user to inspect them in AccessOwl.
-4. Mark it revoked only when the user has said the person was actually
-   removed in the application. If they have not, ask; never assume it. If
-   the revocation's `provisioning_type` is `automatic`, add one short note to
-   the confirmation that AccessOwl normally completes these on its own; the
-   user's confirmation is still required.
-5. Confirm in one short message, and do not write before a clear yes:
+   with the labeling rules of Workflow step 3. If no entry matches, label it
+   by the application title and its reason.
+4. With several, list them by label and ask which one; never choose by ID.
+   If two pending revocations still share a label, ask the user to inspect
+   them in AccessOwl.
+
+### Before either close
+
+- Immediately before the `POST`, refetch
+  `GET /access_revocations/{access_revocation_id}` and require the same
+  person, application, resource, and permissions, with status
+  `processing_access`. Otherwise report its current status in plain words
+  and stop.
+- After the `POST`, require the same revocation ID and a documented `status`
+  in the response. Then re-read the same record and require the same status.
+  If the re-read fails or disagrees with the response, report the outcome as
+  unverified. Report only the verified status.
+- A `422` usually means the revocation was already closed. Re-read the same
+  record; if it is already revoked or rejected, say so plainly and that
+  nothing changed. Otherwise report a validation failure in plain language.
+- After an uncertain retry returns `409`, re-read the same record and report
+  only its verified status.
+
+### Mark a pending revocation revoked
+
+1. Find the pending revocation as above.
+2. Mark it revoked only when the user has said the person was actually
+   removed in the application; never assume it. If the user has not said the
+   person was removed, ask it inside the confirmation ("Has Jan Levinson been
+   removed from Figma? If so, OK to mark it revoked?"); a yes to that
+   question counts. If the revocation's `provisioning_type` is `automatic`,
+   add one short note to the confirmation that AccessOwl normally completes
+   these on its own; the user's confirmation is still required.
+3. Confirm in one short message, and do not write before a clear yes:
 
 > Ready to mark the Figma revocation for Jan Levinson as revoked:
-> - Jan Levinson: Figma, Editor
+> - Figma: Editor
 >
 > OK to mark it revoked?
 
-6. Immediately before the `POST`, refetch
-   `GET /access_revocations/{access_revocation_id}` and require the same
-   person, application, resource, and permissions, with status
-   `processing_access`. Otherwise report its current status in plain words
-   and stop.
-7. Send `POST /access_revocations/{access_revocation_id}/revoke` with no body
-   and a fresh `Idempotency-Key`. Require the same revocation ID and a
-   documented `status` in the response. Then re-read
-   `GET /access_revocations/{access_revocation_id}` and require the same
-   status. If the re-read fails or disagrees with the response, report the
-   outcome as unverified. Report only the verified status:
+4. Send `POST /access_revocations/{access_revocation_id}/revoke` with no body
+   and a fresh `Idempotency-Key`, following **Before either close**. Report
+   the verified status:
    - `revoked`: "Marked the Figma revocation for Jan Levinson as revoked."
    - `rejected`: AccessOwl found no current access left to revoke. Say the
      revocation was closed as rejected because no access was left to revoke.
    - Anything else, or a mismatched response, is an unknown outcome.
-
-   After an uncertain retry returns `409`, re-read the same record and report
-   only its verified status.
 
 ### Mark a pending revocation rejected (access stays)
 
 Use this when the access should stay, e.g. "keep Tom's access, cancel the
 revocation".
 
-1. Resolve the person, the application, and the one pending revocation
-   exactly as in steps 1 to 3 of **Mark a pending revocation revoked**.
+1. Find the pending revocation as above.
 2. A `reason` is required (max 255 characters). Ask for one if none was
    given. Faithfully shorten a longer reason to 255 characters or fewer
    before confirmation and before sending.
@@ -300,30 +321,18 @@ revocation".
 
 > Ready to reject the pending Notion revocation for Tom Smith. Tom keeps
 > this access:
-> - Tom Smith: Notion, Member
+> - Notion: Member
 >
 > Reason: Still needed for the Q4 project
 >
 > OK to reject it?
 
-4. Immediately before the `POST`, refetch
-   `GET /access_revocations/{access_revocation_id}` and require the same
-   person, application, resource, and permissions, with status
-   `processing_access`. Otherwise report its current status in plain words
-   and stop.
-5. Send `POST /access_revocations/{access_revocation_id}/reject` with body
+4. Send `POST /access_revocations/{access_revocation_id}/reject` with body
    `{"reason": "<reason>"}`, the exact confirmed reason, and a fresh
-   `Idempotency-Key`. Require the same revocation ID and status `rejected` in
-   the response. Then re-read `GET /access_revocations/{access_revocation_id}`
-   and require the same status; if the re-read fails or disagrees, report the
-   outcome as unverified. Only then report: "Rejected the Notion revocation
-   for Tom Smith. His access stays." Any other status or a mismatched
-   response is an unknown outcome.
-6. A `422` usually means the revocation was already closed. Refetch
-   `GET /access_revocations/{access_revocation_id}`; if it is already revoked
-   or rejected, say so plainly and that nothing changed. Otherwise report a
-   validation failure in plain language. After an uncertain retry returns
-   `409`, refetch the same record and report only its verified status.
+   `Idempotency-Key`, following **Before either close**. Require the
+   verified status `rejected`, then report: "Rejected the Notion revocation
+   for Tom Smith. Tom Smith keeps the access." Any other status or a
+   mismatched response is an unknown outcome.
 
 ## Tone and style
 
