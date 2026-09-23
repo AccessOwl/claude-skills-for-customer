@@ -1,26 +1,27 @@
-# AccessOwl Skills for Claude
+# AccessOwl Skills
 
-Manage access in plain English, right from Slack.
+Manage access in plain English, from Slack or your terminal.
 
-This repository contains **ClaudeTag for AccessOwl**, the official AccessOwl plugin for [Claude Tag](https://claude.com/docs/claude-tag/overview) (Claude in Slack). Install it once, and anyone in your access channel can ask:
+This repository contains **AccessOwl Skills**, the official AccessOwl skills
+for AI assistants. They work in [Claude Tag](https://claude.com/docs/claude-tag/overview)
+(Claude in Slack), [Claude Code](https://code.claude.com), and Codex, and
+are built on the [AccessOwl REST API](https://docs.accessowl.com/api-reference/introduction).
+Read-only questions are answered in one message. Every change is confirmed
+once with you before anything is written. Requests follow your AccessOwl
+approval policies, and the assistant never approves a request. AccessOwl
+returns each access request's workflow status, and only `pending_approval` is
+described as awaiting approval.
 
-> @Claude what does Maria have access to?
+Ask things like:
+
+> What does Maria have access to?
 >
-> @Claude give Tom the same access as Lisa.
+> Give Tom the same access as Lisa.
 >
-> @Claude who has 1Password, grouped by role?
+> Who has 1Password, grouped by role?
 
-Every change is confirmed with you first. AccessOwl returns each access
-request's workflow status; only `pending_approval` means it is awaiting
-approval. Revocations may begin removal immediately, depending on the
-application. Claude can also mark a fully approved, manually provisioned
-request as granted after you confirm the access was set up. The close skill
-denies or rejects open requests you confirm, and it never grants them. The
-onboarding skill adds a new person or onboards an existing one, now or on a
-start date, and reschedules a planned onboarding, after you confirm; it never
-edits a person's details. The offboarding skill offboards a person, now or on
-a date, and reschedules a planned offboarding, after you confirm; it never
-deletes anyone. The assistant never approves a request.
+In Slack, mention the assistant, for example `@Claude what does Maria have
+access to?`.
 
 ## The skills
 
@@ -28,19 +29,19 @@ deletes anyone. The assistant never approves a request.
 |---|---|
 | `request-access` | "Request a HubSpot Marketing seat for Tom." |
 | `grant-access` | "Mixpanel is set up for Dwight, mark the approved request granted." |
-| `close-request` | "Deny Tom's Figma request, he no longer needs it." |
-| `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." |
-| `onboard-user` | "Onboard Sarah Lee, sarah@company.com, starts Monday, manager Mike Carter." |
+| `close-request` | "Deny Tom's pending Figma request, he no longer needs it." |
+| `request-revocation` | "Tom no longer needs his HubSpot seat, revoke it." Or: "Jan was removed from Figma, mark the revocation as revoked." |
+| `onboard-user` | "Onboard Sarah Lee, sarah@company.com, starting Monday, manager Mike Carter." |
 | `offboard-user` | "Tom Smith is leaving, schedule the offboarding for Friday." |
 | `list-access` | "What does Maria have access to?" |
 | `mirror-access` | "Give Tom the same access as Lisa." |
 | `access-report` | "Everyone in Marketing without HubSpot." |
-| `import-userlist` | "Import this CSV into Notion, replacing its current user list." |
+| `import-userlist` | "Import this CSV into our Notion app." |
 | `vendor-update` | "We finished the vendor review for Slack, record today's date." |
-| `view-policies` | "Which policy covers Salesforce?" |
+| `view-policies` | "Who approves Salesforce requests?" |
 | `discovered-apps` | "Which apps has AccessOwl discovered?" |
 
-## Install
+## Install in Claude Tag
 
 Before installing, [connect Claude Tag to AccessOwl](https://docs.accessowl.com/guides/ai/claude-in-slack): pair Claude with your Slack workspace and add your AccessOwl API token as a credential.
 
@@ -50,50 +51,109 @@ Then, as a Claude organization admin:
 
 1. **Fork this repository.** Fork `github.com/AccessOwl/claude-skills-for-customer` into a **private** repository in your organization's GitHub account. Claude only accepts private or internal repositories as organization plugin sources, so your fork is what Claude syncs from.
 2. **Connect your fork.** In claude.ai, go to **Organization settings > Plugins**, add your fork via **Sync from GitHub** (installing the Claude GitHub App on it if prompted), and leave **Sync automatically** on.
-3. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **ClaudeTag for AccessOwl**.
+3. **Attach the plugin.** Open the Access bundle that holds your AccessOwl credential, click **+** in its **Plugins** section, and add **AccessOwl Skills**.
 4. **Add the recommended instructions.** In the custom instructions for your workspace or your access channel, paste:
 
 ```text
 For anything about access, applications, users, or policies, always use
-the skills from the ClaudeTag for AccessOwl plugin. Do not answer
-AccessOwl questions without them.
-
-- Answer read-only questions (who has access, reports, listings) immediately in one message. Never ask permission to look something up.
-- No progress updates, checklists, or "on it" messages. The first reply is the answer or the confirmation question.
-- Use short bullet points and tables. Plain language only: no IDs, no field names, no technical jargon, no em dashes.
-- Before creating any request, confirm once in a single short message, then submit after a clear yes.
-- Before marking approved manual access as granted, confirm the exact person, application, resource, and permission, then verify the resulting current access.
-- Before denying or rejecting an open request, confirm the exact requests, the approver for each denial, and the reason. Closing a request never grants it.
-- Report the returned workflow status for each access request. Describe it as awaiting approval only when the status is `pending_approval`. A revocation can start removal immediately, depending on the application, so always confirm it and never claim removal is complete until verified.
-- Refer to people by name. Use an email only when needed to distinguish people with the same name. Use exact AccessOwl names for applications and permissions.
+the skills from the AccessOwl Skills plugin. Do not answer AccessOwl
+questions without them.
 ```
 
 That's it. Mention `@Claude` in your access channel and ask.
 
+## Install in Claude Code
+
+No fork needed. Run:
+
+```text
+/plugin marketplace add AccessOwl/claude-skills-for-customer
+/plugin install claudetag-for-accessowl@accessowl-claude-skills
+```
+
+Then set your credentials as described below.
+
+## Install in Codex
+
+No fork needed. Run:
+
+```bash
+codex plugin marketplace add AccessOwl/claude-skills-for-customer
+codex plugin add accessowl-skills@accessowl-skills
+```
+
+Then set your credentials as described below.
+
+## Credentials for terminal assistants
+
+Claude Code and Codex read your AccessOwl API token from the environment.
+Create an API token in AccessOwl, then set it in the shell you start the
+assistant from:
+
+```bash
+export ACCESSOWL_API_TOKEN="your-token"
+# Optional, for a sandbox: a full URL ending in /api/v1
+export ACCESSOWL_API_URL="https://sandbox.example.com/api/v1"
+```
+
+- When both a configured connection and `ACCESSOWL_API_URL` are set, the
+  environment variable wins.
+- Never paste a token into the chat. The assistant never asks for one and
+  never accepts one pasted there.
+- Any change (requests, grants, closing requests, imports, onboarding,
+  offboarding, vendor updates) needs a token with write scope.
+
 ## Good to know
 
-- Request skills create **requests**. The grant skill records that a fully
-  approved manual request was set up, then verifies the resulting access. The
-  close skill denies or rejects only the open requests you confirm; it never
-  grants them. The onboarding skill adds the new person you confirm, or
-  onboards an existing person after a separate warning, and starts,
-  schedules, or reschedules onboarding, which provisions what their access
-  template matches; details of existing people are edited on their profile
-  in AccessOwl. The offboarding skill offboards the person you confirm, now
-  or on a date, which sends the offboarding notice and revokes the access
-  AccessOwl tracks; a planned offboarding is cancelled on the person's
-  profile in AccessOwl. The vendor skill makes only the direct metadata
-  updates you confirm. Structure and policy changes are previewed, then
-  completed in AccessOwl. Structure reads expose no usable version token, and policy
-  assignment is an unprotected full-set replacement.
-- Nothing is written to AccessOwl before you confirm it in the conversation.
-- Read-only questions (listings, reports) are answered directly, no confirmation needed.
-- New threads pick up skill updates automatically; ongoing threads keep the version they started with.
-- **Staying up to date:** Claude syncs from your fork, so pull upstream changes with GitHub's **Sync fork** button when a new version ships, or enable Actions on your fork once and the bundled `sync-upstream` workflow pulls them in daily.
-- The plugin also works in [Claude Code](https://code.claude.com), no fork needed there: `/plugin marketplace add AccessOwl/claude-skills-for-customer`.
+- Request skills create **requests**. An access request follows your
+  approval policies, and the assistant reports its returned workflow
+  status: only `pending_approval` means it is awaiting approval. A
+  revocation request may begin removal immediately, depending on the
+  application, so it is always confirmed first. The revocation skill can also mark a pending revocation
+  revoked or rejected after you confirm.
+- The grant skill records that a fully approved manual request was set up,
+  then verifies the resulting access. The close skill denies or rejects only
+  the open requests you confirm; it never grants them.
+- The onboarding skill adds the new person you confirm, or onboards an
+  existing person after a separate warning, and starts, schedules, or
+  reschedules onboarding, which provisions what their access template
+  matches. The offboarding skill offboards the person you confirm, now or on
+  a date, which sends the offboarding notice and revokes the access AccessOwl
+  tracks. Onboarding and offboarding cannot be undone through the API.
+  Details of existing people are edited, and a planned offboarding is
+  cancelled, on the person's profile in AccessOwl. People are never deleted.
+- The user list import fully replaces an application's user list. It is the
+  one deliberate full-replacement write: it is always previewed as Added,
+  Changed, Removed, and Unchanged, and the list is re-read right before and
+  after the write.
+- The vendor skill makes only the direct metadata updates you confirm.
+  Structure and policy changes are previewed, then completed in AccessOwl.
+  Structure reads expose no usable version token, and policy assignment is
+  an unprotected full-set replacement.
+- Nothing is written to AccessOwl before you confirm it in the conversation,
+  and every result is re-read before it is reported.
+- Read-only questions (listings, reports) are answered directly, no
+  confirmation needed.
+- People are referred to by name. An email is added only when needed to
+  distinguish two people with the same name, or in the confirmation of a
+  change that cannot be undone.
+- Statuses use the AccessOwl labels: Provisioning planned, Onboarding,
+  Active, Inactive, Offboarding scheduled, Offboarding, and Offboarded.
+- New conversations pick up skill updates automatically; ongoing ones keep
+  the version they started with.
+
+## Staying up to date
+
+- **Claude Tag:** Claude syncs from your fork, so pull upstream changes with
+  GitHub's **Sync fork** button when a new version ships, or enable Actions
+  on your fork once and the bundled `sync-upstream` workflow pulls them in
+  daily.
+- **Claude Code:** run `/plugin marketplace update accessowl-claude-skills`.
+- **Codex:** run `codex plugin marketplace upgrade`.
 
 ## Learn more
 
-- [Connect Claude Tag to AccessOwl](https://docs.accessowl.com/guides/ai/claude-in-slack), the full setup guide
+- [AccessOwl Skills](https://docs.accessowl.com/guides/ai/accessowl-skills), the overview for every assistant
+- [Connect Claude Tag to AccessOwl](https://docs.accessowl.com/guides/ai/claude-in-slack), the full Claude Tag setup guide
 - [Manage access with Claude Tag](https://docs.accessowl.com/guides/ai/claude-workflows), conversation examples per use case
 - [AccessOwl API reference](https://docs.accessowl.com/api-reference/introduction), everything the skills are built on
