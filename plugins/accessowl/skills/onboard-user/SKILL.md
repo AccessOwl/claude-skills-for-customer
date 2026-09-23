@@ -35,6 +35,7 @@ folder and follow it. The essentials:
 - Base URL `https://api.accessowl.com/api/v1`. When the configured
   connection or the `ACCESSOWL_API_URL` environment variable (a full URL
   ending in `/api/v1`) points to another host, such as a sandbox, use it.
+  When both are set, the `ACCESSOWL_API_URL` environment variable wins.
 - Use the AccessOwl API credential configured for this workspace. In a
   terminal agent, read it from the `ACCESSOWL_API_TOKEN` environment variable.
   Never ask for a token in chat or accept one pasted there.

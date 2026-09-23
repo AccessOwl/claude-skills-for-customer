@@ -929,8 +929,8 @@ and query, page failure, or the cap of
 returned record ID. Reset cursor and record-ID tracking for each fresh query or
 pre-write refetch. The same record ID may reappear across independent traversals;
 a duplicate within one page or a repeat across pages within the same traversal
-is inconsistent. The
-100,000-item budget remains global across the run. Require `meta.limit` to be an
+is inconsistent. The budget of
+100,000 decoded JSON nodes remains global across the run. Require `meta.limit` to be an
 integer equal to the requested `limit=100`, and require the `meta.next_cursor` key
 on every page. It must be either a nonempty string or explicit null. Explicit null
 proves exhaustion. A missing key, empty string, wrong type, repeated cursor,
@@ -998,6 +998,7 @@ A malformed response stops incomplete.
             ("item cap", baseline.replace("100,000", "unlimited"), "PAGINATION_CAP"),
             ("page cap plus one", baseline + "\nPermit 1,001 pages.\n", "PAGINATION_CAP"),
             ("item cap plus one", baseline + "\nPermit 100,001 records.\n", "PAGINATION_CAP"),
+            ("node cap plus one", baseline + "\nPermit 100,001 decoded JSON nodes.\n", "PAGINATION_CAP"),
             ("429 cap", baseline.replace("60 seconds", "600 seconds"), "RETRY_429_BOUNDED"),
             ("429 malformed fallback", baseline.replace("Stop when it is missing", "Use a bounded fallback when it is missing"), "RETRY_429_BOUNDED"),
             ("429 wait cap plus one", baseline + "\nA Retry-After of 61 seconds is valid.\n", "RETRY_429_BOUNDED"),

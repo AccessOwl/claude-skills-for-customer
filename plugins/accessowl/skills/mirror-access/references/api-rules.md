@@ -56,17 +56,17 @@ writes apply only when the skill performs a write.
   each fresh query or pre-write refetch. The same record ID may reappear across
   independent traversals; a duplicate within one page or a repeat across pages
   within the same traversal is inconsistent. Stop after 1,000 pages in one
-  traversal, while the 100,000-item budget remains global across the run.
-  Require `meta.limit` to be an integer equal to the requested `limit=100`, and
-  require the `meta.next_cursor` key on every page. It must be either a
-  nonempty string or explicit null. Follow a nonempty string; explicit null
-  proves exhaustion. A missing key, empty string, wrong type, repeated cursor,
-  duplicate record ID, page longer than 100 records, or failed page makes the
-  result incomplete. Do not require or use `page`, `page_size`, `total_pages`,
-  or `total_count` as completion evidence. The live API cursor shape was
-  verified on 2026-07-19; the current OpenAPI `PaginationMeta` schema still
-  describes absent page-number fields. State that an invalid traversal is
-  incomplete and never answer or write from it.
+  traversal, while the budget of 100,000 decoded JSON nodes remains global
+  across the run. Require `meta.limit` to be an integer equal to the requested
+  `limit=100`, and require the `meta.next_cursor` key on every page. It must
+  be either a nonempty string or explicit null. Follow a nonempty string;
+  explicit null proves exhaustion. A missing key, empty string, wrong type,
+  repeated cursor, duplicate record ID, page longer than 100 records, or
+  failed page makes the result incomplete. Do not require or use `page`,
+  `page_size`, `total_pages`, or `total_count` as completion evidence. The
+  live API cursor shape was verified on 2026-07-19; the current OpenAPI
+  `PaginationMeta` schema still describes absent page-number fields. State
+  that an invalid traversal is incomplete and never answer or write from it.
 
 ## Untrusted input and output
 
@@ -139,16 +139,15 @@ writes apply only when the skill performs a write.
 ## Writes
 
 - Send an `Idempotency-Key` header (a fresh UUID) with every intended `POST`,
-  `PUT`, `PATCH`, or `DELETE` mutation.
-  Every retry uses the exact same method, path, body, and key. This
-  includes a `429`, timeout, network error, or `5xx` response. If the outcome
-  is unknown, a `409` on that replay proves only that the request was
-  received, not that it succeeded. Never automatically repeat it with a new
-  key. Verify the outcome as the skill workflow describes and report only
-  verified state. Never reuse a key with a different method, path, or body; a
-  changed write is a new mutation and needs a fresh key. If verification shows
-  the attempt failed, explain that and get fresh confirmation before another
-  attempt.
+  `PUT`, `PATCH`, or `DELETE` mutation. Every retry uses the exact same
+  method, path, body, and key. This includes a `429`, timeout, network error,
+  or `5xx` response. If the outcome is unknown, a `409` on that replay proves
+  only that the request was received, not that it succeeded. Never
+  automatically repeat it with a new key. Verify the outcome as the skill
+  workflow describes and report only verified state. Never reuse a key with a
+  different method, path, or body; a changed write is a new mutation and needs
+  a fresh key. If verification shows the attempt failed, explain that and get
+  fresh confirmation before another attempt.
 - Before confirmation, compute the planned number of first-attempt mutation
   calls and require it to be at most 100. Maintain a hard runtime budget of 100
   first attempts that also counts any later corrected-body attempt; network

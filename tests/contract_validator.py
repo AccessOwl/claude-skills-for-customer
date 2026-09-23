@@ -169,43 +169,43 @@ ALLOWED_REPOSITORY_FILES = frozenset(
 APPROVED_CONTENT_SHA256: Mapping[Path, str] = {
     Path("README.md"): "e0a420232c1ced15e38108aa47e45bcef52cbc4565d789a63bbc30cf0431d4ea",
     Path("SKILL_STYLE.md"): "0a87f4aa5a8f217961ebf72feeda18a38a2ee6f125db4aa51fdb6077f5d1fc4f",
-    SKILL_ROOT / "access-report" / "SKILL.md": "ad0461a8ec20ff3a69ed6effc2b7f1394128579d29bfed0c202baa4acd3cbedb",
-    SKILL_ROOT / "close-request" / "SKILL.md": "9e1b92b2079eb36a1b6f5feabc8430b5a3258a6e545a5a9b9c1f180f9f250c86",
-    SKILL_ROOT / "discovered-apps" / "SKILL.md": "76248ef1379fab074fb1731c6b30b6b0c23c120af8a2e7d67c0d784da4dfc1fb",
-    SKILL_ROOT / "grant-access" / "SKILL.md": "ba70e52932cd1138b11c0581a32795dbedbc442135a65cf4ef690cd1e2bfd85c",
-    SKILL_ROOT / "import-userlist" / "SKILL.md": "a407b763b9a4e0f02ee3b1944a5c85fc2f9e86ad4f8cfaff7ec6e5f76e04e99b",
-    SKILL_ROOT / "list-access" / "SKILL.md": "08f28c1ae4fc89ec6ee75ad3ea5db44f865e9926cdc6e55de742ddd2302022ed",
-    SKILL_ROOT / "mirror-access" / "SKILL.md": "a6e8329ad8ff775edd267f6d8cb23007112ca329ba466499d5ca331dd3c60269",
-    SKILL_ROOT / "offboard-user" / "SKILL.md": "10ed18ebdb9d187629bd9e318e22c9d4fa20fcd2f853eff9800974dd871625db",
-    SKILL_ROOT / "onboard-user" / "SKILL.md": "7d0aa6723d6fb92622d13def13c9a955a769c284b68c2530d9d6f4496f255346",
-    SKILL_ROOT / "request-access" / "SKILL.md": "68871eae66a050593ed3e2c9ddcd745cc509dcf648e1977a28af65f5b95e02fe",
-    SKILL_ROOT / "request-revocation" / "SKILL.md": "453c777baa2f3b23167738d02dca24157ec4e662531bb345104618bce7b5aa2f",
-    SKILL_ROOT / "vendor-update" / "SKILL.md": "3284e7272d5751a24a9d96a338f9e3a835b1352c4cd1a75a6ab00d4789ff4d1f",
-    SKILL_ROOT / "view-policies" / "SKILL.md": "e3a9bcff29500a6f11eefc04f039c6e1fdb9e4b15b3b2ebf275b14e42f11a1fd",
-    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
-    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "5208ce387207b76ef56ad783c809dabe866603f0e71315dd99e6c240e697b7f4",
+    SKILL_ROOT / "access-report" / "SKILL.md": "618f7a2e239b70e7c70bb17167f0b388f5c0df3015a14034300c8c003a6dc902",
+    SKILL_ROOT / "close-request" / "SKILL.md": "5cc3562e0c79f47cab625979ac3098aba83ef710a7ef22d8595fc40118a272ff",
+    SKILL_ROOT / "discovered-apps" / "SKILL.md": "887aa2bb96272e6151e1cc86cebdacdc5a3fc4b14c633520ad32fa40abd23c63",
+    SKILL_ROOT / "grant-access" / "SKILL.md": "1fa98656e4371107cabea887d1cd4e8ff2e52b81c08e6cd5627e564dc016c394",
+    SKILL_ROOT / "import-userlist" / "SKILL.md": "54a067b481a08863e5fe5ad0366834cdff58a67677f26cb9561d832a1f8a0ad8",
+    SKILL_ROOT / "list-access" / "SKILL.md": "f8ca8880d4790b8253bb9ee0ce8764ce082e536634692ee3a4a56aa9497110eb",
+    SKILL_ROOT / "mirror-access" / "SKILL.md": "c32abce72a789fb110e108d2d9a801ad03530cf56e1521d51ae415f5100c1e9a",
+    SKILL_ROOT / "offboard-user" / "SKILL.md": "9535f4b379d667fd9e7c9718ba8dc24a4a32c7b53fa78760822ef3d0772aadfa",
+    SKILL_ROOT / "onboard-user" / "SKILL.md": "eceba86ca6d111747598a65004ce50984420cca426a92841896fafc740c61149",
+    SKILL_ROOT / "request-access" / "SKILL.md": "2211c67ccf435f471337b87af7b2c363173e00ea949bbbad684c8cb0c9fedb50",
+    SKILL_ROOT / "request-revocation" / "SKILL.md": "7c00e5a7ec66d7691d620accd79e52c06c0e62420ee65863323da9e33583f90b",
+    SKILL_ROOT / "vendor-update" / "SKILL.md": "c3e26e20bce0344786000cffccac68775b7aff5c03d25cd0326f02258b7fd627",
+    SKILL_ROOT / "view-policies" / "SKILL.md": "9c1d73afedd1e60f83d53c11e86431dc9b45244a4728f7de03c32c61f5e4f831",
+    SKILL_ROOT / "access-report" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "close-request" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "discovered-apps" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "grant-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "import-userlist" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "list-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "mirror-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "offboard-user" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "onboard-user" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "request-access" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "request-revocation" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "vendor-update" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
+    SKILL_ROOT / "view-policies" / API_RULES_RELATIVE: "ca6a66436785b48ab4cefa032cb67b73eca2d864c8ef9da8b601c94d3cf7c94a",
 }
 APPROVED_HARNESS_SHA256: Mapping[Path, str] = {
     Path("tests/__init__.py"): "4edc2608a674618b5c120c5e3c0a534975575dc72b4f9905db9d40f41308befa",
     Path("tests/run_tests.py"): "e4799c9740af405e0a6edfd0d33d557cfed74603dd7fd560cce3b7a5c5f39d4f",
     Path("tests/skill_semantics.py"): "dc6ff24d3254fa69fc141a4633f0d7b051cb6b0b4366110647da4d1ba11fb6d7",
-    Path("tests/test_adversarial_oracles.py"): "d160aaa870e2f5e8b46e0796128b8cd52ac2030e276100489b937e6b281cbeb3",
+    Path("tests/test_adversarial_oracles.py"): "edfb28cf90e62ce1b7fe814ba375bc8c9c0a147efbdfc82695f41d3836543062",
     Path("tests/test_api_semantic_oracles.py"): "7389155823ae746c479513018c46045e4dc6d3b14e75a0a04feeb965b2ec9347",
     Path("tests/test_ci_manifest_oracles.py"): "8e065f9e00d1104cca6a83c847635d07467539608c508179ccd5c006fd2c5e70",
     Path("tests/test_output_semantic_oracles.py"): "8bcb3546fea3cb040129fad0c2aa646b40d4c438efbae2a8e5aeff26ddaf49b1",
     Path("tests/test_repository_contract.py"): "ace6db9f382d7cbc7d1112531d8370675afe950907a3fa5006081fcdfde2fce2",
-    Path("tests/test_write_semantic_oracles.py"): "7939452d13628078f7c5a7b2188cd6fc6d13d8b0554b70353dd24e3dd6dc7a71",
+    Path("tests/test_write_semantic_oracles.py"): "14cac5b8c982bcaf10e262847f830388302b0f1fbc77f963c74862236f88923c",
 }
 
 # Curated from https://api.accessowl.com/api/openapi on 2026-09-23. The
@@ -2733,7 +2733,8 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 folded, 1000, r"pages?\b", r"\bpages?\b"
             )
             or _allows_numeric_value_over_cap(
-                folded, 100000, r"(?:items?|records?)\b", r"\b(?:items?|records?)\b"
+                folded, 100000, r"(?:items?|records?|(?:decoded\s+json\s+)?nodes?)\b",
+                r"\b(?:items?|records?|nodes?)\b"
             )
         ):
             issues.append(
@@ -2775,7 +2776,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                         "reset cursor and record-id tracking for each fresh query or pre-write refetch",
                         "same record id may reappear across independent traversals",
                         "a duplicate within one page or a repeat across pages within the same traversal is inconsistent",
-                        "100,000-item budget remains global across the run",
+                        "budget of 100,000 decoded json nodes remains global across the run",
                     )
                 )
                 and not re.search(
@@ -2826,7 +2827,7 @@ def validate_resilience_text(skill: str, text: str, relative: Path | str) -> Lis
                 ("1,000 pages" in normalized or "1000 pages" in normalized)
                 and bool(
                     re.search(
-                        r"100,?000(?:\s+|-)(?:items?|records?)", normalized
+                        r"100,?000(?:\s+|-)(?:items?|records?|decoded\s+json\s+nodes)", normalized
                     )
                 ),
                 "pagination must cap at 1,000 pages and 100,000 items",
@@ -3412,7 +3413,7 @@ def _has_operation_in_paragraph(paragraph: str, operation: Tuple[str, str]) -> b
 
 def _validate_idempotency(skill: str, text: str, relative: Path | str) -> List[Issue]:
     issues: List[Issue] = []
-    folded = text.casefold()
+    folded = " ".join(text.casefold().split())  # phrases may wrap across lines
     if not (
         "idempotency-key" in folded
         and "fresh" in folded

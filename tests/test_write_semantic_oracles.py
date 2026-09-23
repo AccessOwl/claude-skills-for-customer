@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 from typing import Iterable, Set
@@ -20,6 +21,11 @@ from .contract_validator import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def _replace_wrapped(text: str, old: str, new: str) -> str:
+    """Replace the first occurrence of old even when the prose wraps across lines."""
+    pattern = r"\s+".join(map(re.escape, old.split()))
+    return re.sub(pattern, lambda _match: new, text, count=1)
 
 class WriteSemanticOracleTests(unittest.TestCase):
     def skill_text(self, skill: str) -> str:
@@ -388,7 +394,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
         )
         for variant in variants:
             with self.subTest(variant=variant):
-                mutant = text.replace(original, variant, 1)
+                mutant = _replace_wrapped(text, original, variant)
                 self.assertNotEqual(text, mutant)
                 self.assertCode(
                     validate_write_safety_text("request-access", mutant, "SKILL.md"),
@@ -398,7 +404,7 @@ class WriteSemanticOracleTests(unittest.TestCase):
         retry_clause = "includes a `429`, timeout, network error, or `5xx` response."
         for token in ("`429`", "timeout", "network error", "`5xx` response"):
             with self.subTest(retry_token=token):
-                mutant = text.replace(retry_clause, retry_clause.replace(token, "other failure"), 1)
+                mutant = _replace_wrapped(text, retry_clause, retry_clause.replace(token, "other failure"))
                 self.assertNotEqual(text, mutant)
                 self.assertCode(
                     validate_write_safety_text("request-access", mutant, "SKILL.md"),
