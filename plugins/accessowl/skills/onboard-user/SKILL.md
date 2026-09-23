@@ -322,7 +322,7 @@ For example:
 
 > Onboarding for Mike Carter, mike@company.com, started now. Mike Carter is
 > Onboarding and switches to Active automatically once AccessOwl finishes
-> provisioning the access Mike Carter's template matches. For a specific app
+> provisioning the access the template matches. For a specific app
 > beyond the template, make an access request.
 
 For a reschedule:
