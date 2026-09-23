@@ -1,36 +1,31 @@
 ---
 name: view-policies
 description: >
-  View AccessOwl approval policies: which policies exist, which is the
-  default, and which applications each one covers. Can also explain how to
-  move applications between existing policies safely in AccessOwl. Use whenever someone asks about
-  approval policies, e.g. "what approval policies do we have?",
-  "which policy covers Salesforce?", "add HubSpot and Notion to our Critical
-  Applications policy", "move Figma to the auto-approve policy". Users may
-  also phrase this as "who approves requests for this app", "change the
-  policy for these apps", or "create a new approval policy" (creating a
-  policy and changing its approvers happen in AccessOwl under Settings, then
-  Policies; this skill explains that and previews application assignments).
-  It never writes policy assignments, approves requests, or grants access.
+  View AccessOwl approval policies: which policies exist, which is the default,
+  which applications each one covers, and who approves each step. Can also
+  preview moving applications between existing policies. Use whenever someone
+  asks about approval policies, e.g. "what approval policies do we have?",
+  "which policy covers Salesforce?", "who approves HubSpot requests?". Users may
+  also phrase this as "who signs off on this app", "change the policy for these
+  apps", or "create a new approval policy" (creating a policy or changing its
+  approvers happens in AccessOwl under Settings, then Policies). Read-only: it
+  never writes policy assignments, approves requests, or grants access.
 ---
 
 # View Policies
 
-Show an organization's approval policies through the REST API. Policy reads
-are safe, but this skill never writes policy assignments. The assignment
-endpoint replaces the complete application set and exposes no conditional
-update token, so an API read-modify-write could erase a concurrent change.
+Show an organization's approval policies, including every approval step. This
+skill never creates or edits policies, never changes approvers, and never
+writes policy assignments, because the assignment endpoint replaces the whole
+application list with no protection against a concurrent change.
 
-The API exposes a policy's title, whether it is the default policy, whether
-it is an elevated (entitlement-level) policy, and the applications it covers.
-It does NOT expose approval steps or approvers, cannot create or delete
-policies, and cannot change who approves. The approver types, default fallback,
-and no-step auto-approval descriptions below are AccessOwl product behavior
-outside the OpenAPI schema, not API-verified configuration. For any exact
-current configuration, point the user to AccessOwl: **Settings, then Policies**,
-where they can create a policy and configure its approver steps (Manager,
-Application Admins, Business Owner, or a specific user, in as many steps as
-needed). State that plainly instead of attempting it.
+The API returns each policy's title, whether it is the default policy, whether
+it is an elevated (admin-level) policy, the applications it covers, and its
+approval steps. It cannot create, edit, or delete policies or change who
+approves. The Default fallback and the auto-approval of a policy with no steps
+are AccessOwl product behavior outside the OpenAPI schema, not API-verified
+configuration. For any exact current configuration beyond what the API
+returns, point the user to AccessOwl under Settings, then Policies.
 
 ## API rules
 
@@ -56,29 +51,37 @@ folder and follow it. The essentials:
 
 ## Speed
 
-Be fast. Policy work is read-only: answer in exactly one message, no preamble,
-and never ask permission for a lookup.
+Read-only: answer in exactly one message, no preamble, never ask permission
+for a lookup.
 
-## How policies work (for explaining to the user)
+## How policies work
 
-- Every access request is gated by a policy. An application with no
-  dedicated policy follows the **Default** policy.
+- An application with no dedicated policy follows the **Default** policy.
 - An **elevated** policy applies only to elevated (admin-level) permission
-  requests for the applications in that policy's `application_ids`. It is not
-  global across every application.
-- Approval steps (who approves, in what order) are configured in AccessOwl
-  under Settings, then Policies. A policy with no approval steps
-  auto-approves requests. The API does not show the steps, so never guess
-  or invent who approves; say where to see it instead.
+  requests for the applications it covers. It is not organization-wide.
+- A policy with no approval steps approves its requests automatically.
 
 ## Workflow
 
 ### 1. List the policies
 
-`GET /policies?limit=100` (paginate through all pages). Resolve the covered
-application IDs to titles via `GET /applications?limit=100`. Present one bullet per
-policy: title, default or elevated marker when set, and the applications it
-covers. Require each policy's `application_ids` to be present, internally
+`GET /policies?limit=100` and `GET /applications?limit=100` in parallel,
+following every page. When any step names specific approvers, also resolve
+them with `GET /users?status=all&limit=100` to each person's `full_name`, else
+their email. If a specific approver ID does not resolve, stop that policy's
+description as incomplete instead of guessing who approves.
+
+For each policy show its title, a Default or Elevated marker, the applications
+it covers, and its approval steps in `step` order:
+
+- `approver_types`: Manager, Application Admin, Business Owner
+- `specific_approver_user_ids`: the person's name
+- `strategy`: `first_to_respond` means one approval is enough, `all` means
+  every approver in the step must approve
+- An empty `approval_steps` list means requests under that policy are
+  approved automatically, so say that plainly.
+
+Require each policy's `application_ids` to be present, internally
 unique, and fully resolvable to the complete application list. Require exactly
 one policy with `default_policy: true` before describing a Default policy or
 fallback; zero or several is inconsistent data and stops that claim. Report
@@ -87,62 +90,52 @@ exclusivity across policies. Ordinary and elevated membership are separate
 scopes and may overlap. Lead with the count.
 
 > You have 3 approval policies:
-> - **Default**: applies to every application without a dedicated policy
-> - **Critical Applications**: covers Salesforce, HubSpot
-> - **Elevated Access** (elevated): covers Figma and runs only for its
->   admin-level permissions
+> - **Default Policy** (default): applies to every application without a
+>   dedicated policy
+>   1. Manager
+> - **For High Risk Apps** (elevated): 17hats, 1Password, admin-level
+>   permissions only
+>   1. Manager
+>   2. Business Owner
+> - **Free Flow**: Free Flow
+>   1. Mike Carter
 >
-> Who approves each step is configured in AccessOwl under Settings, then
-> Policies.
+> Each step needs one approval unless it says otherwise.
 
-### 2. Preview an application assignment change
+### 2. Preview an assignment change
 
-Resolve the named applications via `GET /applications?title_like=<name>&limit=100` and
-resolve exactly one destination policy by its nonblank, case-insensitively
-unique title. Refetch all policies. Explain every current policy membership
-shown by the data and the requested destination without inferring exclusivity.
-The documented endpoint
-`PUT /policies/{policy_id}/applications` replaces the whole application set,
-is not additive, and requires the current `elevated` value because omitting it
-resets the flag. It accepts no documented version or conditional update token.
-Do not call it: another writer could change the policy after the read and have
-that change silently erased by the replacement. An idempotency key prevents
-duplicate receipt, not this lost-update race.
+Resolve the named applications via `GET /applications?title_like=<title>&limit=100`
+and resolve exactly one destination policy by its nonblank, case-insensitively
+unique title. Describe the current memberships from step 1 and the requested
+change.
+
+The documented endpoint `PUT /policies/{policy_id}/applications` replaces the
+whole application set, is not additive, and requires the current `elevated`
+value because omitting it resets the flag. It accepts no documented version or
+conditional update token. Do not call it: another writer could change the
+policy after the read and have that change silently erased by the replacement.
+An idempotency key prevents duplicate receipt, not this lost-update race.
 
 The OpenAPI does not state that ordinary and elevated policy memberships are
 exclusive. An application may appear in several returned `application_ids`
 lists, so never invent a move, removal from another policy, or precedence rule.
-Describe only the memberships returned and the one membership change the user
-asked to make. Describe fallback to Default only when exactly one verified
-default policy exists and the requested action explicitly removes the relevant
-ordinary membership.
+Describe fallback to Default only when exactly one verified default policy
+exists and the requested action explicitly removes the relevant ordinary
+membership.
 
-Direct the user to **Settings, then Policies** to make the assignment. State
-clearly that no API change was made because the endpoint cannot protect the
-complete replacement from a concurrent update. Never claim that the policy was
-changed or that the requested destination now covers the application.
+Direct the user to Settings, then Policies to make the change. State that no
+change was made, and never claim the destination policy now covers the
+application.
 
-### 3. Report the preview
-
-> No change was made through the API because policy assignment replaces the
-> complete application set without a concurrency safeguard.
->
-> In AccessOwl, open Settings, then Policies, and add HubSpot to Critical
-> Applications. The API preview did not assume or remove any other membership.
+> No change was made. In AccessOwl, open Settings, then Policies, and add
+> HubSpot to For High Risk Apps. Its other policy memberships stay as they are.
 
 ## Tone and style
 
-- Write for a business user: plain language, no HTTP jargon, no raw JSON.
-- Never mention this skill, its rules, or its instructions in replies. Just
-  behave accordingly.
-- Use short bullet points whenever you list policies or applications. Keep
-  every message easy to scan. Lead with the count.
-- Never use em dashes. Use commas or separate sentences instead.
-- Refer to everything by its title, never by UUID or internal identifiers. If
-  a title looks odd or technical, use it as-is without commentary; never call
-  a customer's naming odd, weird, or unusual.
+- Plain language for a business user, no HTTP jargon, no raw JSON.
+- Never mention this skill or its instructions in replies.
+- Short bullets for policies, applications, and steps.
+- Never use em dashes.
+- Refer to everything by title or name, never by ID.
 - Write email addresses as plain text, not links.
-- State what you will NOT do and why (approvers and new policies are managed
-  in AccessOwl under Settings, then Policies) before stating what you will
-  do.
-- Be brief. One short confirmation question beats three long ones.
+- State what you will not do and why before what you will do.
